@@ -22,6 +22,7 @@ import {
   ClaudiumPurchasesService,
   claudiumPurchaseJson,
 } from './claudium_purchases';
+import type { ClaudiumPurchaseRecord } from './claudium_purchases_db';
 import { PgClaudiumPurchasesDb } from './claudium_purchases_db';
 import {
   type AccountModerationStatus,
@@ -36,7 +37,7 @@ import { HttpError } from './http/errors';
 import { requireAccount } from './http/middleware/require_account';
 import { ADMIN_META } from './http/middleware/require_admin';
 import { enum_, num, object, optional, str } from './http/schema';
-import type { Ctx, RouteDef } from './http/types';
+import type { Ctx, Middleware, RouteDef } from './http/types';
 import { json } from './http_util';
 import { publicOriginFromRequest } from './realm';
 import { RealStripeCheckoutCreator } from './stripe_checkout_creator';
@@ -156,20 +157,37 @@ async function checkoutHandler(ctx: Ctx): Promise<void> {
   json(ctx.res, 200, { url: result.url, sessionId: result.sessionId });
 }
 
-/** GET /api/shop/packages/purchases/:sessionId: the caller's own purchase
- *  status, for the storefront confirmation page to poll while the webhook
- *  catches up. Account-owned: a session id belonging to another account (or
- *  no purchase at all) answers the same 404, anti-enumeration, the same
- *  denial shape requireOwned uses for a numeric :id (sessionId is a Stripe
- *  opaque token, not a bigserial, so the numeric-only requireOwned loader
- *  does not apply and this ownership check is inlined instead). */
-async function purchaseStatusHandler(ctx: Ctx): Promise<void> {
+// The legacy-shaped denial body, byte-compatible with require_owned.ts's own
+// notFoundBody convention (an { error, code } object written directly, never
+// thrown as an HttpError/problem+json envelope).
+const PURCHASE_NOT_FOUND_BODY = { error: 'not found', code: 'shop.purchase_not_found' };
+const PURCHASE_STATE_KEY = 'claudium_purchase';
+
+/** Load-then-authorize middleware for GET /api/shop/packages/purchases/:sessionId,
+ *  mirroring server/http/middleware/require_owned.ts's contract (decode the
+ *  param, load account-scoped, deny-by-default on a miss by writing the 404
+ *  directly and never calling next(), stash the loaded row on ctx.state on a
+ *  hit) but for a STRING param: sessionId is a Stripe opaque token, not a
+ *  bigserial, so requireOwned's numeric-only id decoder does not apply and
+ *  this is a sibling implementation rather than a reuse of that factory. */
+const requireOwnedPurchase: Middleware = async (ctx, next) => {
   const decoded = statusParamsSchema.decode(ctx.params);
   if (!decoded.ok) throw decoded;
+  const accountId = ctxAccountId(ctx);
   const purchase = await purchasesService.getPurchaseBySessionId(decoded.value.sessionId);
-  if (!purchase || purchase.accountId !== ctxAccountId(ctx)) {
-    throw new HttpError(404, 'shop.purchase_not_found');
+  if (!purchase || purchase.accountId !== accountId) {
+    json(ctx.res, 404, PURCHASE_NOT_FOUND_BODY);
+    return;
   }
+  ctx.state.set(PURCHASE_STATE_KEY, purchase);
+  await next();
+};
+
+/** GET /api/shop/packages/purchases/:sessionId: the caller's own purchase
+ *  status, for the storefront confirmation page to poll while the webhook
+ *  catches up. Ownership already authorized by requireOwnedPurchase above. */
+async function purchaseStatusHandler(ctx: Ctx): Promise<void> {
+  const purchase = ctx.state.get(PURCHASE_STATE_KEY) as ClaudiumPurchaseRecord;
   json(ctx.res, 200, claudiumPurchaseJson(purchase));
 }
 
@@ -210,12 +228,7 @@ export const routes: RouteDef[] = [
     method: 'GET',
     path: '/api/shop/packages/purchases/:sessionId',
     surface: 'api',
-    middleware: [activeAccount],
-    // Declarative only (see purchaseStatusHandler): the actual load-then-
-    // authorize check is inlined in the handler, not the requireOwned()
-    // middleware factory (which is hardcoded to numeric ids), but this meta
-    // still marks the route as account-owned for the registry's BOLA
-    // coverage/shadow guards.
+    middleware: [activeAccount, requireOwnedPurchase],
     meta: { requireOwned: { kind: 'claudium_purchase', ownerScope: 'account' } },
     handler: purchaseStatusHandler,
   },

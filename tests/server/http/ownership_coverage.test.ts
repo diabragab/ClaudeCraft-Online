@@ -36,6 +36,12 @@ import {
   resetCharactersRuntimeForTests,
   setCharactersDbForTests,
 } from '../../../server/characters';
+import {
+  resetClaudiumPurchasesAuthDbForTests,
+  resetClaudiumPurchasesServiceForTests,
+  setClaudiumPurchasesAuthDbForTests,
+  setClaudiumPurchasesServiceForTests,
+} from '../../../server/claudium_purchases_routes';
 import { compose } from '../../../server/http/compose';
 import { logger } from '../../../server/http/logger';
 import { ADMIN_AUTH_REQUIRED } from '../../../server/http/middleware/require_admin';
@@ -64,17 +70,17 @@ import {
 } from '../../../server/maps_routes';
 import { resetRateLimits } from '../../../server/ratelimit';
 import {
-  resetUserAssetsGuardDbForTests,
-  resetUserAssetsServiceForTests,
-  setUserAssetsGuardDbForTests,
-  setUserAssetsServiceForTests,
-} from '../../../server/user_assets_routes';
-import {
   resetStorefrontOrdersAuthDbForTests,
   resetStorefrontOrdersServiceForTests,
   setStorefrontOrdersAuthDbForTests,
   setStorefrontOrdersServiceForTests,
 } from '../../../server/shop_storefront_orders_routes';
+import {
+  resetUserAssetsGuardDbForTests,
+  resetUserAssetsServiceForTests,
+  setUserAssetsGuardDbForTests,
+  setUserAssetsServiceForTests,
+} from '../../../server/user_assets_routes';
 import { fakeCtx } from '../helpers/fake_ctx';
 import type { FakeRes } from '../helpers/fake_http';
 
@@ -171,6 +177,23 @@ function installDenyingStorefrontOrders(): void {
   } as unknown as import('../../../server/shop_orders').ShopOrdersService);
 }
 
+// Install the Claudium purchases deny environment (Phase 8): the requireAccount
+// guard resolves the valid token to the caller via the route's own swappable
+// authDb seam, and the purchases service's getPurchaseBySessionId always
+// returns null (the requireOwnedPurchase loader's account-scoped load then
+// misses regardless of what it compares, exercising the deny path GET
+// /api/shop/packages/purchases/:sessionId must answer with a 404 before its
+// handler runs).
+function installDenyingClaudiumPurchases(): void {
+  setClaudiumPurchasesAuthDbForTests({
+    accountAndScopeForToken: async () => ({ accountId: CALLER_ACCOUNT_ID, scope: 'full' as const }),
+    moderationStatusForAccount: async () => NOT_LOCKED,
+  });
+  setClaudiumPurchasesServiceForTests({
+    getPurchaseBySessionId: async () => null,
+  } as unknown as import('../../../server/claudium_purchases').ClaudiumPurchasesService);
+}
+
 // Install a fully stubbed runtime so a handler that DID run (the negative control,
 // or a regression where the loader is missing) cannot crash on an unconfigured
 // runtime. The deny sweep never reaches these; they exist so the failure mode of a
@@ -193,15 +216,30 @@ function installFakeRuntime(): void {
   configureCharactersRuntime(runtime);
 }
 
+// Every :param segment's sample value, for a route whose params object is
+// supplied directly (the router is bypassed): :action gets a real enum member
+// (see concretePath); every other :param name (id, sessionId, ...) gets the
+// same numeric-looking placeholder, which is valid input for both a numeric
+// :id and a string :sessionId param.
+function paramsOf(path: string): Record<string, string> {
+  const params: Record<string, string> = {};
+  for (const segment of path.split('/')) {
+    if (!segment.startsWith(':')) continue;
+    const name = segment.slice(1);
+    params[name] = name === 'action' ? 'suspend' : REQUESTED_ID;
+  }
+  return params;
+}
+
 // Build an AUTHED ctx for a route: valid bearer, the route's method, a concrete
-// path, and params.id set to a valid numeric id (the router is bypassed, so params
-// are supplied directly).
+// path, and every :param the path declares set to a sample value (the router
+// is bypassed, so params are supplied directly).
 function authedCtx(route: RouteDef): Ctx {
   return fakeCtx({
     method: route.method,
     url: concretePath(route.path),
     headers: { authorization: `Bearer ${VALID_TOKEN}` },
-    params: { id: REQUESTED_ID },
+    params: paramsOf(route.path),
   });
 }
 
@@ -235,6 +273,7 @@ describe('ownership coverage: registry-wide deny-by-default sweep', () => {
     installFakeRuntime();
     installDenyingMapsAndAssets();
     installDenyingStorefrontOrders();
+    installDenyingClaudiumPurchases();
   });
 
   afterEach(() => {
@@ -246,6 +285,8 @@ describe('ownership coverage: registry-wide deny-by-default sweep', () => {
     resetUserAssetsServiceForTests();
     resetStorefrontOrdersAuthDbForTests();
     resetStorefrontOrdersServiceForTests();
+    resetClaudiumPurchasesAuthDbForTests();
+    resetClaudiumPurchasesServiceForTests();
     vi.restoreAllMocks();
   });
 

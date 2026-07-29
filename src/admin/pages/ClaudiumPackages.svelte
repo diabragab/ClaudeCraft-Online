@@ -283,7 +283,7 @@
             <td>{priceSummary(row)}</td>
             <td>{row.enabled ? t('claudiumPackages.enabledLabel') : t('claudiumPackages.disabledLabel')}</td>
             <td class="num">{row.displayOrder}</td>
-            <td class="num">{row.discountPercent > 0 ? `${row.discountPercent}%` : '—'}</td>
+            <td class="num">{row.discountPercent > 0 ? `${row.discountPercent}%` : '-'}</td>
             <td>{row.featured ? t('shopCommon.yes') : t('shopCommon.no')}</td>
             {#if canManage}
               <td>
