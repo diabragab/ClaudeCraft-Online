@@ -16,6 +16,7 @@ import { seedChatFilterDefaults } from './chat_filter_db';
 import type { ChatLogRow } from './chat_log';
 import { CLAUDIUM_LEDGER_SCHEMA } from './claudium_ledger_db';
 import { CLAUDIUM_PACKAGES_SCHEMA } from './claudium_packages_db';
+import { CLAUDIUM_PURCHASES_SCHEMA } from './claudium_purchases_db';
 import { CONCURRENT_INDEX_MIGRATIONS } from './concurrent_indexes';
 import type { RankedDeedsAccount } from './deeds_board';
 import { DISCORD_SCHEMA } from './discord_db';
@@ -1124,6 +1125,10 @@ export async function ensureSchema(): Promise<void> {
     // other schema modules.
     await client.query(CLAUDIUM_LEDGER_SCHEMA);
     await client.query(CLAUDIUM_PACKAGES_SCHEMA);
+    // Claudium Package purchases + Stripe webhook audit log (Phase 8):
+    // references claudium_packages(id), so it runs after that schema is in
+    // place. Same advisory lock, idempotent CREATE only.
+    await client.query(CLAUDIUM_PURCHASES_SCHEMA);
     // Seed the Armory (Phase 5): mirrors the Season 1 weapon-skin registry into
     // shop_products under a dedicated "Armory" category, so the in-game Shop
     // sells them through the one general Shop System. Idempotent (ON CONFLICT
