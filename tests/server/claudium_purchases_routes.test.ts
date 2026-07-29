@@ -5,6 +5,7 @@
 process.env.DATABASE_URL ||= 'postgres://test:test@127.0.0.1:5433/wocc_claudium_purchases_routes';
 
 import { afterEach, describe, expect, it } from 'vitest';
+import { resetAdminDbForTests, setAdminDbForTests } from '../../server/admin';
 import type {
   ClaudiumPurchaseErrorCode,
   ClaudiumPurchasesService,
@@ -43,6 +44,13 @@ function authedAs(scope: 'read' | 'full' = 'full'): void {
   });
 }
 
+function authedAsAdmin(roles: string[] = ['admin']): void {
+  setAdminDbForTests({
+    accountAndScopeForToken: async () => ({ accountId: 1, scope: 'full' }),
+    adminRolesForAccount: async () => ({ username: 'op', roles }),
+  });
+}
+
 function fakeService(overrides: Partial<Record<keyof ClaudiumPurchasesService, unknown>>): void {
   setClaudiumPurchasesServiceForTests(overrides as unknown as ClaudiumPurchasesService);
 }
@@ -76,6 +84,7 @@ function captured(ctx: Ctx): { status: number; body: unknown } {
 afterEach(() => {
   resetClaudiumPurchasesAuthDbForTests();
   resetClaudiumPurchasesServiceForTests();
+  resetAdminDbForTests();
 });
 
 describe('claudium package checkout route: authorization', () => {
@@ -173,11 +182,163 @@ describe('claudium package checkout route: checkout', () => {
   });
 });
 
+function purchaseRecord(overrides: Partial<Record<string, unknown>> = {}): Record<string, unknown> {
+  return {
+    id: 9,
+    accountId: CALLER_ACCOUNT_ID,
+    accountUsername: 'playerOne',
+    packageId: PACKAGE_ID,
+    packageName: 'Starter Pack',
+    claudiumAmount: 500,
+    bonusAmount: 50,
+    amountTotal: 499,
+    currency: 'USD',
+    status: 'paid',
+    stripeSessionId: 'cs_test_1',
+    stripePaymentIntentId: 'pi_test_1',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    ...overrides,
+  };
+}
+
+describe('claudium package purchase status route', () => {
+  it('401s without a bearer token', async () => {
+    const route = routeFor('GET', '/api/shop/packages/purchases/:sessionId');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/api/shop/packages/purchases/cs_test_1',
+      params: { sessionId: 'cs_test_1' },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(401);
+  });
+
+  it("returns the caller's own purchase", async () => {
+    fakeService({ getPurchaseBySessionId: async () => purchaseRecord() });
+    authedAs('full');
+    const route = routeFor('GET', '/api/shop/packages/purchases/:sessionId');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/api/shop/packages/purchases/cs_test_1',
+      headers: { authorization: BEARER },
+      params: { sessionId: 'cs_test_1' },
+    });
+    await runRoute(route, ctx);
+    const { status, body } = captured(ctx);
+    expect(status).toBe(200);
+    expect(body).toEqual(purchaseRecord());
+  });
+
+  it('404s shop.purchase_not_found for a session with no matching purchase', async () => {
+    fakeService({ getPurchaseBySessionId: async () => null });
+    authedAs('full');
+    const route = routeFor('GET', '/api/shop/packages/purchases/:sessionId');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/api/shop/packages/purchases/cs_unknown',
+      headers: { authorization: BEARER },
+      params: { sessionId: 'cs_unknown' },
+    });
+    await runRoute(route, ctx);
+    const { status, body } = captured(ctx);
+    expect(status).toBe(404);
+    expect((body as { code: string }).code).toBe('shop.purchase_not_found');
+  });
+
+  it("404s shop.purchase_not_found (never 403) for another account's purchase (anti-enumeration)", async () => {
+    fakeService({
+      getPurchaseBySessionId: async () => purchaseRecord({ accountId: CALLER_ACCOUNT_ID + 1 }),
+    });
+    authedAs('full');
+    const route = routeFor('GET', '/api/shop/packages/purchases/:sessionId');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/api/shop/packages/purchases/cs_other',
+      headers: { authorization: BEARER },
+      params: { sessionId: 'cs_other' },
+    });
+    await runRoute(route, ctx);
+    const { status, body } = captured(ctx);
+    expect(status).toBe(404);
+    expect((body as { code: string }).code).toBe('shop.purchase_not_found');
+  });
+});
+
+describe('claudium package admin purchase history route', () => {
+  it('401s without a bearer token', async () => {
+    const route = routeFor('GET', '/admin/api/shop/claudium/purchases');
+    const ctx = fakeCtx({ method: 'GET', url: '/admin/api/shop/claudium/purchases' });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(401);
+  });
+
+  it('403s a viewer role (no shop.read)', async () => {
+    authedAsAdmin(['viewer']);
+    const route = routeFor('GET', '/admin/api/shop/claudium/purchases');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/admin/api/shop/claudium/purchases',
+      headers: { authorization: BEARER },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(403);
+  });
+
+  it('lists purchases with pagination defaults', async () => {
+    authedAsAdmin();
+    let receivedParams: Record<string, unknown> | undefined;
+    fakeService({
+      listPurchases: async (params: Record<string, unknown>) => {
+        receivedParams = params;
+        return { rows: [purchaseRecord()], total: 1 };
+      },
+    });
+    const route = routeFor('GET', '/admin/api/shop/claudium/purchases');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/admin/api/shop/claudium/purchases',
+      headers: { authorization: BEARER },
+    });
+    await runRoute(route, ctx);
+    expect(receivedParams).toMatchObject({
+      page: 1,
+      limit: 20,
+      sort: 'createdAt',
+      dir: 'desc',
+    });
+  });
+
+  it('forwards accountId and status filters', async () => {
+    authedAsAdmin();
+    let receivedParams: Record<string, unknown> | undefined;
+    fakeService({
+      listPurchases: async (params: Record<string, unknown>) => {
+        receivedParams = params;
+        return { rows: [], total: 0 };
+      },
+    });
+    const route = routeFor('GET', '/admin/api/shop/claudium/purchases');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/admin/api/shop/claudium/purchases',
+      headers: { authorization: BEARER },
+      query: { accountId: String(CALLER_ACCOUNT_ID), status: 'paid' },
+    });
+    await runRoute(route, ctx);
+    expect(receivedParams).toMatchObject({ accountId: CALLER_ACCOUNT_ID, status: 'paid' });
+  });
+});
+
 describe('claudium package checkout route: table shape', () => {
-  it('registers exactly the one route on the api surface', () => {
+  it('registers exactly the checkout, status, and admin list routes', () => {
     expect(routes.map((r) => `${r.method} ${r.path}`)).toEqual([
       'POST /api/shop/packages/:id/checkout',
+      'GET /api/shop/packages/purchases/:sessionId',
+      'GET /admin/api/shop/claudium/purchases',
     ]);
     expect(routes[0]?.surface).toBe('api');
+    expect(routes[1]?.surface).toBe('api');
+    expect(routes[2]?.surface).toBe('admin');
   });
 });

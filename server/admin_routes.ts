@@ -280,6 +280,11 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
     pattern: /^\/admin\/api\/shop\/packages\/(\d+)\/delete$/,
     permission: 'shop.manage',
   },
+
+  // Claudium Package purchases (Phase 8, server/claudium_purchases_routes.ts):
+  // the payment history / audit log. Read-only surface, same shop.read as
+  // every other shop read above.
+  { method: 'GET', pattern: '/admin/api/shop/claudium/purchases', permission: 'shop.read' },
 ];
 
 function matches(pattern: string | RegExp, path: string): boolean {

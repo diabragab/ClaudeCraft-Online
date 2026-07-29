@@ -179,14 +179,18 @@ const registryExactPaths = new Set(
 // path template into the SAME regex-source shape its SURFACE_INVENTORY row's
 // `match` field records, and union it into the source-derived set.
 const REGISTRY_ONLY_PARAM_PREFIXES = ['/admin/api/shop/', '/api/shop/', '/admin/api/claudium/'];
-// Every :param segment is numeric EXCEPT :slug (the storefront's slug-keyed
-// category/product detail routes), which matches any non-slash run, mirroring
-// the exact `match` regexes in tests/server/http/surface_inventory.ts.
+// Every :param segment is numeric EXCEPT the non-numeric-keyed ones: :slug
+// (the storefront's slug-keyed category/product detail routes) and
+// :sessionId (the Claudium Package purchase status poll, keyed on Stripe's
+// opaque checkout session id, not a bigserial). Both match any non-slash
+// run, mirroring the exact `match` regexes in
+// tests/server/http/surface_inventory.ts.
+const NON_NUMERIC_PARAM_SEGMENTS = new Set([':slug', ':sessionId']);
 function paramPathToRegexSource(path: string): string {
   const escaped = path
     .split('/')
     .map((segment) => {
-      if (segment === ':slug') return '([^/]+)';
+      if (NON_NUMERIC_PARAM_SEGMENTS.has(segment)) return '([^/]+)';
       return segment.startsWith(':') ? '(\\d+)' : segment;
     })
     .join('\\/');

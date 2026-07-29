@@ -58,6 +58,13 @@ export interface MarkPaidResult {
   alreadyCredited: boolean;
 }
 
+/** JSON shape for both the player status-poll route and the admin payment
+ *  history route; the record already carries no secret beyond the caller's
+ *  own purchase (mirrors claudium_packages.ts's claudiumPackageJson). */
+export function claudiumPurchaseJson(purchase: ClaudiumPurchaseRecord): Record<string, unknown> {
+  return { ...purchase };
+}
+
 export class ClaudiumPurchasesService {
   constructor(
     private readonly packages: Pick<ClaudiumPackagesDb, 'getPackage'>,

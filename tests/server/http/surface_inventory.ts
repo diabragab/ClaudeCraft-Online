@@ -1307,6 +1307,21 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: null,
   },
+  // Claudium Package purchase status poll (Phase 8, server/
+  // claudium_purchases_routes.ts): the caller's own purchase, keyed on the
+  // opaque Stripe session id (not a bigserial, so the ownership check is
+  // inlined in the handler rather than the numeric-only requireOwned loader).
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'GET',
+    path: '/api/shop/packages/purchases/:sessionId',
+    handler: 'server/claudium_purchases_routes.ts purchaseStatusHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.full,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.bola404,
+    match: /^\/api\/shop\/packages\/purchases\/([^/]+)$/,
+  },
   {
     dispatcher: DISPATCH.mainApi,
     method: 'POST',
@@ -2405,6 +2420,18 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: REQUIRE_OWNED.operator404,
     match: /^\/admin\/api\/shop\/packages\/(\d+)\/delete$/,
+  },
+  // Claudium Package purchases payment history / audit log (Phase 8,
+  // server/claudium_purchases_routes.ts).
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/shop/claudium/purchases',
+    handler: 'server/claudium_purchases_routes.ts listPurchasesHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
   },
 
   // -------------------------------------------------------------------------

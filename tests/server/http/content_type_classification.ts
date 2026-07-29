@@ -156,6 +156,7 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/shop/packages': PROBLEM_JSON,
   '/api/shop/packages/:id/checkout': PROBLEM_JSON,
   '/api/shop/claudium/stripe/webhook': PROBLEM_JSON,
+  '/api/shop/packages/purchases/:sessionId': PROBLEM_JSON,
   '/api/card': BINARY,
   '/api/referrals': PROBLEM_JSON,
   '/api/discord/swag/claim': PROBLEM_JSON,

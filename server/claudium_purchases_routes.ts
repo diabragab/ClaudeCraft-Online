@@ -12,11 +12,16 @@
 // player here in a new tab; Stripe redirects back to that same storefront's
 // confirmation page on success.
 
+import { requireAdmin } from './admin';
 import { ClaudiumLedgerService } from './claudium_ledger';
 import { PgClaudiumLedgerDb } from './claudium_ledger_db';
 import { ClaudiumPackagesService } from './claudium_packages';
 import { PgClaudiumPackagesDb } from './claudium_packages_db';
-import { type ClaudiumPurchaseErrorCode, ClaudiumPurchasesService } from './claudium_purchases';
+import {
+  type ClaudiumPurchaseErrorCode,
+  ClaudiumPurchasesService,
+  claudiumPurchaseJson,
+} from './claudium_purchases';
 import { PgClaudiumPurchasesDb } from './claudium_purchases_db';
 import {
   type AccountModerationStatus,
@@ -25,10 +30,12 @@ import {
   pool,
   type TokenScope,
 } from './db';
+import { adminOk } from './http/admin_envelope';
 import { ctxAccountId } from './http/context';
 import { HttpError } from './http/errors';
 import { requireAccount } from './http/middleware/require_account';
-import { num, object } from './http/schema';
+import { ADMIN_META } from './http/middleware/require_admin';
+import { enum_, num, object, optional, str } from './http/schema';
 import type { Ctx, RouteDef } from './http/types';
 import { json } from './http_util';
 import { publicOriginFromRequest } from './realm';
@@ -97,6 +104,23 @@ const checkoutParamsSchema = object({
   id: num({ int: true, min: 1 }),
 });
 
+const statusParamsSchema = object({
+  sessionId: str({ minLength: 1, maxLength: 255 }),
+});
+
+const purchaseStatusEnum = enum_(['pending', 'paid', 'failed', 'expired', 'refunded']);
+const purchaseSortEnum = enum_(['createdAt', 'updatedAt']);
+const sortDirEnum = enum_(['asc', 'desc']);
+
+const listPurchasesQuerySchema = object({
+  page: optional(num({ int: true, min: 1 }), 1),
+  limit: optional(num({ int: true, min: 1, max: 100 }), 20),
+  accountId: optional(num({ int: true, min: 1 })),
+  status: optional(purchaseStatusEnum),
+  sort: optional(purchaseSortEnum, 'createdAt'),
+  dir: optional(sortDirEnum, 'desc'),
+});
+
 function purchaseError(error: ClaudiumPurchaseErrorCode): HttpError {
   switch (error) {
     case 'package_not_found':
@@ -132,9 +156,41 @@ async function checkoutHandler(ctx: Ctx): Promise<void> {
   json(ctx.res, 200, { url: result.url, sessionId: result.sessionId });
 }
 
+/** GET /api/shop/packages/purchases/:sessionId: the caller's own purchase
+ *  status, for the storefront confirmation page to poll while the webhook
+ *  catches up. Account-owned: a session id belonging to another account (or
+ *  no purchase at all) answers the same 404, anti-enumeration, the same
+ *  denial shape requireOwned uses for a numeric :id (sessionId is a Stripe
+ *  opaque token, not a bigserial, so the numeric-only requireOwned loader
+ *  does not apply and this ownership check is inlined instead). */
+async function purchaseStatusHandler(ctx: Ctx): Promise<void> {
+  const decoded = statusParamsSchema.decode(ctx.params);
+  if (!decoded.ok) throw decoded;
+  const purchase = await purchasesService.getPurchaseBySessionId(decoded.value.sessionId);
+  if (!purchase || purchase.accountId !== ctxAccountId(ctx)) {
+    throw new HttpError(404, 'shop.purchase_not_found');
+  }
+  json(ctx.res, 200, claudiumPurchaseJson(purchase));
+}
+
+/** GET /admin/api/shop/claudium/purchases: the payment history / audit log
+ *  the Admin Panel lists, paginated and optionally filtered by account or
+ *  status. */
+async function listPurchasesHandler(ctx: Ctx): Promise<void> {
+  const decoded = listPurchasesQuerySchema.decode(ctx.query);
+  if (!decoded.ok) throw decoded;
+  const { rows, total } = await purchasesService.listPurchases(decoded.value);
+  adminOk(ctx.res, {
+    rows: rows.map(claudiumPurchaseJson),
+    total,
+    page: decoded.value.page,
+    limit: decoded.value.limit,
+  });
+}
+
 // ---------------------------------------------------------------------------
 // The route table. registry.ts spreads this into apiRoutes. Registry-only:
-// no legacy ladder twin (a brand-new player-facing surface).
+// no legacy ladder twin (a brand-new surface).
 // ---------------------------------------------------------------------------
 
 export const routes: RouteDef[] = [
@@ -149,5 +205,26 @@ export const routes: RouteDef[] = [
     // access (activeAccount above still requires a full-scope bearer token).
     meta: { publicRead: true },
     handler: checkoutHandler,
+  },
+  {
+    method: 'GET',
+    path: '/api/shop/packages/purchases/:sessionId',
+    surface: 'api',
+    middleware: [activeAccount],
+    // Declarative only (see purchaseStatusHandler): the actual load-then-
+    // authorize check is inlined in the handler, not the requireOwned()
+    // middleware factory (which is hardcoded to numeric ids), but this meta
+    // still marks the route as account-owned for the registry's BOLA
+    // coverage/shadow guards.
+    meta: { requireOwned: { kind: 'claudium_purchase', ownerScope: 'account' } },
+    handler: purchaseStatusHandler,
+  },
+  {
+    method: 'GET',
+    path: '/admin/api/shop/claudium/purchases',
+    surface: 'admin',
+    middleware: [requireAdmin],
+    meta: ADMIN_META,
+    handler: listPurchasesHandler,
   },
 ];

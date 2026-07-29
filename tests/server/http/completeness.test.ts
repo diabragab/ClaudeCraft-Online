@@ -124,6 +124,7 @@ const REGISTRY_ONLY_PATHS = new Set<string>([
   '/api/shop/packages',
   '/api/shop/packages/:id/checkout',
   '/api/shop/claudium/stripe/webhook',
+  '/api/shop/packages/purchases/:sessionId',
 ]);
 
 // Every legacy /api ladder row (dispatcher === main handleApi), minus the
@@ -350,6 +351,9 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // Phase 8: the Stripe webhook delivery (server/stripe_webhook_routes.ts),
     // a different prefix owner than /api/claudium/stripe/webhook below.
     { method: 'POST', path: '/api/shop/claudium/stripe/webhook' },
+    // Phase 8: the caller's own purchase status poll, keyed on the Stripe
+    // session id (server/claudium_purchases_routes.ts).
+    { method: 'GET', path: '/api/shop/packages/purchases/:sessionId' },
     // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
     // asserted with the internal family below).
     { method: 'GET', path: '/api/daily-rewards/leaderboard' },
