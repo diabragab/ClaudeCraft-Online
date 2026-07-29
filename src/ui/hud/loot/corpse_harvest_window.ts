@@ -1,0 +1,144 @@
+// Thin DOM consumer for the per-corpse focus picker (#1142).
+//
+// Composed into hud.ts's existing loot window (openLoot) rather than a new
+// window: a harvestable, unclaimed corpse gets an extra "Harvest" section
+// appended below the loot rows, with one checkbox per tagged component and a
+// Harvest button. It owns no state beyond the checked set it reports back
+// through `onHarvest`; Hud tracks nothing extra and just re-renders the loot
+// window like it already does for a plain loot-only corpse.
+
+import { esc } from '../../esc';
+import { type TranslationKey, t } from '../../i18n';
+import { type CorpseHarvestViewModel, corpseHarvestView } from './corpse_harvest_view';
+
+export interface CorpseHarvestPainterDeps {
+  /** Called with the checked component tags (may be empty = spread across all). */
+  onHarvest(chosen: string[]): void;
+  /** The Hud's shared tooltip idiom: hover, mobile long-press, keyboard focus. */
+  attachTooltip(element: HTMLElement, html: () => string): void;
+}
+
+const COMPONENT_LABEL_KEYS: Record<string, string> = {
+  hide: 'hudChrome.corpseHarvest.components.hide',
+  fang: 'hudChrome.corpseHarvest.components.fang',
+  silk: 'hudChrome.corpseHarvest.components.silk',
+  venomSac: 'hudChrome.corpseHarvest.components.venomSac',
+  gills: 'hudChrome.corpseHarvest.components.gills',
+  claw: 'hudChrome.corpseHarvest.components.claw',
+  horn: 'hudChrome.corpseHarvest.components.horn',
+  tusk: 'hudChrome.corpseHarvest.components.tusk',
+  meat: 'hudChrome.corpseHarvest.components.meat',
+  cloth: 'hudChrome.corpseHarvest.components.cloth',
+};
+
+/** Exported for tests only, so the label map can be pinned against the real set of
+ *  componentTags used across mob content (see tests/town_focus_i18n.test.ts). */
+export function componentLabel(tag: string): string {
+  const key = COMPONENT_LABEL_KEYS[tag];
+  return key ? t(key as TranslationKey) : tag;
+}
+
+/** Append the harvest picker section into a container (the loot window body). */
+export function renderCorpseHarvestPicker(
+  container: HTMLElement,
+  view: CorpseHarvestViewModel,
+  deps: CorpseHarvestPainterDeps,
+): void {
+  // No rows, or no family on this corpse with an item behind it (#2513): draw
+  // nothing at all rather than a section whose Harvest button can only ever be
+  // dead. The reason line below reports a FORFEIT, which is a statement about
+  // the player's selection, so it would be false here and stays hidden; a
+  // section with live checkboxes, a disabled button and no explanation is worse
+  // than no section, which is exactly what an untagged corpse already shows.
+  // The shipped caller (loot_window_controller.openCorpse) already refuses to
+  // draw the picker for such a corpse; this is the same rule one layer down, for
+  // a caller that gets here anyway.
+  if (view.rows.length === 0 || !view.corpseHarvestable) return;
+  const document = container.ownerDocument;
+  const section = document.createElement('div');
+  section.className = 'corpse-harvest';
+  section.innerHTML = `<div class="corpse-harvest-title">${esc(t('hudChrome.corpseHarvest.title'))}</div>
+    <div class="corpse-harvest-hint">${esc(t('hudChrome.corpseHarvest.concentrateHint'))}</div>`;
+  const list = document.createElement('div');
+  list.className = 'corpse-harvest-list';
+  for (const row of view.rows) {
+    const label = document.createElement('label');
+    label.className = 'corpse-harvest-row';
+    const box = document.createElement('input');
+    box.type = 'checkbox';
+    box.className = 'corpse-harvest-check';
+    box.checked = row.checked;
+    box.value = row.tag;
+    box.setAttribute(
+      'aria-label',
+      t('hudChrome.corpseHarvest.componentAria', { component: componentLabel(row.tag) }),
+    );
+    const span = document.createElement('span');
+    span.textContent = componentLabel(row.tag);
+    label.appendChild(box);
+    label.appendChild(span);
+    list.appendChild(label);
+  }
+  section.appendChild(list);
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'btn corpse-harvest-btn';
+  btn.textContent = t('hudChrome.corpseHarvest.harvestButton');
+  // Attached ONCE, at build: Hud.attachTooltip registers a fresh listener set
+  // per call, so re-attaching it on every toggle would stack them.
+  deps.attachTooltip(btn, () => esc(t('hudChrome.corpseHarvest.harvestTooltip')));
+  section.appendChild(btn);
+  // #2509: the reason a Harvest is refused, stated in place rather than in the
+  // button's tooltip. A `disabled` button takes no pointer events and leaves
+  // the tab order (src/ui/focus_manager.ts), so a tooltip on it is unreachable
+  // by hover, touch and keyboard alike, and an aria-label on it is read only
+  // in browse mode. A live region is reachable by all of them.
+  //
+  // BELOW the button, not above it, and that is load-bearing: this line
+  // appears and disappears as the player toggles boxes, so placing it above
+  // would shove the Harvest button ~17px down at the exact moment they are
+  // reaching for it, and pull it back up when they undo. Below, the only thing
+  // that moves is the popup's own bottom edge.
+  //
+  // role=status + aria-live=polite because the state change is what has to be
+  // announced: the button silently leaves the tab order, and nothing else
+  // would say why. The sentence lives ONLY here, never also on the button, so
+  // browse mode reads it once (the crafting-window pairing of an aria-label
+  // with an aria-hidden note is the other way to do it; one or the other, and
+  // this one needs no locale-specific sentence separator).
+  const warning = document.createElement('div');
+  warning.className = 'corpse-harvest-warning';
+  warning.setAttribute('role', 'status');
+  warning.setAttribute('aria-live', 'polite');
+  warning.textContent = t('hudChrome.corpseHarvest.nothingSelectedYields');
+  section.appendChild(warning);
+  const chosenTags = (): string[] =>
+    [...list.querySelectorAll<HTMLInputElement>('.corpse-harvest-check')]
+      .filter((c) => c.checked)
+      .map((c) => c.value);
+  // The button state and the reason line come from ONE model, so they cannot
+  // drift apart.
+  const apply = (model: CorpseHarvestViewModel): void => {
+    btn.disabled = model.harvestDisabled;
+    warning.hidden = !model.forfeitsEveryYield;
+  };
+  // Initial state is the caller's model, so the view-core stays the single
+  // source of the picker's decisions; every later state is that same core
+  // re-run over the live checkbox set. A discrete change listener, not a
+  // repeating driver: the picker is a cold window
+  // (tests/hud_perf_budget.test.ts) and this handler reads no geometry, so
+  // neither cold contract is touched.
+  apply(view);
+  list.addEventListener('change', () => {
+    apply(
+      corpseHarvestView(
+        view.rows.map((row) => row.tag),
+        new Set(chosenTags()),
+      ),
+    );
+  });
+  btn.addEventListener('click', () => {
+    deps.onHarvest(chosenTags());
+  });
+  container.appendChild(section);
+}

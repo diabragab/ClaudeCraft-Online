@@ -1,0 +1,283 @@
+/* Store stylesheet. Self-contained (mirrors src/guide/styles.css's own-bundle
+   pattern: each SPA entry ships its own CSS rather than importing the HUD's
+   src/styles/ bundle, which is coupled to HUD markup this page never uses).
+   Reuses the SAME design tokens (colors, fonts) as the rest of the site for
+   visual consistency: the --gold / --panel-base palette and the Cinzel +
+   Alegreya Sans typefaces are the exact values from src/styles/tokens.css,
+   and the two @font-face rules below load the SAME self-hosted latin
+   subsets guide.html already preloads (see CREDITS.md for licensing). */
+
+@font-face {
+  font-family: "Cinzel";
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url("/fonts/cinzel-400-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+20AC, U+2122;
+}
+@font-face {
+  font-family: "Alegreya Sans";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/alegreya-sans-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+2000-206F, U+20AC, U+2122;
+}
+
+:root {
+  --gold: #ffd100;
+  --gold-dim: #c8a838;
+  --border: #6f5a2a;
+  --panel-base: #15151f;
+  --panel-bg: linear-gradient(170deg, #15151ff2 0%, #0b0b12f2 60%, #08080df2 100%);
+  --font-display: "Cinzel", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-ui: "Alegreya Sans", "Segoe UI", system-ui, "Helvetica Neue", sans-serif;
+  --text: #f0ebd8;
+  --text-dim: #b8b0a0;
+  --surface-sunken: #0d0d13;
+  --color-danger: #ff6b5e;
+  --color-success: #6bd97a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: #08080d;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.store-body { min-height: 100vh; }
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  color: var(--gold);
+  text-wrap: balance;
+}
+
+a { color: var(--gold); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.store-skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--panel-base);
+  color: var(--gold);
+  padding: 8px 16px;
+  z-index: 100;
+}
+.store-skip-link:focus { left: 8px; top: 8px; }
+
+.store-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel-bg);
+}
+.store-brand {
+  font-family: var(--font-display);
+  font-size: 20px;
+  text-decoration: none;
+  color: var(--gold);
+}
+.store-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  flex: 1;
+}
+.store-nav a { text-decoration: none; color: var(--text); }
+.store-nav a:hover { color: var(--gold); }
+.store-cart-badge {
+  display: inline-block;
+  min-width: 1.2em;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--gold);
+  color: #1a1400;
+  font-size: 12px;
+  text-align: center;
+}
+.store-session { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-dim); }
+.store-session button {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+main#store-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+.store-hero { text-align: center; padding: 32px 0; }
+.store-hero h1 { font-size: 32px; }
+
+.store-section { margin: 32px 0; }
+
+.store-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.store-card {
+  display: block;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 14px;
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+.store-card:hover { border-color: var(--gold-dim); }
+.store-card-title { margin: 0 0 8px; font-size: 16px; color: var(--text); }
+.store-card-price { color: var(--gold); font-weight: 600; }
+.store-card-availability { font-size: 13px; color: var(--color-success); }
+.store-card-availability.store-unavailable { color: var(--color-danger); }
+
+.store-category-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+}
+.store-category-tile {
+  display: block;
+  padding: 16px;
+  background: var(--panel-bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+}
+.store-category-tile:hover { border-color: var(--gold-dim); }
+.store-category-desc { font-size: 13px; color: var(--text-dim); font-weight: 400; margin: 4px 0 0; }
+
+.store-browse-all { display: inline-block; margin-top: 12px; }
+
+.store-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 16px 0;
+}
+.store-controls input[type="search"] {
+  flex: 1;
+  min-width: 180px;
+}
+.store-controls label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--text-dim); }
+
+input, select, textarea, button {
+  font: inherit;
+  color: var(--text);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+}
+button {
+  background: var(--gold);
+  color: #1a1400;
+  border-color: var(--gold-dim);
+  font-weight: 600;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.store-state {
+  padding: 24px;
+  text-align: center;
+  color: var(--text-dim);
+}
+.store-error button { margin-top: 12px; }
+
+.store-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.store-table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.store-cart-qty { width: 64px; }
+.store-cart-summary {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 20px;
+  margin-top: 16px;
+}
+.store-checkout-link { display: inline-block; }
+
+.store-breadcrumb { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+.store-product-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+  margin-top: 16px;
+}
+.store-product-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--text-dim); }
+.store-product-price { font-size: 20px; font-weight: 600; color: var(--gold); }
+.store-product-availability { margin: 8px 0; color: var(--color-success); }
+.store-product-availability.store-unavailable { color: var(--color-danger); }
+
+.store-checkout-review, .store-checkout-payment-note { margin: 16px 0; }
+.store-checkout-lines { list-style: none; padding: 0; }
+.store-checkout-lines li { padding: 6px 0; border-bottom: 1px solid var(--border); }
+.store-checkout-total { font-size: 18px; margin-top: 10px; }
+#store-checkout-form { display: flex; flex-direction: column; gap: 12px; max-width: 480px; }
+#store-checkout-form textarea { min-height: 80px; resize: vertical; }
+
+.store-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px 20px;
+  margin: 0 0 24px;
+}
+.store-summary-grid dt { font-size: 12px; color: var(--text-dim); }
+.store-summary-grid dd { margin: 0; }
+
+.store-timeline { list-style: none; padding: 0; display: grid; gap: 10px; }
+.store-timeline li { padding: 10px; background: var(--surface-sunken); border: 1px solid var(--border); border-radius: 4px; }
+.store-hint { font-size: 12px; color: var(--text-dim); }
+.store-timeline-note { margin-top: 4px; font-size: 13px; }
+
+.store-back-link { display: inline-block; margin-bottom: 12px; }
+
+@media (max-width: 700px) {
+  .store-header { flex-direction: column; align-items: stretch; }
+  .store-nav { justify-content: space-between; }
+  .store-summary-grid { grid-template-columns: 1fr; }
+}
+
+@media (pointer: coarse) {
+  input, select, textarea { font-size: 16px !important; }
+  a, button { min-height: 40px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
+}
