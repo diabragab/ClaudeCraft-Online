@@ -215,6 +215,10 @@ export const ERROR_CODES = deepFreeze({
   'shop.claudium_unavailable': { params: [] },
   'shop.not_deliverable': { params: [] },
   'shop.character_not_found': { params: [] },
+  // shop: the in-game Shop's Gold checkout (Phase 6,
+  // server/shop_gold_checkout.ts). Distinct from insufficient_claudium
+  // because it is a different currency and reason the HUD needs to tell apart.
+  'shop.insufficient_gold': { params: [] },
 } as const);
 
 /** A stable error code: one of the keys of ERROR_CODES. */

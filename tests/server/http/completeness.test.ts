@@ -119,6 +119,7 @@ const REGISTRY_ONLY_PATHS = new Set<string>([
   '/api/shop/orders',
   '/api/shop/orders/:id',
   '/api/shop/claudium/purchase',
+  '/api/shop/gold/purchase',
 ]);
 
 // Every legacy /api ladder row (dispatcher === main handleApi), minus the
@@ -329,6 +330,7 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     { method: 'GET', path: '/api/shop/orders' },
     { method: 'GET', path: '/api/shop/orders/:id' },
     { method: 'POST', path: '/api/shop/claudium/purchase' },
+    { method: 'POST', path: '/api/shop/gold/purchase' },
     // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
     // asserted with the internal family below).
     { method: 'GET', path: '/api/daily-rewards/leaderboard' },

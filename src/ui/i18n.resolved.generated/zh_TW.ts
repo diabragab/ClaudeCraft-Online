@@ -434,6 +434,7 @@ export const zh_TW: EnTranslations = {
       "owned": "已擁有",
       "needMoreTitle": "需要更多 Claudium",
       "needMoreBody": "還需要 {shortfall} Claudium 才能購買 {item}。",
+      "needMoreOk": "OK",
       "cancel": "取消",
       "confirmTitle": "確認購買外觀",
       "confirmBody": "要用 {cost} Claudium 購買 {item} 嗎？",
@@ -2831,7 +2832,8 @@ export const zh_TW: EnTranslations = {
       "price_changed": "價格已變更，請重試。",
       "claudium_unavailable": "克勞迪幣購買功能目前無法使用。",
       "not_deliverable": "此物品無法自動發放。",
-      "character_not_found": "未找到角色。"
+      "character_not_found": "未找到角色。",
+      "insufficient_gold": "您的金幣不足，無法完成此次購買。"
     }
   },
   "guide": {

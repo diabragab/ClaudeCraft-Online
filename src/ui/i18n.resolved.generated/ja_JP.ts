@@ -434,6 +434,7 @@ export const ja_JP: EnTranslations = {
       "owned": "所有済み",
       "needMoreTitle": "Claudiumが不足しています",
       "needMoreBody": "{item}の購入にはあと{shortfall} Claudium必要です。",
+      "needMoreOk": "OK",
       "cancel": "キャンセル",
       "confirmTitle": "外見の購入を確認",
       "confirmBody": "{item}を{cost} Claudiumで購入しますか？",
@@ -2831,7 +2832,8 @@ export const ja_JP: EnTranslations = {
       "price_changed": "価格が変更されました。もう一度お試しください。",
       "claudium_unavailable": "現在クラウディウムでの購入はご利用いただけません。",
       "not_deliverable": "このアイテムは自動で届けられません。",
-      "character_not_found": "キャラクターが見つかりません。"
+      "character_not_found": "キャラクターが見つかりません。",
+      "insufficient_gold": "金貨が不足しているため購入できません。"
     }
   },
   "guide": {

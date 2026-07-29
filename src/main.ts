@@ -156,7 +156,7 @@ import {
   resumeRoute,
   savePlayMarker,
 } from './net/resume_play';
-import { listShopCategories, listShopProducts, purchaseWithClaudium } from './net/shop_client';
+import { listShopCategories, listShopProducts, purchaseWithGold } from './net/shop_client';
 import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
@@ -2465,8 +2465,10 @@ async function startGame(
         };
       },
     };
-    // In-game Shop (Phase 5): the general shop_products catalog + Claudium
-    // checkout, reusing the exact online-only closure pattern above.
+    // In-game Shop (Phase 5/6): the general shop_products catalog + Gold
+    // checkout, reusing the exact online-only closure pattern above. No
+    // external economy service involved: balance is the player's own live
+    // gold, read straight off the online world's inventory facet.
     // characterId is only available on the concrete ClientWorld (not IWorld),
     // which is why this closure lives in main.ts rather than in hud.ts.
     const characterId = online.characterId;
@@ -2476,10 +2478,9 @@ async function startGame(
           listShopCategories(),
           listShopProducts(query, categoryId ?? undefined),
         ]);
-        const balance = (await economy.balance()).balance;
-        return { available: true, balance, categories, products };
+        return { available: true, balance: online.copper, categories, products };
       },
-      purchase: (productId, quantity) => purchaseWithClaudium(productId, characterId, quantity),
+      purchase: (productId, quantity) => purchaseWithGold(productId, characterId, quantity),
     };
     if (!NATIVE_APP) {
       hud.attachClaudium(claudiumHooks);

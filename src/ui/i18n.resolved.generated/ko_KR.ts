@@ -434,6 +434,7 @@ export const ko_KR: EnTranslations = {
       "owned": "보유 중",
       "needMoreTitle": "Claudium이 더 필요합니다",
       "needMoreBody": "{item} 구매에 Claudium {shortfall}개가 더 필요합니다.",
+      "needMoreOk": "OK",
       "cancel": "취소",
       "confirmTitle": "꾸미기 상품 구매 확인",
       "confirmBody": "{item}을(를) {cost} Claudium으로 구매할까요?",
@@ -2831,7 +2832,8 @@ export const ko_KR: EnTranslations = {
       "price_changed": "가격이 변경되었습니다. 다시 시도해 주세요.",
       "claudium_unavailable": "현재 클라우디움 구매를 이용할 수 없습니다.",
       "not_deliverable": "이 아이템은 자동으로 지급할 수 없습니다.",
-      "character_not_found": "캐릭터를 찾을 수 없습니다."
+      "character_not_found": "캐릭터를 찾을 수 없습니다.",
+      "insufficient_gold": "금화가 부족하여 구매할 수 없습니다."
     }
   },
   "guide": {

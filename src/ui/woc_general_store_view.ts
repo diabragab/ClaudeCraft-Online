@@ -6,6 +6,12 @@
 // snapshot the server already returned (search/category filtering happens
 // SERVER-SIDE via the existing /api/shop/products query params, reused
 // as-is, not reimplemented here).
+//
+// Priced and gated on priceGoldCopper (Phase 6): the in-game Shop checks out
+// against the player's own live gold (server/shop_gold_checkout.ts), not an
+// external economy service. A product with no gold price is never
+// purchasable here even if it also carries a Claudium price for the web
+// storefront (server/shop_storefront.ts's own currency picker is unaffected).
 
 import { skinnableWeaponTypesFor } from '../sim/content/weapon_skin_rules';
 import { WEAPON_SKINS } from '../sim/content/weapon_skins';
@@ -27,7 +33,7 @@ export interface ShopCatalogProduct {
   slug: string;
   description: string;
   categoryId: number | null;
-  priceClaudium: number | null;
+  priceGoldCopper: number | null;
   status: 'draft' | 'active' | 'archived';
   featured: boolean;
   grantKind: ShopProductGrantKind;
@@ -58,9 +64,12 @@ export interface GeneralStoreCard {
   shortfall: number | null;
 }
 
+/** balanceCopper is the player's own live gold (world.copper, the
+ *  IWorldInventory facet member), read directly off IWorld, never fetched
+ *  from an external service. */
 export function buildGeneralStoreCards(
   products: readonly ShopCatalogProduct[],
-  balance: number | null,
+  balanceCopper: number | null,
   ctx: GeneralStoreContext,
 ): GeneralStoreCard[] {
   const applicableTypes = new Set<WeaponSkinType>(
@@ -76,9 +85,9 @@ export function buildGeneralStoreCards(
     const skin = weaponSkinId ? WEAPON_SKINS[weaponSkinId] : null;
     const owned =
       weaponSkinId !== null ? ctx.cosmetics.weaponSkinIds.includes(weaponSkinId) : false; // non-skin ownership is not tracked client-side (mailed items live in bags/mail)
-    const priceClaudium = product.priceClaudium;
+    const priceGoldCopper = product.priceGoldCopper;
     const purchasable =
-      priceClaudium !== null &&
+      priceGoldCopper !== null &&
       product.status === 'active' &&
       product.availability !== 'out_of_stock' &&
       product.availability !== 'unavailable' &&
@@ -93,11 +102,14 @@ export function buildGeneralStoreCards(
       canApplyNow: owned && skin !== null && applicableTypes.has(skin.weaponType),
       purchasable,
       affordable:
-        purchasable && balance !== null && priceClaudium !== null && balance >= priceClaudium,
+        purchasable &&
+        balanceCopper !== null &&
+        priceGoldCopper !== null &&
+        balanceCopper >= priceGoldCopper,
       shortfall:
-        priceClaudium === null || balance === null || owned
+        priceGoldCopper === null || balanceCopper === null || owned
           ? null
-          : Math.max(0, priceClaudium - balance),
+          : Math.max(0, priceGoldCopper - balanceCopper),
     };
   });
 }

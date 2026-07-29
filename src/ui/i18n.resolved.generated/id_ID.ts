@@ -434,6 +434,7 @@ export const id_ID: EnTranslations = {
       "owned": "Dimiliki",
       "needMoreTitle": "Dibutuhkan Lebih Banyak Claudium",
       "needMoreBody": "Anda memerlukan {shortfall} lebih banyak Claudium untuk membeli {item}.",
+      "needMoreOk": "OK",
       "cancel": "Batal",
       "confirmTitle": "Konfirmasi Pembelian Kosmetik",
       "confirmBody": "Beli {item} untuk {cost} Claudium?",
@@ -442,7 +443,7 @@ export const id_ID: EnTranslations = {
       "armoryEyebrow": "Musim 1",
       "armoryTitle": "Gudang Senjata",
       "armoryBody": "Tampilan senjata edisi terbatas dari Gudang Senjata Musim 1. Berlaku untuk seluruh akun, murni kosmetik, dan terlihat oleh semua pemain di sekitar Anda.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const id_ID: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

@@ -14,6 +14,7 @@ vi.mock('../src/ui/armory_inspect', () => ({
 vi.mock('../src/ui/portrait_chip', () => ({ portraitChipHtml: () => '' }));
 
 import { DailyRewardsWindow } from '../src/ui/daily_rewards_window';
+import { formatMoney } from '../src/ui/i18n';
 import type { GeneralStoreCard, ShopCatalogProduct } from '../src/ui/woc_general_store_view';
 import type { IWorld } from '../src/world_api';
 
@@ -47,7 +48,7 @@ function weaponSkinProduct(overrides: Partial<ShopCatalogProduct> = {}): ShopCat
     slug: 'armory-cinderbrand-sword',
     description: '',
     categoryId: null,
-    priceClaudium: 200,
+    priceGoldCopper: 200,
     status: 'active',
     featured: false,
     grantKind: 'weapon_skin',
@@ -213,7 +214,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     paintStore(body as unknown as HTMLElement);
 
     expect(writes).toBe(2);
-    expect(html).toContain('1,250');
+    expect(html).toContain(formatMoney(1_250));
   });
 
   it('restores unchanged store markup after the rewards tab occupied the shared body', () => {
@@ -293,15 +294,13 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(body.innerHTML).not.toContain('dr-error');
   });
 
-  it('opens the top-up dialog from an authoritative insufficient-balance response', async () => {
+  it('opens the need-more-gold dialog from an authoritative insufficient-balance response', async () => {
     const root = rootStub();
     const dialog: { body: string; onOk?: () => void } = { body: '' };
-    const order: string[] = [];
-    const openClaudium = vi.fn(() => order.push('claudium'));
     const purchase = vi.fn(async () => ({
       ok: false,
       balance: 100,
-      reason: 'insufficient_claudium',
+      reason: 'insufficient_gold',
     }));
     const window = new DailyRewardsWindow({
       root: () => root,
@@ -310,16 +309,12 @@ describe('DailyRewardsWindow store refresh behavior', () => {
       captureFocus: () => null,
       restoreFocus: () => undefined,
       purchase,
-      openClaudium,
       confirmDialog: (_title, body, _ok, _cancel, onOk) => {
         dialog.body = body;
         dialog.onOk = onOk;
       },
     });
-    const card = weaponSkinCard({ product: weaponSkinProduct({ id: 42, priceClaudium: 200 }) });
-    Object.assign(window as unknown as Record<string, unknown>, {
-      armoryInspect: { close: () => order.push('inspect') },
-    });
+    const card = weaponSkinCard({ product: weaponSkinProduct({ id: 42, priceGoldCopper: 200 }) });
 
     await (
       window as unknown as { purchaseProduct(card: GeneralStoreCard): Promise<void> }
@@ -327,47 +322,12 @@ describe('DailyRewardsWindow store refresh behavior', () => {
 
     expect(purchase).toHaveBeenCalledWith(42, 1);
     expect((window as unknown as { storeBalance: number | null }).storeBalance).toBe(100);
-    expect(dialog.body).toContain('100');
+    // shortfall = 200 - 100 = 100 copper.
+    expect(dialog.body).toContain(formatMoney(100));
     expect(dialog.body).toContain('Cinderbrand');
+    // No external CTA anymore (gold is earned in-world, never purchased): OK
+    // is purely dismissive and must not throw.
     expect(dialog.onOk).toBeTypeOf('function');
-    dialog.onOk?.();
-    expect(openClaudium).toHaveBeenCalledOnce();
-    expect(order).toEqual(['inspect', 'claudium']);
-  });
-
-  it('refreshes and requires a new confirmation when the price changed', async () => {
-    const confirmations: string[] = [];
-    const purchase = vi.fn(async () => ({ ok: false, balance: 2_000, reason: 'price_changed' }));
-    const window = new DailyRewardsWindow({
-      root: () => rootStub(),
-      world: worldStub,
-      closeOthers: () => undefined,
-      captureFocus: () => null,
-      restoreFocus: () => undefined,
-      purchase,
-      confirmDialog: (_title, body) => confirmations.push(body),
-    });
-    const original = weaponSkinCard({
-      product: weaponSkinProduct({ id: 7, priceClaudium: 200 }),
-      affordable: true,
-    });
-    const current = weaponSkinCard({
-      product: weaponSkinProduct({ id: 7, priceClaudium: 1_000 }),
-      affordable: true,
-    });
-    Object.assign(window as unknown as Record<string, unknown>, {
-      storeCards: [],
-      renderStore: async () => {
-        Object.assign(window as unknown as Record<string, unknown>, { storeCards: [current] });
-      },
-    });
-
-    await (
-      window as unknown as { purchaseProduct(card: GeneralStoreCard): Promise<void> }
-    ).purchaseProduct(original);
-
-    expect(purchase).toHaveBeenCalledWith(7, 1);
-    expect(confirmations).toHaveLength(1);
-    expect(confirmations[0]).toContain('1,000');
+    expect(() => dialog.onOk?.()).not.toThrow();
   });
 });

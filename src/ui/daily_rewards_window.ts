@@ -11,7 +11,8 @@ import {
 } from './daily_rewards_view';
 import { markDialogRoot } from './dialog_root';
 import { esc } from './esc';
-import { formatDateTime, formatNumber, t } from './i18n';
+import { formatDateTime, formatMoney, formatNumber, t } from './i18n';
+import { iconDataUrl } from './icons';
 import { rovingTarget } from './roving_index';
 import { svgIcon } from './ui_icons';
 import {
@@ -89,7 +90,9 @@ export interface DailyRewardsWindowDeps {
   onStatus?(status: DailyRewardStatus): void;
   onWalletConnect?(): void;
   storeEnabled?(): boolean;
-  /** The in-game Shop's general catalog (Phase 5): server-side search + category filter. */
+  /** The in-game Shop's general catalog (Phase 5): server-side search + category
+   *  filter. balance is the player's own live gold in copper (Phase 6), never
+   *  an external service's currency. */
   catalogSnapshot?(
     query: string,
     categoryId: number | null,
@@ -99,12 +102,11 @@ export interface DailyRewardsWindowDeps {
     categories: { id: number; name: string; slug: string }[];
     products: ShopCatalogProduct[];
   }>;
-  /** Buy one unit(s) of a product with Claudium; delivery is immediate server-side. */
+  /** Buy one unit(s) of a product with the player's own gold; delivery is immediate server-side. */
   purchase?(
     productId: number,
     quantity: number,
   ): Promise<{ ok: boolean; balance: number | null; reason: string | null }>;
-  openClaudium?(): void;
   confirmDialog?(
     title: string,
     body: string,
@@ -133,7 +135,6 @@ export class DailyRewardsWindow {
   private storeLoading = false;
   private storeReady = false;
   private storeError = false;
-  private storePriceChanged = false;
   private paintedStoreBody: HTMLElement | null = null;
   private paintedStoreMarkup: string | null = null;
 
@@ -382,7 +383,7 @@ export class DailyRewardsWindow {
     return {
       skin,
       art: armorySkinArt(skin.id),
-      costClaudium: card.product.priceClaudium,
+      costGoldCopper: card.product.priceGoldCopper,
       purchasable: card.purchasable,
       owned: card.owned,
       applied: card.applied,
@@ -401,20 +402,13 @@ export class DailyRewardsWindow {
       );
       return;
     }
-    const balance = formatNumber(this.storeBalance, { maximumFractionDigits: 0 });
-    const notice = this.storePriceChanged
-      ? `<div class="woc-store-notice" role="status">${esc(t('hudChrome.wocStore.priceChanged'))}</div>`
-      : '';
+    const balance = esc(formatMoney(this.storeBalance));
     const markup =
       `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.title'))}</h2><p>${esc(t('hudChrome.wocStore.generalBody'))}</p></div>` +
-      `<div class="woc-store-balance"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><span>${esc(t('hudChrome.wocStore.balance'))}</span><strong>${balance}</strong><button type="button" data-buy-claudium>${esc(t('hudChrome.wocStore.buyClaudium'))}</button></div></div>` +
+      `<div class="woc-store-balance"><span>${esc(t('hudChrome.wocStore.balance'))}</span><strong>${balance}</strong></div></div>` +
       this.storeControlsHtml() +
-      notice +
       this.storeGridHtml();
     if (!this.replaceStoreBody(body, markup)) return;
-    body.querySelector<HTMLButtonElement>('[data-buy-claudium]')?.addEventListener('click', () => {
-      this.openClaudiumFromStore();
-    });
     body
       .querySelector<HTMLInputElement>('[data-store-search]')
       ?.addEventListener('input', (event) => {
@@ -484,15 +478,22 @@ export class DailyRewardsWindow {
     const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : null;
     const copy = skin ? localizeWeaponSkin(skin) : null;
     const name = copy?.name ?? card.product.name;
-    const art = skin ? armorySkinArt(skin.id) : null;
-    const priceClaudium = card.product.priceClaudium;
+    // Weapon-skin grants use the curated Armory render; a plain item grant
+    // falls back to the same item-icon system bags/vendor/mailbox already
+    // use, so a shop_products row never renders with no art at all.
+    const art = skin
+      ? armorySkinArt(skin.id)
+      : card.grantKind === 'item' && card.product.grantItemId
+        ? iconDataUrl('item', card.product.grantItemId, 128)
+        : null;
+    const priceGoldCopper = card.product.priceGoldCopper;
     const state = card.owned
       ? card.applied
         ? `<span class="armory-state applied">${esc(t('hudChrome.wocStore.applied'))}</span>`
         : `<span class="armory-state">${esc(t('hudChrome.wocStore.owned'))}</span>`
-      : !card.purchasable || priceClaudium === null
+      : !card.purchasable || priceGoldCopper === null
         ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
-        : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
+        : `<span class="armory-cost"><strong>${esc(formatMoney(priceGoldCopper))}</strong></span>`;
     const rarityClass = skin ? ` rarity-${esc(skin.rarity)}` : '';
     return (
       `<article class="armory-card${rarityClass}${card.owned ? ' owned' : ''}${card.applied ? ' applied' : ''}">` +
@@ -568,7 +569,7 @@ export class DailyRewardsWindow {
   }
 
   private requestPurchase(card: GeneralStoreCard): void {
-    const cost = card.product.priceClaudium;
+    const cost = card.product.priceGoldCopper;
     if (card.owned || !card.purchasable || cost === null) return;
     if (!card.affordable) {
       this.openNeedMoreDialog(card, cost, this.storeBalance);
@@ -579,10 +580,7 @@ export class DailyRewardsWindow {
       : card.product.name;
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.confirmTitle'),
-      t('hudChrome.wocStore.confirmBody', {
-        item: name,
-        cost: formatNumber(cost, { maximumFractionDigits: 0 }),
-      }),
+      t('hudChrome.wocStore.confirmBody', { item: name, cost: formatMoney(cost) }),
       t('hudChrome.wocStore.confirmPurchase'),
       t('hudChrome.wocStore.cancel'),
       () => void this.purchaseProduct(card),
@@ -591,26 +589,15 @@ export class DailyRewardsWindow {
 
   private async purchaseProduct(card: GeneralStoreCard): Promise<void> {
     const productId = card.product.id;
-    this.storePriceChanged = false;
     const result = await this.deps.purchase?.(productId, 1);
-    if (result?.reason === 'price_changed') {
-      this.storePriceChanged = true;
-      if (result.balance !== null) this.storeBalance = result.balance;
-      await this.renderStore(null);
-      const current = this.storeCards.find((c) => c.product.id === productId);
-      if (current && current.product.priceClaudium !== card.product.priceClaudium) {
-        this.requestPurchase(current);
-      }
-      return;
-    }
-    if (result?.reason === 'insufficient_claudium') {
+    if (result?.reason === 'insufficient_gold') {
       if (result.balance !== null) {
         this.storeBalance = result.balance;
         this.rebuildStoreCards();
         const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
         if (body) this.paintStore(body);
       }
-      this.openNeedMoreDialog(card, card.product.priceClaudium ?? 0, result.balance);
+      this.openNeedMoreDialog(card, card.product.priceGoldCopper ?? 0, result.balance);
       return;
     }
     if (!result?.ok) {
@@ -628,28 +615,23 @@ export class DailyRewardsWindow {
 
   private openNeedMoreDialog(
     card: GeneralStoreCard,
-    costClaudium: number,
+    costGoldCopper: number,
     balance: number | null,
   ): void {
     const knownBalance = balance ?? this.storeBalance;
     const name = card.weaponSkinId
       ? localizeWeaponSkin(WEAPON_SKINS[card.weaponSkinId]).name
       : card.product.name;
-    const shortfall = formatNumber(Math.max(0, costClaudium - (knownBalance ?? 0)), {
-      maximumFractionDigits: 0,
-    });
+    const shortfall = formatMoney(Math.max(0, costGoldCopper - (knownBalance ?? 0)));
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.needMoreTitle'),
       t('hudChrome.wocStore.needMoreBody', { item: name, shortfall }),
-      t('hudChrome.wocStore.buyClaudium'),
+      t('hudChrome.wocStore.needMoreOk'),
       t('hudChrome.wocStore.cancel'),
-      () => this.openClaudiumFromStore(),
+      () => {
+        /* purely informational: the player still needs to earn the gold in-world */
+      },
     );
-  }
-
-  private openClaudiumFromStore(): void {
-    this.armoryInspect?.close();
-    this.deps.openClaudium?.();
   }
 
   private paint(view: DailyRewardsView): void {

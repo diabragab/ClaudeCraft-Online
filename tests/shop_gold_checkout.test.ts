@@ -1,12 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-vi.mock('../server/claudium_proxy', () => ({ claudiumSpend: vi.fn() }));
 vi.mock('../server/claudium', () => ({ grantWeaponSkinForShop: vi.fn() }));
 
 import { grantWeaponSkinForShop } from '../server/claudium';
-import { claudiumSpend } from '../server/claudium_proxy';
-import { ShopClaudiumCheckoutService } from '../server/shop_claudium_checkout';
 import { configureShopDeliveryRuntime } from '../server/shop_delivery';
+import {
+  configureShopGoldCheckoutRuntime,
+  ShopGoldCheckoutService,
+} from '../server/shop_gold_checkout';
 import type {
   ShopAccountLookup,
   ShopOrderCreateInput,
@@ -26,12 +27,12 @@ import type {
 } from '../server/shop_products';
 import { ShopProductsService } from '../server/shop_products';
 
-const claudiumSpendMock = vi.mocked(claudiumSpend);
 const grantWeaponSkinForShopMock = vi.mocked(grantWeaponSkinForShop);
 
 // Minimal in-memory fakes mirroring the real Db contracts (server/CLAUDE.md:
-// "Endpoint tests: FakeDb, not a pg-mock"), scoped to exactly what
-// ShopClaudiumCheckoutService's orchestration calls: getProduct, createOrder,
+// "Endpoint tests: FakeDb, not a pg-mock"), the same shape as
+// tests/shop_claudium_checkout.test.ts, scoped to exactly what
+// ShopGoldCheckoutService's orchestration calls: getProduct, createOrder,
 // applyTransition (the pending->paid/cancelled path).
 class FakeProductsDb implements ShopProductsDb {
   products = new Map<number, ShopProductRecord>();
@@ -90,7 +91,7 @@ class FakeOrdersDb implements ShopOrdersDb {
           productId: item.productId,
         };
       }
-      const unitPrice = product.priceClaudium ?? 0;
+      const unitPrice = product.priceGoldCopper ?? 0;
       items.push({
         id: items.length + 1,
         productId: item.productId,
@@ -176,8 +177,8 @@ function baseProduct(overrides: Partial<ShopProductRecord> = {}): ShopProductRec
     slug: 'armory-cinderbrand-sword',
     description: '',
     categoryId: null,
-    priceGoldCopper: null,
-    priceClaudium: 200,
+    priceGoldCopper: 20000,
+    priceClaudium: null,
     priceUsdCents: null,
     railSol: false,
     railUsdc: false,
@@ -196,18 +197,17 @@ function baseProduct(overrides: Partial<ShopProductRecord> = {}): ShopProductRec
 function setup(): {
   productsDb: FakeProductsDb;
   ordersDb: FakeOrdersDb;
-  svc: ShopClaudiumCheckoutService;
+  svc: ShopGoldCheckoutService;
 } {
   const productsDb = new FakeProductsDb();
   const ordersDb = new FakeOrdersDb();
   const products = new ShopProductsService(productsDb, new FakeCategoryLookup());
   const orders = new ShopOrdersService(ordersDb, new FakeAccountLookup());
-  return { productsDb, ordersDb, svc: new ShopClaudiumCheckoutService(products, orders) };
+  return { productsDb, ordersDb, svc: new ShopGoldCheckoutService(products, orders) };
 }
 
-describe('ShopClaudiumCheckoutService.purchase', () => {
+describe('ShopGoldCheckoutService.purchase', () => {
   beforeEach(() => {
-    claudiumSpendMock.mockReset();
     grantWeaponSkinForShopMock.mockReset();
     configureShopDeliveryRuntime({ mailItemToCharacter: vi.fn(() => true) });
   });
@@ -227,7 +227,6 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
 
     expect(result).toEqual({ ok: false, error: 'not_deliverable' });
     expect(ordersDb.orders).toHaveLength(0);
-    expect(claudiumSpendMock).not.toHaveBeenCalled();
   });
 
   it('returns not_found for a nonexistent product', async () => {
@@ -241,11 +240,13 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
     expect(result).toEqual({ ok: false, error: 'not_found' });
   });
 
-  it('propagates an order-creation rejection (e.g. out of stock) without spending', async () => {
+  it('propagates an order-creation rejection (e.g. out of stock) without spending gold', async () => {
     const { productsDb, ordersDb, svc } = setup();
     const product = baseProduct();
     productsDb.products.set(1, product);
     ordersDb.outOfStockProductIds.add(1);
+    const spendGoldFromCharacter = vi.fn(() => 999_999);
+    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter });
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -255,20 +256,16 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
     });
 
     expect(result).toEqual({ ok: false, error: 'insufficient_stock' });
-    expect(claudiumSpendMock).not.toHaveBeenCalled();
+    expect(spendGoldFromCharacter).not.toHaveBeenCalled();
   });
 
-  it('charges Claudium, marks the order paid, and grants the weapon skin on success', async () => {
+  it('deducts the exact order total, marks the order paid, and grants the weapon skin on success', async () => {
     const { productsDb, ordersDb, svc } = setup();
-    const product = baseProduct();
+    const product = baseProduct({ priceGoldCopper: 20000 });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
-    claudiumSpendMock.mockResolvedValue({
-      granted: true,
-      balance: 800,
-      costClaudium: 200,
-      reason: null,
-    });
+    const spendGoldFromCharacter = vi.fn(() => 5_000);
+    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter });
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -280,36 +277,24 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.order.status).toBe('paid');
-    expect(result.balance).toBe(800);
-    expect(claudiumSpendMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        accountId: ACCOUNT_ID,
-        itemId: 'cinderbrand_sword',
-        kind: 'skin',
-        expectedCostClaudium: 200,
-        idempotencyKey: `shop-order-${result.order.id}`,
-      }),
-    );
+    expect(result.balance).toBe(5_000);
+    expect(spendGoldFromCharacter).toHaveBeenCalledWith(CHARACTER_ID, 20000);
     expect(grantWeaponSkinForShopMock).toHaveBeenCalledWith(ACCOUNT_ID, 'cinderbrand_sword');
   });
 
-  it("mails an item-kind grant to the buyer's live character on success", async () => {
+  it("mails an item-kind grant to the buyer's live character on success, scaled by quantity", async () => {
     const { productsDb, ordersDb, svc } = setup();
     const product = baseProduct({
       grantKind: 'item',
       grantItemId: 'healing_potion',
       grantQuantity: 3,
+      priceGoldCopper: 500,
     });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
-    claudiumSpendMock.mockResolvedValue({
-      granted: true,
-      balance: 500,
-      costClaudium: 200,
-      reason: null,
-    });
     const mailItemToCharacter = vi.fn(() => true);
     configureShopDeliveryRuntime({ mailItemToCharacter });
+    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter: () => 10_000 });
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -323,17 +308,12 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
   });
 
-  it('cancels the pending order and reports insufficient_balance without granting anything', async () => {
+  it('cancels the pending order and reports insufficient_gold without granting anything', async () => {
     const { productsDb, ordersDb, svc } = setup();
     const product = baseProduct();
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
-    claudiumSpendMock.mockResolvedValue({
-      granted: false,
-      balance: 50,
-      costClaudium: 200,
-      reason: 'insufficient_balance',
-    });
+    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter: () => null });
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -342,66 +322,8 @@ describe('ShopClaudiumCheckoutService.purchase', () => {
       quantity: 1,
     });
 
-    expect(result).toEqual({
-      ok: false,
-      error: 'insufficient_balance',
-      balance: 50,
-      costClaudium: 200,
-    });
+    expect(result).toEqual({ ok: false, error: 'insufficient_gold', balance: null });
     expect(ordersDb.orders[0]?.status).toBe('cancelled');
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
-  });
-
-  it('reports price_changed when the economy service rejects the expected cost', async () => {
-    const { productsDb, ordersDb, svc } = setup();
-    const product = baseProduct();
-    productsDb.products.set(1, product);
-    ordersDb.productLookup.set(1, product);
-    claudiumSpendMock.mockResolvedValue({
-      granted: false,
-      balance: 1_000,
-      costClaudium: 250,
-      reason: 'price_changed',
-    });
-
-    const result = await svc.purchase({
-      accountId: ACCOUNT_ID,
-      characterId: CHARACTER_ID,
-      productId: 1,
-      quantity: 1,
-    });
-
-    expect(result).toEqual({
-      ok: false,
-      error: 'price_changed',
-      balance: 1_000,
-      costClaudium: 250,
-    });
-    expect(ordersDb.orders[0]?.status).toBe('cancelled');
-  });
-
-  it('reports spend_unavailable when the economy service is off', async () => {
-    const { productsDb, ordersDb, svc } = setup();
-    const product = baseProduct();
-    productsDb.products.set(1, product);
-    ordersDb.productLookup.set(1, product);
-    claudiumSpendMock.mockResolvedValue({
-      granted: false,
-      balance: null,
-      costClaudium: null,
-      reason: 'unavailable',
-    });
-
-    const result = await svc.purchase({
-      accountId: ACCOUNT_ID,
-      characterId: CHARACTER_ID,
-      productId: 1,
-      quantity: 1,
-    });
-
-    expect(result.ok).toBe(false);
-    if (result.ok) throw new Error('expected rejection');
-    expect(result.error).toBe('spend_unavailable');
-    expect(ordersDb.orders[0]?.status).toBe('cancelled');
   });
 });

@@ -434,6 +434,7 @@ export const vi_VN: EnTranslations = {
       "owned": "Sở hữu",
       "needMoreTitle": "Cần thêm Claudium",
       "needMoreBody": "Bạn cần thêm {shortfall} Claudium để mua {item}.",
+      "needMoreOk": "OK",
       "cancel": "Hủy",
       "confirmTitle": "Xác nhận mua mỹ phẩm",
       "confirmBody": "Mua {item} với giá {cost} Claudium?",
@@ -442,7 +443,7 @@ export const vi_VN: EnTranslations = {
       "armoryEyebrow": "Mùa 1",
       "armoryTitle": "Kho Vũ Khí",
       "armoryBody": "Ngoại hình vũ khí giới hạn từ Kho Vũ Khí Mùa 1. Dùng chung toàn tài khoản, hoàn toàn mang tính thẩm mỹ và hiển thị với mọi người xung quanh bạn.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const vi_VN: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

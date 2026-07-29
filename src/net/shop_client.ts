@@ -27,6 +27,7 @@ export interface ShopCatalogProduct {
   slug: string;
   description: string;
   categoryId: number | null;
+  priceGoldCopper: number | null;
   priceClaudium: number | null;
   status: 'draft' | 'active' | 'archived';
   featured: boolean;
@@ -102,10 +103,30 @@ export async function purchaseWithClaudium(
   characterId: number,
   quantity: number,
 ): Promise<ShopClaudiumPurchaseResult> {
+  return purchaseAt('/api/shop/claudium/purchase', productId, characterId, quantity);
+}
+
+/** Buy one unit(s) of a product with the player's own live gold (Phase 6):
+ *  no external economy service, delivery is immediate server-side. Same
+ *  wire shape and error-code convention as purchaseWithClaudium above. */
+export async function purchaseWithGold(
+  productId: number,
+  characterId: number,
+  quantity: number,
+): Promise<ShopClaudiumPurchaseResult> {
+  return purchaseAt('/api/shop/gold/purchase', productId, characterId, quantity);
+}
+
+async function purchaseAt(
+  path: string,
+  productId: number,
+  characterId: number,
+  quantity: number,
+): Promise<ShopClaudiumPurchaseResult> {
   const token = shopToken();
   if (!token) return { ok: false, balance: null, reason: 'unavailable' };
   try {
-    const res = await fetch(apiUrl('/api/shop/claudium/purchase'), {
+    const res = await fetch(apiUrl(path), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
       body: JSON.stringify({ productId, characterId, quantity }),

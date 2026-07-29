@@ -128,6 +128,7 @@ export const API_ERROR_KEYS = {
   'shop.claudium_unavailable': 'apiError.shop.claudium_unavailable',
   'shop.not_deliverable': 'apiError.shop.not_deliverable',
   'shop.character_not_found': 'apiError.shop.character_not_found',
+  'shop.insufficient_gold': 'apiError.shop.insufficient_gold',
 } satisfies Record<string, TranslationKey>;
 
 /** The message of an Error, or the string form of any other thrown value. */

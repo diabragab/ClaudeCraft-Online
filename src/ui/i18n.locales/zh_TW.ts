@@ -6672,6 +6672,7 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.claudium_unavailable': '克勞迪幣購買功能目前無法使用。',
   'apiError.shop.not_deliverable': '此物品無法自動發放。',
   'apiError.shop.character_not_found': '未找到角色。',
+  'apiError.shop.insufficient_gold': '您的金幣不足，無法完成此次購買。',
   'apiError.steam.invalid_ticket': 'Steam 無法驗證此連結請求。請在桌面應用程式中重試。',
   'apiError.steam.banned': '該 Steam 帳號無法連結。',
   'apiError.steam.already_linked': '你的帳號已連結一個 Steam 帳號。',

@@ -193,5 +193,6 @@ export const apiErrorStrings = {
     claudium_unavailable: 'Claudium purchases are unavailable right now.',
     not_deliverable: 'This item cannot be delivered automatically.',
     character_not_found: 'Character not found.',
+    insufficient_gold: 'You do not have enough gold for this purchase.',
   },
 };

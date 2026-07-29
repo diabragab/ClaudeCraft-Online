@@ -81,6 +81,7 @@ const EXPECTED_CODES = [
   'shop.claudium_unavailable',
   'shop.not_deliverable',
   'shop.character_not_found',
+  'shop.insufficient_gold',
 ];
 
 describe('ERROR_CODES catalog', () => {

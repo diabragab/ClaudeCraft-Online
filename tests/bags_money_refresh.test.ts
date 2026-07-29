@@ -402,25 +402,28 @@ describe('async balance reads repaint the FOOTER, not the whole window', () => {
   });
 
   it('routes every balance write through that one converging seam (#2414)', () => {
-    // Three writes arrive without a launcher read: the WOC Store snapshot, a store
-    // spend, and the Claudium window's snapshot. Each used to update a private field
-    // and stop there, which is what left an open bag showing the pre-spend number.
-    // Counted rather than merely matched, because the regression shape is a FOURTH
+    // Only one write arrives without a launcher read: the Claudium window's own
+    // snapshot. It used to be three (the in-game Shop's catalog snapshot and its
+    // purchase result also wrote here), but the in-game Shop now checks out in the
+    // player's own gold (Phase 6, no external economy service), an entirely
+    // different number from Claudium balance, so it must never write here at all;
+    // conflating the two was the actual #2414-shaped bug this seam guards against.
+    // Counted rather than merely matched, because the regression shape is a SECOND
     // surface hand-wired around the seam; a new balance write goes through set() and
     // moves this number deliberately.
     const writes = hud.match(/this\.claudiumBalance\.set\(/g) ?? [];
-    expect(writes).toHaveLength(3);
+    expect(writes).toHaveLength(1);
     // And no shadow copy survived the extraction. A balance the HUD assigned itself
     // would render from state the converge and the changed compare never see, which
     // is both bugs back in one line.
     expect(hud).not.toMatch(/this\.claudiumLauncherBalance/);
   });
 
-  it('writes the balance each of those surfaces actually reported', () => {
-    // The count above says three writers exist; it says nothing about WHAT they write.
-    // Swapping an argument for the balance already held typechecks (the getter is
-    // `number | null`) and quietly re-opens #2414 for that one surface while every
-    // other pin in this file stays green, so slice each closure and name its argument.
+  it('writes the balance the Claudium window snapshot actually reported', () => {
+    // The count above says exactly one writer exists; it says nothing about WHAT it
+    // writes. Swapping the argument for the balance already held typechecks (the
+    // getter is `number | null`) and quietly re-opens #2414, so slice the closure
+    // and name its argument.
     const between = (from: string, to: string): string => {
       const start = hud.indexOf(from);
       expect(start, `anchor missing: ${from}`).toBeGreaterThan(-1);
@@ -428,15 +431,20 @@ describe('async balance reads repaint the FOOTER, not the whole window', () => {
       expect(end, `anchor missing: ${to}`).toBeGreaterThan(start);
       return hud.slice(start, end);
     };
-    expect(between('storeSnapshot: async () => {', 'spendStoreItem:')).toContain(
-      'this.claudiumBalance.set(snapshot.balance);',
-    );
-    expect(between('spendStoreItem: async (', 'openClaudium:')).toContain(
-      'this.claudiumBalance.set(result.balance);',
-    );
     expect(between('new ClaudiumWindow({', 'buy: (rail, sku)')).toContain(
       'this.claudiumBalance.set(snapshot.balance);',
     );
+    // The in-game Shop's catalog snapshot and purchase result must never touch
+    // claudiumBalance: they deal in the player's own gold, a different currency.
+    expect(between('catalogSnapshot: async (query, categoryId) => {', 'purchase:')).not.toContain(
+      'this.claudiumBalance',
+    );
+    expect(
+      between(
+        'purchase: async (productId, quantity) => {',
+        'confirmDialog: (title, body, okText, cancelText, onOk) =>',
+      ),
+    ).not.toContain('this.claudiumBalance');
   });
 
   it('keeps the launcher label starting the throttled read it renders from', () => {

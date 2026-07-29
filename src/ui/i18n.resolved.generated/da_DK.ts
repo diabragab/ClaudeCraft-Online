@@ -434,6 +434,7 @@ export const da_DK: EnTranslations = {
       "owned": "Du ejer dette",
       "needMoreTitle": "Mere Claudium påkrævet",
       "needMoreBody": "Du skal bruge {shortfall} mere Claudium for at købe {item}.",
+      "needMoreOk": "OK",
       "cancel": "Annuller",
       "confirmTitle": "Bekræft køb af kosmetik",
       "confirmBody": "Køb {item} til {cost} Claudium?",
@@ -442,7 +443,7 @@ export const da_DK: EnTranslations = {
       "armoryEyebrow": "Sæson 1",
       "armoryTitle": "Våbenhuset",
       "armoryBody": "Begrænsede våbenskins fra sæson 1-våbenhuset. De gælder for hele kontoen, er rent kosmetiske og vises for alle omkring dig.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const da_DK: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

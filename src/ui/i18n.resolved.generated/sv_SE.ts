@@ -434,6 +434,7 @@ export const sv_SE: EnTranslations = {
       "owned": "I din ägo",
       "needMoreTitle": "Mer Claudium krävs",
       "needMoreBody": "Du behöver {shortfall} mer Claudium för att köpa {item}.",
+      "needMoreOk": "OK",
       "cancel": "Avbryt",
       "confirmTitle": "Bekräfta köp av kosmetika",
       "confirmBody": "Köpa {item} för {cost} Claudium?",
@@ -442,7 +443,7 @@ export const sv_SE: EnTranslations = {
       "armoryEyebrow": "Säsong 1",
       "armoryTitle": "Vapenhuset",
       "armoryBody": "Begränsade vapenskins från säsong 1-vapenhuset. De gäller för hela kontot, är helt kosmetiska och visas för alla i din omgivning.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const sv_SE: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

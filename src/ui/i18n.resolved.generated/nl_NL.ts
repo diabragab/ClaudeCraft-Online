@@ -434,6 +434,7 @@ export const nl_NL: EnTranslations = {
       "owned": "In bezit",
       "needMoreTitle": "Meer Claudium vereist",
       "needMoreBody": "Je hebt {shortfall} meer Claudium nodig om {item} te kopen.",
+      "needMoreOk": "OK",
       "cancel": "Annuleren",
       "confirmTitle": "Cosmetische aankoop bevestigen",
       "confirmBody": "{item} voor {cost} Claudium kopen?",
@@ -442,7 +443,7 @@ export const nl_NL: EnTranslations = {
       "armoryEyebrow": "Seizoen 1",
       "armoryTitle": "Het Arsenaal",
       "armoryBody": "Gelimiteerde wapenskins uit de Wapenkamer van seizoen 1. Ze gelden voor je hele account, zijn puur cosmetisch en zijn zichtbaar voor iedereen om je heen.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const nl_NL: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

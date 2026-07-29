@@ -151,6 +151,7 @@ export const API_CONTENT_TYPE: Readonly<Record<string, ContentTypeClass>> = {
   '/api/shop/orders': PROBLEM_JSON,
   '/api/shop/orders/:id': PROBLEM_JSON,
   '/api/shop/claudium/purchase': PROBLEM_JSON,
+  '/api/shop/gold/purchase': PROBLEM_JSON,
   '/api/card': BINARY,
   '/api/referrals': PROBLEM_JSON,
   '/api/discord/swag/claim': PROBLEM_JSON,

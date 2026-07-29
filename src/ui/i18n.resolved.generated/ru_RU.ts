@@ -434,6 +434,7 @@ export const ru_RU: EnTranslations = {
       "owned": "Получено",
       "needMoreTitle": "Требуется больше Claudium",
       "needMoreBody": "Для покупки {item} не хватает {shortfall} Claudium.",
+      "needMoreOk": "OK",
       "cancel": "Отмена",
       "confirmTitle": "Подтвердить покупку облика",
       "confirmBody": "Купить {item} за {cost} Claudium?",
@@ -2831,7 +2832,8 @@ export const ru_RU: EnTranslations = {
       "price_changed": "Цена изменилась. Попробуйте еще раз.",
       "claudium_unavailable": "Покупки за Клаудиум сейчас недоступны.",
       "not_deliverable": "Этот предмет нельзя выдать автоматически.",
-      "character_not_found": "Персонаж не найден."
+      "character_not_found": "Персонаж не найден.",
+      "insufficient_gold": "Недостаточно золота для этой покупки."
     }
   },
   "guide": {

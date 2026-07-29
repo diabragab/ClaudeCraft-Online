@@ -110,6 +110,7 @@ const KNOWN_CODES = [
   'shop.claudium_unavailable',
   'shop.not_deliverable',
   'shop.character_not_found',
+  'shop.insufficient_gold',
 ];
 
 // The parametric contract pins: the matcher

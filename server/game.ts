@@ -2625,6 +2625,21 @@ export class GameServer {
     return true;
   }
 
+  /**
+   * In-game Shop gold checkout (server/shop_gold_checkout.ts): deducts an
+   * order's total from the buyer's own live copper purse via Sim.spendShopGold.
+   * Injected into the checkout orchestration via configureShopGoldCheckoutRuntime,
+   * the same deferred liveGame() closure pattern as mailShopItemToCharacter
+   * above. Returns null when the character has no live session on THIS realm
+   * process, or when the deduction itself fails (not enough gold); the
+   * caller already verified account ownership of characterId.
+   */
+  spendShopGoldFromCharacter(characterId: number, amountCopper: number): number | null {
+    const session = this.sessionsByCharacterId.get(characterId);
+    if (!session) return null;
+    return this.sim.spendShopGold(session.pid, amountCopper);
+  }
+
   private unequipAccountMechChroma(session: ClientSession, chromaId: string): void {
     const skin = mechChromaSkinIndex(chromaId);
     const itemId = mechChromaItemId(chromaId);

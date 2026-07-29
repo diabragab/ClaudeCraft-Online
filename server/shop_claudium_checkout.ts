@@ -4,10 +4,10 @@
 // pieces: ShopOrdersService (Phase 3, unchanged) reserves stock and owns the
 // order record, claudiumSpend (server/claudium_proxy.ts, unchanged) is the
 // same account-authoritative currency call the Armory always used, and
-// delivery reuses the same account-cosmetics grant weapon skins already had
-// (server/claudium.ts's grantWeaponSkinForShop) or a new but equally thin
-// mail hook for a generic item. No new pricing, stock, or currency logic
-// lives here; this module only sequences existing calls in a safe order.
+// delivery goes through the shared deliverShopProduct (server/shop_delivery.ts,
+// Phase 6), the same function the Gold checkout (server/shop_gold_checkout.ts)
+// uses. No new pricing, stock, or currency logic lives here; this module only
+// sequences existing calls in a safe order.
 //
 // Ordering is deliberate: RESERVE stock first (an ordinary pending order),
 // THEN charge Claudium, THEN mark paid + deliver. If the charge fails, the
@@ -17,11 +17,10 @@
 // surface: the in-process, no-network delivery step after a successful,
 // already-recorded payment, rather than any external call.
 
-import { randomUUID } from 'node:crypto';
-import { grantWeaponSkinForShop } from './claudium';
 import { claudiumSpend } from './claudium_proxy';
+import { deliverShopProduct } from './shop_delivery';
 import type { ShopOrderDetail, ShopOrderErrorCode, ShopOrdersService } from './shop_orders';
-import type { ShopProductRecord, ShopProductsService } from './shop_products';
+import type { ShopProductsService } from './shop_products';
 
 export type ClaudiumCheckoutErrorCode =
   | 'not_found'
@@ -46,24 +45,6 @@ export interface ClaudiumCheckoutRequest {
   characterId: number;
   productId: number;
   quantity: number;
-}
-
-/**
- * Live-game hooks, injected from server/main.ts exactly like
- * configureClaudiumRuntime so `ShopClaudiumCheckoutService` stays
- * constructible without an import cycle into server/game.ts. Weapon-skin
- * delivery needs no hook of its own: it reuses grantWeaponSkinForShop
- * (server/claudium.ts), which is already live-game-wired via
- * configureClaudiumRuntime.
- */
-export interface ShopCheckoutRuntimeHooks {
-  /** Returns false when the character has no live session on this realm. */
-  mailItemToCharacter(characterId: number, itemId: string, count: number): boolean;
-}
-let checkoutRuntime: ShopCheckoutRuntimeHooks | null = null;
-
-export function configureShopCheckoutRuntime(rt: ShopCheckoutRuntimeHooks): void {
-  checkoutRuntime = rt;
 }
 
 export class ShopClaudiumCheckoutService {
@@ -124,7 +105,7 @@ export class ShopClaudiumCheckoutService {
       'claudium payment settled',
     );
     const paidOrder = paidResult.ok ? paidResult.order : order;
-    deliver(product, req.characterId, req.accountId, req.quantity);
+    deliverShopProduct(product, req.characterId, req.accountId, req.quantity);
     return { ok: true, order: paidOrder, balance: spend.balance };
   }
 }
@@ -133,28 +114,4 @@ function mapSpendReason(reason: string | null): ClaudiumCheckoutErrorCode {
   if (reason === 'insufficient_balance') return 'insufficient_balance';
   if (reason === 'price_changed') return 'price_changed';
   return 'spend_unavailable';
-}
-
-/**
- * Best-effort: the Claudium charge already succeeded and the order is
- * already 'paid' by the time this runs, so a delivery hiccup (idempotency
- * key deterministic per order, in the caller above, is what keeps a retry
- * safe) never re-charges the player; it only means an admin may need to
- * re-send the grant by hand, the same recovery story grantWeaponSkinsToAccount
- * already relies on for its own persistence write.
- */
-function deliver(
-  product: ShopProductRecord,
-  characterId: number,
-  accountId: number,
-  quantity: number,
-): void {
-  if (product.grantKind === 'weapon_skin' && product.grantItemId) {
-    grantWeaponSkinForShop(accountId, product.grantItemId);
-    return;
-  }
-  if (product.grantKind === 'item' && product.grantItemId) {
-    const count = product.grantQuantity * quantity;
-    checkoutRuntime?.mailItemToCharacter(characterId, product.grantItemId, count);
-  }
 }

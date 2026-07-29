@@ -9,7 +9,7 @@ function product(overrides: Partial<ShopCatalogProduct> = {}): ShopCatalogProduc
     slug: 'armory-cinderbrand-sword',
     description: '',
     categoryId: null,
-    priceClaudium: 200,
+    priceGoldCopper: 200,
     status: 'active',
     featured: false,
     grantKind: 'weapon_skin',
@@ -66,18 +66,18 @@ describe('buildGeneralStoreCards', () => {
   });
 
   it('computes affordability and shortfall against the given balance', () => {
-    const [affordable] = buildGeneralStoreCards([product({ priceClaudium: 200 })], 500, CTX);
+    const [affordable] = buildGeneralStoreCards([product({ priceGoldCopper: 200 })], 500, CTX);
     expect(affordable.affordable).toBe(true);
     expect(affordable.shortfall).toBe(0);
 
-    const [tooExpensive] = buildGeneralStoreCards([product({ priceClaudium: 900 })], 500, CTX);
+    const [tooExpensive] = buildGeneralStoreCards([product({ priceGoldCopper: 900 })], 500, CTX);
     expect(tooExpensive.affordable).toBe(false);
     expect(tooExpensive.shortfall).toBe(400);
   });
 
-  it('is never purchasable with no Claudium price, inactive status, or out-of-stock availability', () => {
+  it('is never purchasable with no gold price, inactive status, or out-of-stock availability', () => {
     const cases = [
-      product({ priceClaudium: null }),
+      product({ priceGoldCopper: null }),
       product({ status: 'draft' }),
       product({ availability: 'out_of_stock' }),
       product({ availability: 'unavailable' }),

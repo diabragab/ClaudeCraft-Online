@@ -434,6 +434,7 @@ export const cs_CZ: EnTranslations = {
       "owned": "Vlastníš",
       "needMoreTitle": "Je potřeba více Claudium",
       "needMoreBody": "K nákupu předmětu {item} potřebuješ ještě {shortfall} Claudium.",
+      "needMoreOk": "OK",
       "cancel": "Zrušit",
       "confirmTitle": "Potvrdit nákup kosmetiky",
       "confirmBody": "Koupit {item} za {cost} Claudium?",
@@ -442,7 +443,7 @@ export const cs_CZ: EnTranslations = {
       "armoryEyebrow": "1. sezóna",
       "armoryTitle": "Zbrojnice",
       "armoryBody": "Omezené vzhledy zbraní ze Zbrojnice 1. sezóny. Platí pro celý účet, jsou čistě kosmetické a uvidí je všichni kolem tebe.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const cs_CZ: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

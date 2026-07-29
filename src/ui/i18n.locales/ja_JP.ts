@@ -7015,6 +7015,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.claudium_unavailable': '現在クラウディウムでの購入はご利用いただけません。',
   'apiError.shop.not_deliverable': 'このアイテムは自動で届けられません。',
   'apiError.shop.character_not_found': 'キャラクターが見つかりません。',
+  'apiError.shop.insufficient_gold': '金貨が不足しているため購入できません。',
   'apiError.steam.invalid_ticket':
     'Steamがこの連携リクエストを確認できませんでした。デスクトップアプリからもう一度お試しください。',
   'apiError.steam.banned': 'そのSteamアカウントは連携できません。',

@@ -7135,6 +7135,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.claudium_unavailable': 'Покупки за Клаудиум сейчас недоступны.',
   'apiError.shop.not_deliverable': 'Этот предмет нельзя выдать автоматически.',
   'apiError.shop.character_not_found': 'Персонаж не найден.',
+  'apiError.shop.insufficient_gold': 'Недостаточно золота для этой покупки.',
   'apiError.steam.invalid_ticket':
     'Steam не смог подтвердить этот запрос на привязку. Повторите попытку из настольного приложения.',
   'apiError.steam.banned': 'Этот аккаунт Steam нельзя привязать.',

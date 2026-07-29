@@ -6998,6 +6998,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.claudium_unavailable': '현재 클라우디움 구매를 이용할 수 없습니다.',
   'apiError.shop.not_deliverable': '이 아이템은 자동으로 지급할 수 없습니다.',
   'apiError.shop.character_not_found': '캐릭터를 찾을 수 없습니다.',
+  'apiError.shop.insufficient_gold': '금화가 부족하여 구매할 수 없습니다.',
   'apiError.steam.invalid_ticket':
     'Steam이 이 연동 요청을 확인하지 못했습니다. 데스크톱 앱에서 다시 시도해 주세요.',
   'apiError.steam.banned': '해당 Steam 계정은 연동할 수 없습니다.',

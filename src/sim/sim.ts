@@ -7119,6 +7119,12 @@ export class Sim {
     items.buyItem(this.ctx, npcId, itemId, pid);
   }
 
+  /** In-game Shop gold checkout (server/shop_gold_checkout.ts via server/game.ts's
+   *  spendShopGoldFromCharacter): see items.spendShopGold for the contract. */
+  spendShopGold(pid: number, amountCopper: number): number | null {
+    return items.spendShopGold(this.ctx, pid, amountCopper);
+  }
+
   sellItem(itemId: string, count = 1, pid?: number): void {
     items.sellItem(this.ctx, itemId, count, pid);
   }

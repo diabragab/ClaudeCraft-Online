@@ -43,6 +43,7 @@ import { routes as shopOrdersRoutes } from '../shop_orders_routes';
 import { routes as shopProductsRoutes } from '../shop_products_routes';
 import { routes as shopStorefrontCatalogRoutes } from '../shop_storefront_catalog_routes';
 import { routes as shopStorefrontClaudiumRoutes } from '../shop_storefront_claudium_routes';
+import { routes as shopStorefrontGoldRoutes } from '../shop_storefront_gold_routes';
 import { routes as shopStorefrontOrdersRoutes } from '../shop_storefront_orders_routes';
 import { routes as steamRoutes } from '../steam';
 import { routes as userAssetsRoutes } from '../user_assets_routes';
@@ -157,6 +158,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...shopStorefrontCatalogRoutes,
   ...shopStorefrontOrdersRoutes,
   ...shopStorefrontClaudiumRoutes,
+  ...shopStorefrontGoldRoutes,
   // new:endpoint spreads appear above this line (npm run new:endpoint)
 ];
 

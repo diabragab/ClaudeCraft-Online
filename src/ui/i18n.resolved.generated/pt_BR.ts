@@ -434,6 +434,7 @@ export const pt_BR: EnTranslations = {
       "owned": "Adquirido",
       "needMoreTitle": "Mais Claudium necessário",
       "needMoreBody": "Você precisa de mais {shortfall} Claudium para comprar {item}.",
+      "needMoreOk": "OK",
       "cancel": "Cancelar",
       "confirmTitle": "Confirmar compra de cosméticos",
       "confirmBody": "Comprar {item} por {cost} Claudium?",
@@ -442,7 +443,7 @@ export const pt_BR: EnTranslations = {
       "armoryEyebrow": "Temporada 1",
       "armoryTitle": "O Arsenal",
       "armoryBody": "Visuais de arma em edição limitada do Arsenal da Temporada 1. Válidos para toda a conta, puramente cosméticos e visíveis a todos ao seu redor.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const pt_BR: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {

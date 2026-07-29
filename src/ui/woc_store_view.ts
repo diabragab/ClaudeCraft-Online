@@ -32,8 +32,8 @@ export interface ArmorySkinRow {
   skin: WeaponSkinDef;
   /** Store card / inspect thumbnail (rarity-themed render). */
   art: string;
-  /** Claudium cost from the economy service, or null when the SKU is unavailable. */
-  costClaudium: number | null;
+  /** Gold cost in copper (Phase 6, server/shop_gold_checkout.ts), or null when unpriced. */
+  costGoldCopper: number | null;
   /** The economy service has this SKU with a valid price, so Buy can succeed. */
   purchasable: boolean;
   owned: boolean;
@@ -81,25 +81,26 @@ export function buildArmorySections(
   for (const skin of WEAPON_SKIN_LIST) {
     const service = serviceRows.get(skin.id);
     const owned = (service?.owned ?? false) || ctx.cosmetics.weaponSkinIds.includes(skin.id);
-    const costClaudium =
+    const costGoldCopper =
       service && Number.isFinite(service.costClaudium) && service.costClaudium > 0
         ? service.costClaudium
         : null;
     const row: ArmorySkinRow = {
       skin,
       art: armorySkinArt(skin.id),
-      costClaudium,
-      purchasable: costClaudium !== null,
+      costGoldCopper,
+      purchasable: costGoldCopper !== null,
       owned,
       applied: owned && ctx.cosmetics.weaponSkinLoadout[skin.weaponType] === skin.id,
       canApplyNow: owned && applicableTypes.has(skin.weaponType),
-      affordable: !owned && balance !== null && costClaudium !== null && balance >= costClaudium,
+      affordable:
+        !owned && balance !== null && costGoldCopper !== null && balance >= costGoldCopper,
       shortfall:
-        costClaudium === null || balance === null
+        costGoldCopper === null || balance === null
           ? null
           : owned
             ? 0
-            : Math.max(0, costClaudium - balance),
+            : Math.max(0, costGoldCopper - balance),
       eligibleClasses: eligibleClassesForWeaponSkinType(skin.weaponType),
     };
     let section = sections.get(skin.collection);

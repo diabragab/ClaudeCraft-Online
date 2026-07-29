@@ -613,11 +613,11 @@ export interface ReportHooks {
  * snapshot() reads the current service state; buy()/spend() begin the client-signed
  * purchase / cosmetic-redeem flows. All values originate in the economy service.
  */
-// In-game Shop hooks (Phase 5): main.ts injects the general shop_products
-// catalog + Claudium checkout when online via attachShop; the Claudium
-// balance itself still rides on ClaudiumHooks below (a general read, shared
-// with the "Buy Claudium" purchase modal), so this bag only carries the
-// catalog read and the buy action.
+// In-game Shop hooks (Phase 5/6): main.ts injects the general shop_products
+// catalog + Gold checkout when online via attachShop. balance is the
+// player's own live gold in copper, read straight off IWorld, entirely
+// separate from ClaudiumHooks below (the "Buy Claudium" purchase modal):
+// never conflate the two numbers.
 export interface ShopHooks {
   catalogSnapshot(
     query: string,
@@ -4101,21 +4101,18 @@ export class Hud {
     onWalletConnect: () => {
       window.dispatchEvent(new CustomEvent('woc:wallet-verify'));
     },
+    // storeBalance/purchase deal in the player's own live gold (Phase 6), an
+    // entirely different number from claudiumBalance (the separate "Buy
+    // Claudium" launcher badge below): never cross-write one into the other.
     storeEnabled: () => this.shopHooks !== null,
     catalogSnapshot: async (query, categoryId) => {
       const snapshot = await this.shopHooks?.catalogSnapshot(query, categoryId);
-      if (!snapshot) return { available: false, balance: null, categories: [], products: [] };
-      this.claudiumBalance.set(snapshot.balance);
-      return snapshot;
+      return snapshot ?? { available: false, balance: null, categories: [], products: [] };
     },
     purchase: async (productId, quantity) => {
       const result = await this.shopHooks?.purchase(productId, quantity);
-      if (result?.balance !== null && result?.balance !== undefined) {
-        this.claudiumBalance.set(result.balance);
-      }
       return result ?? { ok: false, balance: null, reason: 'unavailable' };
     },
-    openClaudium: () => this.toggleClaudium(),
     confirmDialog: (title, body, okText, cancelText, onOk) =>
       this.confirmDialog(title, body, okText, cancelText, onOk),
     ...this.windowFocus('#daily-rewards-window'),

@@ -434,6 +434,7 @@ export const tr_TR: EnTranslations = {
       "owned": "Sahip",
       "needMoreTitle": "Daha Fazla Claudium Gerekli",
       "needMoreBody": "{item} satın almak için {shortfall} daha fazla Claudium'a ihtiyacınız var.",
+      "needMoreOk": "OK",
       "cancel": "İptal",
       "confirmTitle": "Kozmetik Satın Alma İşlemini Onaylayın",
       "confirmBody": "{cost} Claudium için {item} satın alınsın mı?",
@@ -442,7 +443,7 @@ export const tr_TR: EnTranslations = {
       "armoryEyebrow": "1. Sezon",
       "armoryTitle": "Cephanelik",
       "armoryBody": "1. Sezon Cephaneliğinden sınırlı silah görünümleri. Hesap çapında, tamamen kozmetik ve etrafınızdaki herkese gösterilir.",
-      "generalBody": "Everything for sale here is priced in Claudium and delivered right away.",
+      "generalBody": "Everything for sale here is priced in gold and delivered right away.",
       "searchPlaceholder": "Search the Shop",
       "categoryFilterLabel": "Filter by category",
       "categoryFilterAll": "All categories",
@@ -2831,7 +2832,8 @@ export const tr_TR: EnTranslations = {
       "price_changed": "The price changed. Please try again.",
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
-      "character_not_found": "Character not found."
+      "character_not_found": "Character not found.",
+      "insufficient_gold": "You do not have enough gold for this purchase."
     }
   },
   "guide": {
