@@ -334,4 +334,54 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(dialog.onOk).toBeTypeOf('function');
     expect(() => dialog.onOk?.()).not.toThrow();
   });
+
+  it('wires the Packages tab Buy button to open the web storefront in a new tab', () => {
+    let capturedClick: (() => void) | undefined;
+    const button = {
+      addEventListener: (type: string, cb: () => void) => {
+        if (type === 'click') capturedClick = cb;
+      },
+    };
+    const body = {
+      dataset: {},
+      innerHTML: '',
+      querySelector: () => null,
+      querySelectorAll: (selector: string) => (selector === '[data-buy-package]' ? [button] : []),
+    };
+    const win = new DailyRewardsWindow({
+      root: () => rootStub(body),
+      world: worldStub,
+      closeOthers: () => undefined,
+      captureFocus: () => null,
+      restoreFocus: () => undefined,
+    });
+    Object.assign(win as unknown as Record<string, unknown>, {
+      packages: [
+        {
+          id: 5,
+          name: 'Starter Pack',
+          claudiumAmount: 500,
+          bonusAmount: 0,
+          price: 499,
+          currency: 'USD',
+          imageUrl: null,
+          discountPercent: 0,
+          featured: false,
+        },
+      ],
+    });
+
+    (win as unknown as { paintPackages(body: HTMLElement): void }).paintPackages(
+      body as unknown as HTMLElement,
+    );
+
+    expect(capturedClick).toBeTypeOf('function');
+    // Plain Node test env (tests/CLAUDE.md): no real `window` global, so stub
+    // just the one property this handler touches.
+    const openMock = vi.fn();
+    vi.stubGlobal('window', { open: openMock });
+    capturedClick?.();
+    expect(openMock).toHaveBeenCalledWith('/store/packages', '_blank', 'noopener,noreferrer');
+    vi.unstubAllGlobals();
+  });
 });

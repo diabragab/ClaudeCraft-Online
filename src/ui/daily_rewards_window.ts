@@ -1,3 +1,4 @@
+import { apiUrl } from '../client_origin';
 import { eligibleClassesForWeaponSkinType } from '../sim/content/weapon_skin_rules';
 import { WEAPON_SKINS } from '../sim/content/weapon_skins';
 import type { PlayerClass, WeaponSkinType } from '../sim/types';
@@ -414,7 +415,19 @@ export class DailyRewardsWindow {
     const markup =
       `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.packagesTab'))}</h2><p>${esc(t('hudChrome.wocStore.packagesBody'))}</p></div></div>` +
       grid;
-    this.replacePackagesBody(body, markup);
+    if (!this.replacePackagesBody(body, markup)) return;
+    body.querySelectorAll<HTMLButtonElement>('[data-buy-package]').forEach((button) => {
+      button.addEventListener('click', () => this.openPackageCheckout());
+    });
+  }
+
+  /** Opens the web storefront's Claudium Packages page in a new browser tab
+   *  (server/claudium_purchases_routes.ts's real-money Stripe Checkout), never
+   *  embedded in the 3D client: a full checkout redirect would otherwise drop
+   *  the live game WebSocket session. The player is already authenticated
+   *  there (src/store/api.ts reads the same woc_session localStorage key). */
+  private openPackageCheckout(): void {
+    window.open(apiUrl('/store/packages'), '_blank', 'noopener,noreferrer');
   }
 
   private packageCardHtml(pkg: ClaudiumPackageDisplay): string {
@@ -450,11 +463,12 @@ export class DailyRewardsWindow {
 
   /** Mirrors replaceStoreBody's same-markup skip, kept on its own field so a
    *  Packages repaint never fights the Store tab's memoized markup. */
-  private replacePackagesBody(body: HTMLElement, markup: string): void {
-    if (this.paintedPackagesMarkup === markup && this.paintedStoreBody === body) return;
+  private replacePackagesBody(body: HTMLElement, markup: string): boolean {
+    if (this.paintedPackagesMarkup === markup && this.paintedStoreBody === body) return false;
     body.innerHTML = markup;
     this.paintedStoreBody = body;
     this.paintedPackagesMarkup = markup;
+    return true;
   }
 
   /** Re-project the product grid from the last catalog snapshot plus the live
@@ -756,9 +770,9 @@ export class DailyRewardsWindow {
     );
   }
 
-  /** Switches to the read-only Packages tab (Phase 7: no external Claudium
-   *  checkout exists anymore, so "buy more Claudium" points at the in-game
-   *  Packages listing instead of an external service's purchase flow). */
+  /** Switches to the Packages tab ("buy more Claudium" lands on the in-game
+   *  listing, where each package's own Buy button opens the real Stripe
+   *  checkout on the web storefront, per openPackageCheckout above). */
   private openPackagesFromStore(): void {
     if (!this.storeEnabled()) return;
     this.armoryInspect?.close();
