@@ -4648,6 +4648,7 @@ export const ja_JP: EnTranslations = {
       "home": "Home",
       "categories": "カテゴリー",
       "products": "商品一覧",
+      "packages": "クラウディウムパッケージ",
       "cart": "Cart",
       "orders": "注文履歴",
       "signIn": "Sign in",
@@ -4776,6 +4777,29 @@ export const ja_JP: EnTranslations = {
       "title": "ページが見つかりません",
       "body": "そのストアページは存在しません。",
       "backHome": "ストアのトップに戻る"
+    },
+    "packages": {
+      "title": "クラウディウムパッケージ",
+      "subtitle": "クレジットカードまたはデビットカードでクラウディウムを購入できます。決済はStripeが安全に処理します。",
+      "empty": "現在購入可能なクラウディウムパッケージはありません。",
+      "claudiumAmount": "クラウディウム {amount}",
+      "bonusLabel": "ボーナスでクラウディウム {amount} 追加",
+      "featuredBadge": "おすすめ",
+      "discountBadge": "{percent}%オフ",
+      "buy": "今すぐ購入",
+      "starting": "チェックアウトを開始しています...",
+      "checkoutFailed": "チェックアウトを開始できませんでした。もう一度お試しください。",
+      "signInRequiredBody": "クラウディウムを購入するには、World of ClaudeCraftのホームページでサインインしてください。"
+    },
+    "packageConfirmation": {
+      "paidTitle": "ご購入ありがとうございます",
+      "paidBody": "{package}のクラウディウム {amount} があなたのアカウントに追加されました。",
+      "pendingTitle": "お支払いを確認しています",
+      "pendingBody": "もう少しで完了します。このページを閉じずにお待ちください。",
+      "pendingTimeoutBody": "お支払いはまだ確認中です。クラウディウム残高はまもなく更新されます。数分後に再度ご確認ください。",
+      "failedTitle": "お支払いが完了しませんでした",
+      "failedBody": "この購入は完了しなかったため、請求もクラウディウムの付与も行われていません。",
+      "missingSession": "この確認リンクにはチェックアウトセッションの情報がありません。"
     }
   },
   "skinEvent": {

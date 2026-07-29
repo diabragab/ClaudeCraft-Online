@@ -96,3 +96,40 @@ export interface StoreOrderDetail extends StoreOrder {
   items: StoreOrderItem[];
   history: StoreOrderStatusHistory[];
 }
+
+// Claudium Packages (Phase 7/8): the real-money purchase tiers server/
+// claudium_packages.ts's admin-managed catalog defines, and the Stripe
+// Checkout purchase server/claudium_purchases.ts tracks against them.
+
+export interface StoreClaudiumPackage {
+  id: number;
+  name: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  price: number;
+  currency: string;
+  enabled: boolean;
+  displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type StoreClaudiumPurchaseStatus = 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+
+export interface StoreClaudiumPurchase {
+  id: number;
+  accountId: number;
+  packageId: number | null;
+  packageName: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  amountTotal: number;
+  currency: string;
+  status: StoreClaudiumPurchaseStatus;
+  stripeSessionId: string;
+  createdAt: string;
+  updatedAt: string;
+}

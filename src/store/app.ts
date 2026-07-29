@@ -42,6 +42,7 @@ export class StoreApp {
           <a href="${esc(hrefFor(''))}">${esc(t('store.nav.home'))}</a>
           <a href="${esc(hrefFor('categories'))}">${esc(t('store.nav.categories'))}</a>
           <a href="${esc(hrefFor('products'))}">${esc(t('store.nav.products'))}</a>
+          <a href="${esc(hrefFor('packages'))}">${esc(t('store.nav.packages'))}</a>
           <a href="${esc(hrefFor('cart'))}">${esc(t('store.nav.cart'))} <span id="store-cart-badge" class="store-cart-badge"></span></a>
           <a href="${esc(hrefFor('orders'))}">${esc(t('store.nav.orders'))}</a>
         </nav>

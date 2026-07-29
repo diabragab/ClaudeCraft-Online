@@ -9266,9 +9266,36 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'store.home.noNew': '現在、新着商品はありません。',
   'store.nav.categories': 'カテゴリー',
   'store.nav.orders': '注文履歴',
+  'store.nav.packages': 'クラウディウムパッケージ',
   'store.nav.products': '商品一覧',
   'store.nav.signedInAs': '{name} としてサインイン中',
   'store.notFound.backHome': 'ストアのトップに戻る',
+  'store.packages.title': 'クラウディウムパッケージ',
+  'store.packages.subtitle':
+    'クレジットカードまたはデビットカードでクラウディウムを購入できます。決済はStripeが安全に処理します。',
+  'store.packages.empty': '現在購入可能なクラウディウムパッケージはありません。',
+  'store.packages.claudiumAmount': 'クラウディウム {amount}',
+  'store.packages.bonusLabel': 'ボーナスでクラウディウム {amount} 追加',
+  'store.packages.featuredBadge': 'おすすめ',
+  'store.packages.discountBadge': '{percent}%オフ',
+  'store.packages.buy': '今すぐ購入',
+  'store.packages.starting': 'チェックアウトを開始しています...',
+  'store.packages.checkoutFailed': 'チェックアウトを開始できませんでした。もう一度お試しください。',
+  'store.packages.signInRequiredBody':
+    'クラウディウムを購入するには、World of ClaudeCraftのホームページでサインインしてください。',
+  'store.packageConfirmation.paidTitle': 'ご購入ありがとうございます',
+  'store.packageConfirmation.paidBody':
+    '{package}のクラウディウム {amount} があなたのアカウントに追加されました。',
+  'store.packageConfirmation.pendingTitle': 'お支払いを確認しています',
+  'store.packageConfirmation.pendingBody':
+    'もう少しで完了します。このページを閉じずにお待ちください。',
+  'store.packageConfirmation.pendingTimeoutBody':
+    'お支払いはまだ確認中です。クラウディウム残高はまもなく更新されます。数分後に再度ご確認ください。',
+  'store.packageConfirmation.failedTitle': 'お支払いが完了しませんでした',
+  'store.packageConfirmation.failedBody':
+    'この購入は完了しなかったため、請求もクラウディウムの付与も行われていません。',
+  'store.packageConfirmation.missingSession':
+    'この確認リンクにはチェックアウトセッションの情報がありません。',
   'store.notFound.body': 'そのストアページは存在しません。',
   'store.notFound.title': 'ページが見つかりません',
   'store.orderDetail.colLineTotal': '小計',

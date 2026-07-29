@@ -4648,6 +4648,7 @@ export const zh_CN: EnTranslations = {
       "home": "Home",
       "categories": "分类",
       "products": "商品",
+      "packages": "克劳迪币礼包",
       "cart": "Cart",
       "orders": "我的订单",
       "signIn": "Sign in",
@@ -4776,6 +4777,29 @@ export const zh_CN: EnTranslations = {
       "title": "页面未找到",
       "body": "该商店页面不存在。",
       "backHome": "返回商店首页"
+    },
+    "packages": {
+      "title": "克劳迪币礼包",
+      "subtitle": "使用信用卡或借记卡购买克劳迪币，由 Stripe 安全处理。",
+      "empty": "目前没有可购买的克劳迪币礼包。",
+      "claudiumAmount": "{amount} 克劳迪币",
+      "bonusLabel": "额外赠送 {amount} 克劳迪币",
+      "featuredBadge": "精选",
+      "discountBadge": "立减 {percent}%",
+      "buy": "立即购买",
+      "starting": "正在开始结账...",
+      "checkoutFailed": "无法开始结账，请重试。",
+      "signInRequiredBody": "请在 World of ClaudeCraft 主页登录以购买克劳迪币。"
+    },
+    "packageConfirmation": {
+      "paidTitle": "感谢您的购买",
+      "paidBody": "来自{package}的 {amount} 克劳迪币已添加到您的账户。",
+      "pendingTitle": "正在确认您的付款",
+      "pendingBody": "这只需要片刻，请保持此页面打开。",
+      "pendingTimeoutBody": "您的付款仍在确认中。您的克劳迪币余额将很快更新，请稍后再查看。",
+      "failedTitle": "付款未完成",
+      "failedBody": "此次购买未完成，因此未扣款也未发放克劳迪币。",
+      "missingSession": "此确认链接缺少结账会话信息。"
     }
   },
   "skinEvent": {

@@ -16,6 +16,8 @@ export type StoreRouteId =
   | 'confirmation'
   | 'orders'
   | 'order'
+  | 'packages'
+  | 'packageConfirmation'
   | 'notFound';
 
 export interface StoreRouteMatch {
@@ -50,6 +52,9 @@ export function matchRoute(pathname: string): StoreRouteMatch {
       return param === undefined ? { id: 'notFound' } : { id: 'confirmation', param };
     case 'orders':
       return param === undefined ? { id: 'orders' } : { id: 'order', param };
+    case 'packages':
+      if (param === undefined) return { id: 'packages' };
+      return param === 'confirmation' ? { id: 'packageConfirmation' } : { id: 'notFound' };
     default:
       return { id: 'notFound' };
   }

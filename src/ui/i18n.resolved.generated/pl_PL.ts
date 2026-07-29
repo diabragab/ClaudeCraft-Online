@@ -4648,6 +4648,7 @@ export const pl_PL: EnTranslations = {
       "home": "Home",
       "categories": "Categories",
       "products": "Products",
+      "packages": "Claudium Packages",
       "cart": "Cart",
       "orders": "My Orders",
       "signIn": "Sign in",
@@ -4776,6 +4777,29 @@ export const pl_PL: EnTranslations = {
       "title": "Page not found",
       "body": "That store page does not exist.",
       "backHome": "Back to the store home"
+    },
+    "packages": {
+      "title": "Claudium Packages",
+      "subtitle": "Buy Claudium with a credit or debit card, securely processed by Stripe.",
+      "empty": "No Claudium Packages are available right now.",
+      "claudiumAmount": "{amount} Claudium",
+      "bonusLabel": "+{amount} bonus Claudium",
+      "featuredBadge": "Featured",
+      "discountBadge": "{percent}% off",
+      "buy": "Buy now",
+      "starting": "Starting checkout...",
+      "checkoutFailed": "Could not start checkout. Please try again.",
+      "signInRequiredBody": "Sign in on the World of ClaudeCraft home page to buy Claudium."
+    },
+    "packageConfirmation": {
+      "paidTitle": "Thank you for your purchase",
+      "paidBody": "{amount} Claudium from {package} has been added to your account.",
+      "pendingTitle": "Confirming your payment",
+      "pendingBody": "This will only take a moment. Please keep this page open.",
+      "pendingTimeoutBody": "Your payment is still being confirmed. Your Claudium balance will update shortly; check back in a few minutes.",
+      "failedTitle": "Payment not completed",
+      "failedBody": "This purchase was not completed, so no Claudium was charged or credited.",
+      "missingSession": "This confirmation link is missing its checkout session."
     }
   },
   "skinEvent": {

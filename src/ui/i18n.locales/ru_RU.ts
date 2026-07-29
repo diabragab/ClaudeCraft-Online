@@ -9436,9 +9436,36 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'store.home.noNew': 'Сейчас нет новых товаров.',
   'store.nav.categories': 'Категории',
   'store.nav.orders': 'Мои заказы',
+  'store.nav.packages': 'Наборы Клаудиума',
   'store.nav.products': 'Товары',
   'store.nav.signedInAs': 'Вы вошли как {name}',
   'store.notFound.backHome': 'Вернуться на главную магазина',
+  'store.packages.title': 'Наборы Клаудиума',
+  'store.packages.subtitle':
+    'Покупайте Клаудиум с помощью кредитной или дебетовой карты, безопасная обработка через Stripe.',
+  'store.packages.empty': 'Сейчас нет доступных наборов Клаудиума.',
+  'store.packages.claudiumAmount': '{amount} Клаудиума',
+  'store.packages.bonusLabel': '+{amount} бонусного Клаудиума',
+  'store.packages.featuredBadge': 'Рекомендуем',
+  'store.packages.discountBadge': 'Скидка {percent}%',
+  'store.packages.buy': 'Купить сейчас',
+  'store.packages.starting': 'Запуск оформления заказа...',
+  'store.packages.checkoutFailed': 'Не удалось начать оформление заказа. Попробуйте еще раз.',
+  'store.packages.signInRequiredBody':
+    'Войдите на главной странице World of ClaudeCraft, чтобы купить Клаудиум.',
+  'store.packageConfirmation.paidTitle': 'Спасибо за покупку',
+  'store.packageConfirmation.paidBody':
+    '{amount} Клаудиума из набора {package} добавлено на ваш аккаунт.',
+  'store.packageConfirmation.pendingTitle': 'Подтверждаем вашу оплату',
+  'store.packageConfirmation.pendingBody':
+    'Это займет всего мгновение. Пожалуйста, не закрывайте эту страницу.',
+  'store.packageConfirmation.pendingTimeoutBody':
+    'Ваш платеж все еще подтверждается. Баланс Клаудиума обновится в ближайшее время, проверьте через несколько минут.',
+  'store.packageConfirmation.failedTitle': 'Оплата не завершена',
+  'store.packageConfirmation.failedBody':
+    'Эта покупка не была завершена, поэтому оплата не списана и Клаудиум не начислен.',
+  'store.packageConfirmation.missingSession':
+    'В этой ссылке подтверждения отсутствует информация о сессии оформления заказа.',
   'store.notFound.body': 'Такой страницы магазина не существует.',
   'store.notFound.title': 'Страница не найдена',
   'store.orderDetail.colLineTotal': 'Сумма строки',

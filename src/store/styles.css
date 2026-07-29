@@ -267,6 +267,44 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
 .store-back-link { display: inline-block; margin-bottom: 12px; }
 
+.store-package-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+.store-package-card { position: relative; text-align: center; }
+.store-package-featured { border-color: var(--gold); }
+.store-package-badges {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.store-package-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.store-package-badge-featured { background: var(--gold); color: #1a1400; }
+.store-package-badge-discount { background: var(--color-danger); color: #fff; }
+.store-package-image {
+  width: 100%;
+  max-width: 120px;
+  height: 80px;
+  object-fit: contain;
+  margin: 12px auto 4px;
+  display: block;
+}
+.store-package-amount { font-weight: 600; margin-top: 4px; }
+.store-package-bonus { color: var(--color-success); font-size: 13px; margin-top: 2px; }
+.store-package-price { margin: 8px 0; }
+.store-package-price-original { text-decoration: line-through; color: var(--text-dim); margin-right: 6px; font-size: 13px; }
+.store-package-price-discounted { color: var(--gold); font-weight: 600; }
+.store-package-buy { width: 100%; }
+.store-package-status { min-height: 18px; font-size: 12px; color: var(--color-danger); margin-top: 6px; }
+
 @media (max-width: 700px) {
   .store-header { flex-direction: column; align-items: stretch; }
   .store-nav { justify-content: space-between; }

@@ -57,6 +57,18 @@ describe('matchRoute', () => {
     expect(matchRoute(`${STORE_BASE}/orders/5`)).toEqual({ id: 'order', param: '5' });
   });
 
+  it('matches the Claudium Packages list and its confirmation sub-route', () => {
+    expect(matchRoute(`${STORE_BASE}/packages`)).toEqual({ id: 'packages' });
+    expect(matchRoute(`${STORE_BASE}/packages/confirmation`)).toEqual({
+      id: 'packageConfirmation',
+    });
+  });
+
+  it('rejects an unknown packages sub-route', () => {
+    expect(matchRoute(`${STORE_BASE}/packages/5`)).toEqual({ id: 'notFound' });
+    expect(matchRoute(`${STORE_BASE}/packages/confirmation/extra`)).toEqual({ id: 'notFound' });
+  });
+
   it('falls back to notFound for an unknown top segment or extra depth', () => {
     expect(matchRoute(`${STORE_BASE}/nope`)).toEqual({ id: 'notFound' });
     expect(matchRoute(`${STORE_BASE}/products/iron-sword/extra`)).toEqual({ id: 'notFound' });

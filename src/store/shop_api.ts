@@ -6,6 +6,8 @@
 import { apiGet, apiPost } from './api';
 import type {
   StoreCategory,
+  StoreClaudiumPackage,
+  StoreClaudiumPurchase,
   StoreOrderDetail,
   StoreOrderStatus,
   StorePaginated,
@@ -92,4 +94,26 @@ export function listMyOrders(
 
 export function getMyOrder(id: number): Promise<StoreOrderDetail> {
   return apiGet(`/api/shop/orders/${id}`);
+}
+
+/** The enabled-only Claudium Packages catalog (server/shop_storefront_
+ *  packages_routes.ts), ordered for display. */
+export function listPackages(): Promise<StorePaginated<StoreClaudiumPackage>> {
+  return apiGet(
+    `/api/shop/packages${toQuery({ limit: 100, sort: 'displayOrder', dir: 'asc', enabled: true })}`,
+  );
+}
+
+/** Starts a Stripe Checkout Session for one package (server/claudium_
+ *  purchases_routes.ts); requires an authenticated session. */
+export function startPackageCheckout(
+  packageId: number,
+): Promise<{ url: string; sessionId: string }> {
+  return apiPost(`/api/shop/packages/${packageId}/checkout`, {});
+}
+
+/** The caller's own purchase status, for the confirmation page to poll while
+ *  the Stripe webhook catches up. */
+export function getPurchaseStatus(sessionId: string): Promise<StoreClaudiumPurchase> {
+  return apiGet(`/api/shop/packages/purchases/${encodeURIComponent(sessionId)}`);
 }

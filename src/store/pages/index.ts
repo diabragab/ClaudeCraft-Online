@@ -1,6 +1,8 @@
 // Page registry: route id -> StorePage. app.ts dispatches through this so a
 // new page is one entry here, never a branch inline in the orchestrator.
 
+import type { StorePage } from '../page';
+import type { StoreRouteId } from '../routes';
 import { cartPage } from './cart_page';
 import { categoriesPage } from './categories';
 import { checkoutPage } from './checkout';
@@ -9,10 +11,10 @@ import { homePage } from './home';
 import { notFoundPage } from './not_found';
 import { orderDetailPage } from './order_detail';
 import { ordersPage } from './orders';
+import { packageConfirmationPage } from './package_confirmation';
+import { packagesPage } from './packages';
 import { productDetailPage } from './product_detail';
 import { productsPage } from './products';
-import type { StorePage } from '../page';
-import type { StoreRouteId } from '../routes';
 
 export const PAGES: Record<StoreRouteId, StorePage> = {
   home: homePage,
@@ -25,5 +27,7 @@ export const PAGES: Record<StoreRouteId, StorePage> = {
   confirmation: confirmationPage,
   orders: ordersPage,
   order: orderDetailPage,
+  packages: packagesPage,
+  packageConfirmation: packageConfirmationPage,
   notFound: notFoundPage,
 };

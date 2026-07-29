@@ -4648,6 +4648,7 @@ export const ko_KR: EnTranslations = {
       "home": "Home",
       "categories": "카테고리",
       "products": "상품",
+      "packages": "클라우디움 패키지",
       "cart": "Cart",
       "orders": "내 주문",
       "signIn": "Sign in",
@@ -4776,6 +4777,29 @@ export const ko_KR: EnTranslations = {
       "title": "페이지를 찾을 수 없습니다",
       "body": "해당 스토어 페이지가 존재하지 않습니다.",
       "backHome": "스토어 홈으로 돌아가기"
+    },
+    "packages": {
+      "title": "클라우디움 패키지",
+      "subtitle": "신용카드 또는 체크카드로 클라우디움을 구매하세요. 결제는 Stripe가 안전하게 처리합니다.",
+      "empty": "현재 구매 가능한 클라우디움 패키지가 없습니다.",
+      "claudiumAmount": "클라우디움 {amount}",
+      "bonusLabel": "보너스 클라우디움 {amount} 추가",
+      "featuredBadge": "추천",
+      "discountBadge": "{percent}% 할인",
+      "buy": "지금 구매",
+      "starting": "결제를 시작하는 중...",
+      "checkoutFailed": "결제를 시작할 수 없습니다. 다시 시도해 주세요.",
+      "signInRequiredBody": "클라우디움을 구매하려면 World of ClaudeCraft 홈페이지에서 로그인해 주세요."
+    },
+    "packageConfirmation": {
+      "paidTitle": "구매해 주셔서 감사합니다",
+      "paidBody": "{package}의 클라우디움 {amount}이(가) 계정에 추가되었습니다.",
+      "pendingTitle": "결제를 확인하는 중입니다",
+      "pendingBody": "잠시만 기다려 주세요. 이 페이지를 닫지 마세요.",
+      "pendingTimeoutBody": "결제가 아직 확인 중입니다. 클라우디움 잔액은 곧 업데이트되며, 잠시 후 다시 확인해 주세요.",
+      "failedTitle": "결제가 완료되지 않았습니다",
+      "failedBody": "이 구매는 완료되지 않았으므로 결제나 클라우디움 지급이 이루어지지 않았습니다.",
+      "missingSession": "이 확인 링크에 결제 세션 정보가 없습니다."
     }
   },
   "skinEvent": {
