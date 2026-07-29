@@ -9,7 +9,7 @@
 // vite.config.ts calls. The runtime selects the locale at runtime, so Vite cannot
 // auto-inject a modulepreload hint for it - this build hook supplies the hashed name.
 
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 // The build templates the real map over this sentinel in index.html. It is a bare
@@ -83,11 +83,27 @@ export function injectLocaleChunkMap(html, map, placeholder = PLACEHOLDER) {
   return html.split(placeholder).join(json);
 }
 
-// FS orchestrator the Vite closeBundle plugin calls: read the post-build manifest +
+// Vite (Rollup engine) writes build.manifest under <outDir>/.vite/manifest.json (the
+// convention since Vite 4). The Rolldown build engine (Vite 8's opt-in/default Rust
+// bundler) has been observed emitting it at the bare <outDir>/manifest.json instead;
+// checking both keeps this hook engine-agnostic without hard-coding either bundler's
+// current behavior, which is not a stable contract this repo controls.
+function resolveManifestPath(outDir) {
+  const nested = path.join(outDir, '.vite', 'manifest.json');
+  if (existsSync(nested)) return nested;
+  const flat = path.join(outDir, 'manifest.json');
+  if (existsSync(flat)) return flat;
+  throw new Error(
+    `i18n modulepreload: no build manifest at ${nested} or ${flat}. Confirm build.manifest ` +
+      'is enabled in vite.config.ts and that this hook runs after the manifest is written.',
+  );
+}
+
+// FS orchestrator the Vite writeBundle plugin hook calls: read the post-build manifest +
 // loaders source, resolve the hashed locale chunks, and template the lookup into the
 // emitted dist/index.html. Returns the resolved map for logging/tests.
 export function templateModulepreload({ root, outDir, base = '/' }) {
-  const manifestPath = path.join(outDir, '.vite', 'manifest.json');
+  const manifestPath = resolveManifestPath(outDir);
   const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
   const loadersSource = readFileSync(path.join(root, GENERATED_DIR, 'loaders.ts'), 'utf8');
   const locales = parseSupportedLocales(loadersSource);

@@ -153,25 +153,44 @@ function staticPageAliasPlugin() {
 // non-en visitor's locale chunk before main parses. Build-only: in dev the inline script's
 // sentinel stays undefined (no-op). The manifest is metadata, so enabling it does not move
 // the resolved-table SHA. See scripts/i18n_modulepreload.mjs.
+interface I18nModulepreloadResolvedConfig {
+  root: string;
+  base: string;
+  build: { outDir: string };
+}
+
 function i18nModulepreloadPlugin() {
   let outDir = path.resolve(root, 'dist');
   let base = '/';
+
+  function onConfigResolved(cfg: I18nModulepreloadResolvedConfig): void {
+    base = cfg.base || '/';
+    if (path.isAbsolute(cfg.build.outDir)) {
+      outDir = cfg.build.outDir;
+    } else {
+      outDir = path.resolve(cfg.root, cfg.build.outDir);
+    }
+  }
+
+  function onWriteBundle(): void {
+    const { map } = templateModulepreload({ root, outDir, base });
+    // eslint-disable-next-line no-console
+    console.log(
+      `[i18n] modulepreload: templated ${Object.keys(map).length} locale chunk URLs into index.html`,
+    );
+  }
+
   return {
     name: 'woc-i18n-modulepreload',
     apply: 'build' as const,
-    configResolved(cfg: { root: string; base: string; build: { outDir: string } }) {
-      base = cfg.base || '/';
-      outDir = path.isAbsolute(cfg.build.outDir)
-        ? cfg.build.outDir
-        : path.resolve(cfg.root, cfg.build.outDir);
-    },
-    closeBundle() {
-      const { map } = templateModulepreload({ root, outDir, base });
-      // eslint-disable-next-line no-console
-      console.log(
-        `[i18n] modulepreload: templated ${Object.keys(map).length} locale chunk URLs into index.html`,
-      );
-    },
+    configResolved: onConfigResolved,
+    // writeBundle (not closeBundle): Rollup/Vite guarantee writeBundle fires only
+    // after every emitted file, including the build.manifest JSON this hook reads,
+    // is actually on disk. closeBundle is meant for final cleanup and is not
+    // documented to wait on file writes; that gap is consistent with a Linux
+    // Rolldown-engine build hitting ENOENT here while the same config succeeds
+    // under Rollup.
+    writeBundle: onWriteBundle,
   };
 }
 

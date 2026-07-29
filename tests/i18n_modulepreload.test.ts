@@ -109,7 +109,7 @@ describe("i18n modulepreload build hook", () => {
     });
   });
 
-  describe("templateModulepreload (FS orchestrator the Vite closeBundle plugin calls)", () => {
+  describe("templateModulepreload (FS orchestrator the Vite writeBundle plugin hook calls)", () => {
     it("resolves the manifest + loaders source and rewrites dist/index.html in place", () => {
       const tmp = mkdtempSync(path.join(os.tmpdir(), "i18n-mp-"));
       try {
@@ -138,6 +138,47 @@ describe("i18n modulepreload build hook", () => {
         const rewritten = readFileSync(htmlPath, "utf8");
         expect(rewritten).not.toContain(PLACEHOLDER);
         expect(rewritten).toContain('{"es":"/assets/es-aaaa1111.js","de_DE":"/assets/de_DE-bbbb2222.js"}');
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    it("falls back to a bare outDir/manifest.json when .vite/manifest.json is absent", () => {
+      // Some build engines (observed: Vite's Rolldown engine) have emitted the
+      // manifest directly under outDir instead of Rollup's outDir/.vite/ convention.
+      // This must resolve without requiring the nested path.
+      const tmp = mkdtempSync(path.join(os.tmpdir(), "i18n-mp-"));
+      try {
+        const outDir = path.join(tmp, "dist");
+        const genDir = path.join(tmp, GENERATED_DIR);
+        mkdirSync(outDir, { recursive: true });
+        mkdirSync(genDir, { recursive: true });
+        writeFileSync(path.join(genDir, "loaders.ts"), "export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;\n");
+        writeFileSync(path.join(outDir, "manifest.json"), JSON.stringify({
+          "src/ui/i18n.resolved.generated/es.ts": { file: "assets/es-aaaa1111.js" },
+        }));
+        writeFileSync(path.join(outDir, "index.html"), `<head><script>var m = ${PLACEHOLDER};</script></head>`);
+
+        const { map, manifestPath } = templateModulepreload({ root: tmp, outDir, base: "/" });
+
+        expect(map).toEqual({ es: "/assets/es-aaaa1111.js" });
+        expect(manifestPath).toBe(path.join(outDir, "manifest.json"));
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
+    });
+
+    it("throws a clear error naming both candidate paths when neither manifest exists", () => {
+      const tmp = mkdtempSync(path.join(os.tmpdir(), "i18n-mp-"));
+      try {
+        const outDir = path.join(tmp, "dist");
+        const genDir = path.join(tmp, GENERATED_DIR);
+        mkdirSync(outDir, { recursive: true });
+        mkdirSync(genDir, { recursive: true });
+        writeFileSync(path.join(genDir, "loaders.ts"), "export const SUPPORTED_LANGUAGES = ['en', 'es'] as const;\n");
+        expect(() => templateModulepreload({ root: tmp, outDir, base: "/" })).toThrow(
+          /no build manifest/,
+        );
       } finally {
         rmSync(tmp, { recursive: true, force: true });
       }
