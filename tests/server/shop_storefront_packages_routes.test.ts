@@ -33,6 +33,9 @@ function packageRecord(overrides: Partial<ClaudiumPackageRecord> = {}): Claudium
     stripePriceId: null,
     enabled: true,
     displayOrder: 0,
+    imageUrl: null,
+    discountPercent: 0,
+    featured: false,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
@@ -101,6 +104,24 @@ describe('storefront packages routes: list', () => {
     });
     await runRoute(route, ctx);
     expect(receivedParams).toMatchObject({ enabled: true });
+  });
+
+  it('forwards a featured filter to the service', async () => {
+    let receivedParams: Record<string, unknown> | undefined;
+    fakeService({
+      listPackages: async (params: Record<string, unknown>) => {
+        receivedParams = params;
+        return { rows: [], total: 0 };
+      },
+    });
+    const route = routeFor('GET', '/api/shop/packages');
+    const ctx = fakeCtx({
+      method: 'GET',
+      url: '/api/shop/packages',
+      query: { featured: 'true' },
+    });
+    await runRoute(route, ctx);
+    expect(receivedParams).toMatchObject({ featured: true, enabled: true });
   });
 
   it('defaults to sorting by displayOrder ascending', async () => {

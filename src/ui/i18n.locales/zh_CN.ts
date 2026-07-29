@@ -215,6 +215,10 @@ export const zh_CN: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.noResults': '没有符合搜索条件的商品。',
   'hudChrome.wocStore.packagesBody': '即将开放购买克劳迪币礼包。',
   'hudChrome.wocStore.packagesEmpty': '目前没有可用的克劳迪币礼包。',
+  'hudChrome.wocStore.packageBonus': '+{bonus} 赠送',
+  'hudChrome.wocStore.packageDiscount': '{percent}% 折扣',
+  'hudChrome.wocStore.packageFeatured': '精选',
+  'hudChrome.wocStore.packageBuy': '以 {price} {currency} 购买',
   'hudChrome.wocStore.wallet.title': 'Solana 钱包',
   'hudChrome.wocStore.wallet.unlinked':
     '连接钱包应用，然后签名一次，将其公开地址绑定到你的 WoC 账号。我们绝不会获取你的恢复短语或私钥。',

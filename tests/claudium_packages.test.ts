@@ -40,6 +40,9 @@ class FakeClaudiumPackagesDb implements ClaudiumPackagesDb {
     if (params.enabled !== undefined) {
       filtered = filtered.filter((r) => r.enabled === params.enabled);
     }
+    if (params.featured !== undefined) {
+      filtered = filtered.filter((r) => r.featured === params.featured);
+    }
     const dir = params.dir === 'asc' ? 1 : -1;
     filtered.sort((a, b) => {
       if (params.sort === 'name') return a.name.localeCompare(b.name) * dir;
@@ -82,6 +85,9 @@ const BASE_CREATE: ClaudiumPackageCreateInput = {
   price: 499,
   currency: 'USD',
   stripePriceId: '',
+  imageUrl: '',
+  discountPercent: 0,
+  featured: false,
   enabled: true,
   displayOrder: 0,
 };
@@ -113,6 +119,54 @@ describe('ClaudiumPackagesService', () => {
     const result = await ctx.svc.createPackage({ ...BASE_CREATE, stripePriceId: '  ' });
     if (!result.ok) throw new Error('expected ok');
     expect(result.pkg.stripePriceId).toBeNull();
+  });
+
+  it('stores the merchandising fields: imageUrl, discountPercent, featured', async () => {
+    const result = await ctx.svc.createPackage({
+      ...BASE_CREATE,
+      imageUrl: 'https://example.com/pack.png',
+      discountPercent: 25,
+      featured: true,
+    });
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.pkg.imageUrl).toBe('https://example.com/pack.png');
+    expect(result.pkg.discountPercent).toBe(25);
+    expect(result.pkg.featured).toBe(true);
+  });
+
+  it('treats an empty imageUrl as null (clears it)', async () => {
+    const result = await ctx.svc.createPackage({ ...BASE_CREATE, imageUrl: '   ' });
+    if (!result.ok) throw new Error('expected ok');
+    expect(result.pkg.imageUrl).toBeNull();
+  });
+
+  it('updates imageUrl/discountPercent/featured independently via a partial patch', async () => {
+    const created = await ctx.svc.createPackage(BASE_CREATE);
+    if (!created.ok) throw new Error('expected ok');
+    const updated = await ctx.svc.updatePackage(created.pkg.id, {
+      discountPercent: 10,
+      featured: true,
+    });
+    if (!updated.ok) throw new Error('expected ok');
+    expect(updated.pkg.discountPercent).toBe(10);
+    expect(updated.pkg.featured).toBe(true);
+    // Untouched fields survive the partial patch.
+    expect(updated.pkg.name).toBe('Starter Pack');
+    expect(updated.pkg.imageUrl).toBeNull();
+  });
+
+  it('filters by featured', async () => {
+    await ctx.svc.createPackage({ ...BASE_CREATE, name: 'Featured Pack', featured: true });
+    await ctx.svc.createPackage({ ...BASE_CREATE, name: 'Plain Pack', featured: false });
+    const { rows } = await ctx.svc.listPackages({
+      page: 1,
+      limit: 20,
+      q: '',
+      featured: true,
+      sort: 'displayOrder',
+      dir: 'asc',
+    });
+    expect(rows.map((r) => r.name)).toEqual(['Featured Pack']);
   });
 
   it('trims and stores a non-empty stripePriceId', async () => {

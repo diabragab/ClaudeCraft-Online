@@ -170,6 +170,10 @@ export const hudChromeStrings = {
     // the copy stays purely informational.
     packagesBody: 'Claudium package bundles available for purchase soon.',
     packagesEmpty: 'No Claudium Packages are available right now.',
+    packageBonus: '+{bonus} bonus',
+    packageDiscount: '{percent}% off',
+    packageFeatured: 'Featured',
+    packageBuy: 'Buy for {price} {currency}',
     wallet: {
       title: 'Solana wallet',
       unlinked:

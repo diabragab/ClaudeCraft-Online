@@ -57,6 +57,7 @@ const listPackagesQuerySchema = object({
   limit: optional(num({ int: true, min: 1, max: 100 }), 20),
   q: optional(str({ maxLength: 64 }), ''),
   enabled: optional(bool()),
+  featured: optional(bool()),
   sort: optional(packageSortEnum, 'displayOrder'),
   dir: optional(sortDirEnum, 'asc'),
 });
@@ -70,6 +71,9 @@ const createPackageBodySchema = object({
   stripePriceId: optional(str({ maxLength: 120 }), ''),
   enabled: optional(bool(), true),
   displayOrder: optional(num({ int: true, min: 0 }), 0),
+  imageUrl: optional(str({ maxLength: 500 }), ''),
+  discountPercent: optional(num({ int: true, min: 0, max: 100 }), 0),
+  featured: optional(bool(), false),
 });
 
 const updatePackageBodySchema = object({
@@ -81,6 +85,9 @@ const updatePackageBodySchema = object({
   stripePriceId: optional(str({ maxLength: 120 })),
   enabled: optional(bool()),
   displayOrder: optional(num({ int: true, min: 0 })),
+  imageUrl: optional(str({ maxLength: 500 })),
+  discountPercent: optional(num({ int: true, min: 0, max: 100 })),
+  featured: optional(bool()),
 });
 
 export type ListPackagesQuery = Infer<typeof listPackagesQuerySchema>;

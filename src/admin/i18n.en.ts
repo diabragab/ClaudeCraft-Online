@@ -931,6 +931,12 @@ export const en = {
   'claudiumPackages.saveFailed': 'Could not save this package.',
   'claudiumPackages.loadFailed': 'Could not load Claudium Packages.',
   'claudiumPackages.empty': 'No Claudium Packages yet.',
+  'claudiumPackages.imageUrlLabel': 'Image URL',
+  'claudiumPackages.imageUrlPlaceholder': 'https://... or /claudium/icons/...',
+  'claudiumPackages.discountPercentLabel': 'Discount %',
+  'claudiumPackages.featuredLabel': 'Featured',
+  'claudiumPackages.colDiscount': 'Discount',
+  'claudiumPackages.colFeatured': 'Featured',
 
   'shopInventory.addTitle': 'Start tracking a product',
   'shopInventory.editTitle': 'Adjust stock',

@@ -451,6 +451,10 @@ export const en: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Solana wallet",
         "unlinked": "Connect a wallet app, then sign once to link its public address to your WoC account. We never receive your recovery phrase or private key.",

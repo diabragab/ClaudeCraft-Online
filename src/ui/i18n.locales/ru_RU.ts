@@ -216,6 +216,10 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.noResults': 'Нет товаров, соответствующих поиску.',
   'hudChrome.wocStore.packagesBody': 'Наборы Клаудиума скоро будут доступны для покупки.',
   'hudChrome.wocStore.packagesEmpty': 'Сейчас нет доступных наборов Клаудиума.',
+  'hudChrome.wocStore.packageBonus': '+{bonus} бонус',
+  'hudChrome.wocStore.packageDiscount': 'Скидка {percent}%',
+  'hudChrome.wocStore.packageFeatured': 'Рекомендуем',
+  'hudChrome.wocStore.packageBuy': 'Купить за {price} {currency}',
   'hudChrome.wocStore.wallet.title': 'Кошелёк Solana',
   'hudChrome.wocStore.wallet.unlinked':
     'Подключите приложение кошелька, затем один раз подпишите сообщение, чтобы привязать его публичный адрес к учётной записи WoC. Мы никогда не получаем вашу фразу восстановления или закрытый ключ.',

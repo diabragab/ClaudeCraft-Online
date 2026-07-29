@@ -8,7 +8,7 @@
 import { ClaudiumPackagesService, claudiumPackageJson } from './claudium_packages';
 import { PgClaudiumPackagesDb } from './claudium_packages_db';
 import { pool } from './db';
-import { enum_, num, object, optional, str } from './http/schema';
+import { bool, enum_, num, object, optional, str } from './http/schema';
 import type { Ctx, RouteDef } from './http/types';
 import { json } from './http_util';
 import { publicReadRateLimited } from './ratelimit';
@@ -31,6 +31,7 @@ const listPackagesQuerySchema = object({
   page: optional(num({ int: true, min: 1 }), 1),
   limit: optional(num({ int: true, min: 1, max: 100 }), 20),
   q: optional(str({ maxLength: 64 }), ''),
+  featured: optional(bool()),
   sort: optional(packageSortEnum, 'displayOrder'),
   dir: optional(sortDirEnum, 'asc'),
 });

@@ -451,6 +451,10 @@ export const vi_VN: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Ví Solana",
         "unlinked": "Hãy kết nối một ứng dụng ví, rồi ký một lần để liên kết địa chỉ công khai của nó với tài khoản WoC của bạn. Chúng tôi không bao giờ nhận cụm từ khôi phục hoặc khóa riêng tư của bạn.",

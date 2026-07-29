@@ -69,6 +69,9 @@
     stripePriceId: string;
     enabled: boolean;
     displayOrder: string;
+    imageUrl: string;
+    discountPercent: string;
+    featured: boolean;
   }
 
   function emptyForm(): PackageForm {
@@ -81,6 +84,9 @@
       stripePriceId: '',
       enabled: true,
       displayOrder: '0',
+      imageUrl: '',
+      discountPercent: '0',
+      featured: false,
     };
   }
 
@@ -94,6 +100,9 @@
       stripePriceId: form.stripePriceId.trim(),
       enabled: form.enabled,
       displayOrder: Number(form.displayOrder) || 0,
+      imageUrl: form.imageUrl.trim(),
+      discountPercent: Number(form.discountPercent) || 0,
+      featured: form.featured,
     };
   }
 
@@ -132,6 +141,9 @@
       stripePriceId: row.stripePriceId ?? '',
       enabled: row.enabled,
       displayOrder: String(row.displayOrder),
+      imageUrl: row.imageUrl ?? '',
+      discountPercent: String(row.discountPercent),
+      featured: row.featured,
     };
   }
 
@@ -195,7 +207,14 @@
   <label>{t('claudiumPackages.displayOrderLabel')}
     <input inputmode="numeric" pattern="[0-9]*" bind:value={form.displayOrder} />
   </label>
+  <label class="shop-field-wide">{t('claudiumPackages.imageUrlLabel')}
+    <input placeholder={t('claudiumPackages.imageUrlPlaceholder')} maxlength="500" bind:value={form.imageUrl} />
+  </label>
+  <label>{t('claudiumPackages.discountPercentLabel')}
+    <input inputmode="numeric" pattern="[0-9]*" placeholder="0" bind:value={form.discountPercent} />
+  </label>
   <label class="shop-checkbox"><input type="checkbox" bind:checked={form.enabled} /> {t('claudiumPackages.enabledLabel')}</label>
+  <label class="shop-checkbox"><input type="checkbox" bind:checked={form.featured} /> {t('claudiumPackages.featuredLabel')}</label>
 {/snippet}
 
 <PageHeader title={t('nav.shopPackages')} />
@@ -249,6 +268,8 @@
           <th>{t('claudiumPackages.colPrice')}</th>
           <th>{t('shopProducts.colStatus')}</th>
           <th class="num">{t('claudiumPackages.colDisplayOrder')}</th>
+          <th class="num">{t('claudiumPackages.colDiscount')}</th>
+          <th>{t('claudiumPackages.colFeatured')}</th>
           {#if canManage}<th>{t('shopCommon.colActions')}</th>{/if}
         </tr>
       </thead>
@@ -262,6 +283,8 @@
             <td>{priceSummary(row)}</td>
             <td>{row.enabled ? t('claudiumPackages.enabledLabel') : t('claudiumPackages.disabledLabel')}</td>
             <td class="num">{row.displayOrder}</td>
+            <td class="num">{row.discountPercent > 0 ? `${row.discountPercent}%` : '—'}</td>
+            <td>{row.featured ? t('shopCommon.yes') : t('shopCommon.no')}</td>
             {#if canManage}
               <td>
                 <button onclick={() => openEdit(row)}>{t('shopCommon.edit')}</button>

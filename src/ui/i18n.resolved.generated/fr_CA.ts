@@ -451,6 +451,10 @@ export const fr_CA: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Portefeuille Solana",
         "unlinked": "Connectez une application de portefeuille, puis signez une fois pour lier son adresse publique à votre compte WoC. Nous ne recevons jamais votre phrase de récupération ni votre clé privée.",

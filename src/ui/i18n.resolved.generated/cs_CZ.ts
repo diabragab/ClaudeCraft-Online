@@ -451,6 +451,10 @@ export const cs_CZ: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Peněženka Solana",
         "unlinked": "Připoj aplikaci peněženky a jednou podpiš pro propojení její veřejné adresy s tvým účtem WoC. Nikdy nepřijmeme tvoji obnovovací frázi ani soukromý klíč.",

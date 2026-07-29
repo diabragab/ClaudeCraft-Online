@@ -224,9 +224,7 @@ describe('WOC Store window contract', () => {
 
   it('keeps storefront content mounted while a background refresh is loading', () => {
     expect(storeWindow).toContain('data-woc-store-loading');
-    expect(storeWindow).toContain(
-      "setAttribute('aria-busy', this.storeLoading ? 'true' : 'false')",
-    );
+    expect(storeWindow).toContain("setAttribute('aria-busy', loading ? 'true' : 'false')");
     expect(storeWindow).not.toContain('if (this.storeLoading) {\n      body.innerHTML');
     expect(storeWindow).toContain('if (!snapshot.available || snapshot.balance === null)');
     expect(storeWindow).toContain('this.storeError = !this.storeReady;');

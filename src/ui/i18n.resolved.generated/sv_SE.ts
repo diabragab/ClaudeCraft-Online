@@ -451,6 +451,10 @@ export const sv_SE: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Solana-plånbok",
         "unlinked": "Anslut en plånboksapp och signera sedan en gång för att länka dess offentliga adress till ditt WoC-konto. Vi tar aldrig emot din återställningsfras eller privata nyckel.",

@@ -451,6 +451,10 @@ export const tr_TR: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Solana cüzdanı",
         "unlinked": "Bir cüzdan uygulaması bağla, ardından açık adresini WoC hesabına bağlamak için bir kez imzala. Kurtarma ifadeni veya özel anahtarını hiçbir zaman almıyoruz.",

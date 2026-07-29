@@ -216,6 +216,10 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.noResults': '検索条件に一致する商品はありません。',
   'hudChrome.wocStore.packagesBody': 'クラウディウムパッケージは近日購入可能になります。',
   'hudChrome.wocStore.packagesEmpty': '現在利用できるクラウディウムパッケージはありません。',
+  'hudChrome.wocStore.packageBonus': '+{bonus} ボーナス',
+  'hudChrome.wocStore.packageDiscount': '{percent}% オフ',
+  'hudChrome.wocStore.packageFeatured': '注目',
+  'hudChrome.wocStore.packageBuy': '{price} {currency} で購入',
   'hudChrome.wocStore.wallet.title': 'Solanaウォレット',
   'hudChrome.wocStore.wallet.unlinked':
     'ウォレットアプリを接続し、一度署名して公開アドレスをWoCアカウントにリンクしてください。リカバリーフレーズや秘密鍵を受け取ることはありません。',

@@ -15,6 +15,9 @@ export interface ClaudiumPackageRecord {
   stripePriceId: string | null;
   enabled: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,6 +31,10 @@ export interface ClaudiumPackageCreateInput {
   stripePriceId: string;
   enabled: boolean;
   displayOrder: number;
+  /** '' means no image (stored as SQL NULL), same convention as stripePriceId. */
+  imageUrl: string;
+  discountPercent: number;
+  featured: boolean;
 }
 
 export interface ClaudiumPackageUpdateInput {
@@ -39,6 +46,9 @@ export interface ClaudiumPackageUpdateInput {
   stripePriceId?: string;
   enabled?: boolean;
   displayOrder?: number;
+  imageUrl?: string;
+  discountPercent?: number;
+  featured?: boolean;
 }
 
 export interface ClaudiumPackageWriteRow {
@@ -50,6 +60,9 @@ export interface ClaudiumPackageWriteRow {
   stripePriceId: string | null;
   enabled: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
 }
 
 export type ClaudiumPackageSort = 'displayOrder' | 'name' | 'createdAt' | 'updatedAt';
@@ -60,6 +73,7 @@ export interface ClaudiumPackageListParams {
   limit: number;
   q: string;
   enabled?: boolean;
+  featured?: boolean;
   sort: ClaudiumPackageSort;
   dir: ClaudiumPackageSortDirection;
 }
@@ -92,6 +106,7 @@ function resolveWriteRow(
   existing: ClaudiumPackageRecord | null,
 ): ClaudiumPackageWriteRow {
   const stripePriceIdRaw = input.stripePriceId ?? existing?.stripePriceId ?? '';
+  const imageUrlRaw = input.imageUrl ?? existing?.imageUrl ?? '';
   return {
     name: input.name ?? (existing?.name as string),
     claudiumAmount: input.claudiumAmount ?? existing?.claudiumAmount ?? 0,
@@ -101,6 +116,9 @@ function resolveWriteRow(
     stripePriceId: stripePriceIdRaw.trim() === '' ? null : stripePriceIdRaw.trim(),
     enabled: input.enabled ?? existing?.enabled ?? true,
     displayOrder: input.displayOrder ?? existing?.displayOrder ?? 0,
+    imageUrl: imageUrlRaw.trim() === '' ? null : imageUrlRaw.trim(),
+    discountPercent: input.discountPercent ?? existing?.discountPercent ?? 0,
+    featured: input.featured ?? existing?.featured ?? false,
   };
 }
 
@@ -139,6 +157,9 @@ export class ClaudiumPackagesService {
     if (input.stripePriceId !== undefined) patch.stripePriceId = resolved.stripePriceId;
     if (input.enabled !== undefined) patch.enabled = resolved.enabled;
     if (input.displayOrder !== undefined) patch.displayOrder = resolved.displayOrder;
+    if (input.imageUrl !== undefined) patch.imageUrl = resolved.imageUrl;
+    if (input.discountPercent !== undefined) patch.discountPercent = resolved.discountPercent;
+    if (input.featured !== undefined) patch.featured = resolved.featured;
     const pkg = await this.db.updatePackage(id, patch);
     if (!pkg) return { ok: false, error: 'not_found' };
     return { ok: true, pkg };

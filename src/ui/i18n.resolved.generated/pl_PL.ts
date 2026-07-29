@@ -451,6 +451,10 @@ export const pl_PL: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Portfel Solana",
         "unlinked": "Podłącz aplikację portfela, a następnie podpisz raz, aby powiązać jej publiczny adres z twoim kontem WoC. Nigdy nie otrzymujemy twojej frazy odzyskiwania ani klucza prywatnego.",

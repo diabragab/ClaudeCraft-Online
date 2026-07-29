@@ -451,6 +451,10 @@ export const da_DK: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Solana-pung",
         "unlinked": "Tilslut en pung-app og underskriv derefter én gang for at knytte dens offentlige adresse til din WoC-konto. Vi modtager aldrig din genoprettelsesfrase eller private nøgle.",

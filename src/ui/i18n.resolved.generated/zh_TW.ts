@@ -451,6 +451,10 @@ export const zh_TW: EnTranslations = {
       "noResults": "沒有符合搜尋條件的商品。",
       "packagesBody": "克勞迪幣禮包即將開放購買。",
       "packagesEmpty": "目前沒有可用的克勞迪幣禮包。",
+      "packageBonus": "+{bonus} 贈送",
+      "packageDiscount": "{percent}% 折扣",
+      "packageFeatured": "精選",
+      "packageBuy": "以 {price} {currency} 購買",
       "wallet": {
         "title": "Solana 錢包",
         "unlinked": "連接錢包應用程式，然後簽署一次，將其公開地址綁定到你的 WoC 帳號。我們絕不會取得你的復原短語或私鑰。",

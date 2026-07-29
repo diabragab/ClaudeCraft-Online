@@ -451,6 +451,10 @@ export const ko_KR: EnTranslations = {
       "noResults": "검색 조건에 맞는 상품이 없습니다.",
       "packagesBody": "클라우디움 패키지는 곧 구매할 수 있습니다.",
       "packagesEmpty": "현재 이용 가능한 클라우디움 패키지가 없습니다.",
+      "packageBonus": "+{bonus} 보너스",
+      "packageDiscount": "{percent}% 할인",
+      "packageFeatured": "추천",
+      "packageBuy": "{price} {currency}로 구매",
       "wallet": {
         "title": "Solana 지갑",
         "unlinked": "지갑 앱을 연결한 뒤 한 번 서명하여 공개 주소를 WoC 계정에 연결하세요. 복구 문구나 개인 키는 절대로 전달되지 않습니다.",

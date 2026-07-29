@@ -23,6 +23,12 @@ export interface ClaudiumPackageRecord {
   stripePriceId: string | null;
   enabled: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  /** Percent off the pack's own "list" framing (0-100); purely a display
+   *  badge, no separate list-price column: the storefront shows `price` as
+   *  the amount actually charged and this as the advertised discount. */
+  discountPercent: number;
+  featured: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -36,6 +42,9 @@ export interface ClaudiumPackageWriteRow {
   stripePriceId: string | null;
   enabled: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
 }
 
 export interface ClaudiumPackageListParams {
@@ -43,6 +52,7 @@ export interface ClaudiumPackageListParams {
   limit: number;
   q: string;
   enabled?: boolean;
+  featured?: boolean;
   sort: ClaudiumPackageSort;
   dir: ClaudiumPackageSortDirection;
 }
@@ -67,10 +77,25 @@ CREATE TABLE IF NOT EXISTS claudium_packages (
 -- Serves the storefront read (enabled-only, display-order first) and the
 -- admin list's default sort.
 CREATE INDEX IF NOT EXISTS claudium_packages_enabled_order ON claudium_packages(enabled, display_order);
+-- Phase 8 (Stripe purchases): storefront merchandising columns, added after
+-- the table first shipped (Phase 7), so they grow via ALTER rather than
+-- editing the CREATE TABLE above (server/CLAUDE.md: shipped DDL is only ever
+-- added to).
+ALTER TABLE claudium_packages ADD COLUMN IF NOT EXISTS image_url TEXT;
+ALTER TABLE claudium_packages ADD COLUMN IF NOT EXISTS discount_percent INT NOT NULL DEFAULT 0;
+ALTER TABLE claudium_packages ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE claudium_packages DROP CONSTRAINT IF EXISTS claudium_packages_discount_range;
+ALTER TABLE claudium_packages ADD CONSTRAINT claudium_packages_discount_range
+  CHECK (discount_percent >= 0 AND discount_percent <= 100);
+-- Serves the storefront's "Featured packages" query, mirroring
+-- shop_products_featured's small partial index.
+CREATE INDEX IF NOT EXISTS claudium_packages_featured ON claudium_packages(enabled, display_order)
+  WHERE featured = true;
 `;
 
 const PACKAGE_COLS = `id, name, claudium_amount, bonus_amount, price, currency,
-  stripe_price_id, enabled, display_order, created_at, updated_at`;
+  stripe_price_id, enabled, display_order, image_url, discount_percent, featured,
+  created_at, updated_at`;
 
 const SORT_COLUMN: Record<ClaudiumPackageSort, string> = {
   displayOrder: 'display_order',
@@ -89,6 +114,9 @@ interface PackageRow {
   stripe_price_id: string | null;
   enabled: boolean;
   display_order: number;
+  image_url: string | null;
+  discount_percent: number;
+  featured: boolean;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -108,6 +136,9 @@ function toRecord(row: PackageRow): ClaudiumPackageRecord {
     stripePriceId: row.stripe_price_id,
     enabled: row.enabled,
     displayOrder: row.display_order,
+    imageUrl: row.image_url,
+    discountPercent: row.discount_percent,
+    featured: row.featured,
     createdAt: isoString(row.created_at),
     updatedAt: isoString(row.updated_at),
   };
@@ -132,8 +163,9 @@ export class PgClaudiumPackagesDb implements ClaudiumPackagesDb {
   async insertPackage(row: ClaudiumPackageWriteRow): Promise<ClaudiumPackageRecord> {
     const res = await this.pool.query<PackageRow>(
       `INSERT INTO claudium_packages
-         (name, claudium_amount, bonus_amount, price, currency, stripe_price_id, enabled, display_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         (name, claudium_amount, bonus_amount, price, currency, stripe_price_id, enabled,
+          display_order, image_url, discount_percent, featured)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING ${PACKAGE_COLS}`,
       [
         row.name,
@@ -144,6 +176,9 @@ export class PgClaudiumPackagesDb implements ClaudiumPackagesDb {
         row.stripePriceId,
         row.enabled,
         row.displayOrder,
+        row.imageUrl,
+        row.discountPercent,
+        row.featured,
       ],
     );
     return toRecord(res.rows[0] as PackageRow);
@@ -169,6 +204,10 @@ export class PgClaudiumPackagesDb implements ClaudiumPackagesDb {
     if (params.enabled !== undefined) {
       values.push(params.enabled);
       conditions.push(`enabled = $${values.length}`);
+    }
+    if (params.featured !== undefined) {
+      values.push(params.featured);
+      conditions.push(`featured = $${values.length}`);
     }
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const sortCol = SORT_COLUMN[params.sort];
@@ -205,6 +244,9 @@ export class PgClaudiumPackagesDb implements ClaudiumPackagesDb {
       stripePriceId: 'stripe_price_id',
       enabled: 'enabled',
       displayOrder: 'display_order',
+      imageUrl: 'image_url',
+      discountPercent: 'discount_percent',
+      featured: 'featured',
     };
     for (const key of Object.keys(patch) as (keyof ClaudiumPackageWriteRow)[]) {
       values.push(patch[key]);

@@ -87,6 +87,9 @@ export interface ClaudiumPackageDisplay {
   bonusAmount: number;
   price: number;
   currency: string;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
 }
 
 export interface DailyRewardsWindowDeps {
@@ -420,12 +423,28 @@ export class DailyRewardsWindow {
       maximumFractionDigits: 2,
       minimumFractionDigits: 2,
     });
+    const art = pkg.imageUrl ?? '/claudium/icons/stack_04.webp';
+    const bonus =
+      pkg.bonusAmount > 0
+        ? `<span class="armory-badge">${esc(t('hudChrome.wocStore.packageBonus', { bonus: formatNumber(pkg.bonusAmount, { maximumFractionDigits: 0 }) }))}</span>`
+        : '';
+    const discount =
+      pkg.discountPercent > 0
+        ? `<span class="armory-badge armory-badge-discount">${esc(t('hudChrome.wocStore.packageDiscount', { percent: formatNumber(pkg.discountPercent, { maximumFractionDigits: 0 }) }))}</span>`
+        : '';
+    const featuredClass = pkg.featured ? ' featured' : '';
+    const featuredBadge = pkg.featured
+      ? `<span class="armory-badge armory-badge-featured">${esc(t('hudChrome.wocStore.packageFeatured'))}</span>`
+      : '';
     return (
-      `<article class="armory-card">` +
+      `<article class="armory-card cl-pack-card${featuredClass}">` +
+      `<span class="armory-card-art"><img src="${esc(art)}" alt="" loading="lazy"></span>` +
       `<span class="armory-card-copy"><h4>${esc(pkg.name)}</h4>` +
+      `<span class="armory-badges">${featuredBadge}${discount}${bonus}</span>` +
       `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${total}</strong></span>` +
-      `<span>${esc(price)} ${esc(pkg.currency)}</span></span>` +
-      `</article>`
+      `<button type="button" class="woc-store-balance-button" data-buy-package="${pkg.id}">` +
+      `${esc(t('hudChrome.wocStore.packageBuy', { price, currency: pkg.currency }))}</button>` +
+      `</span></article>`
     );
   }
 
@@ -839,8 +858,9 @@ export class DailyRewardsWindow {
   private syncStoreLoading(): void {
     const indicator = this.deps.root().querySelector<HTMLElement>('[data-woc-store-loading]');
     if (!indicator) return;
-    indicator.classList.toggle('active', this.storeLoading);
-    indicator.setAttribute('aria-busy', this.storeLoading ? 'true' : 'false');
+    const loading = this.tab === 'packages' ? this.packagesLoading : this.storeLoading;
+    indicator.classList.toggle('active', loading);
+    indicator.setAttribute('aria-busy', loading ? 'true' : 'false');
   }
 
   private storeEnabled(): boolean {

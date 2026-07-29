@@ -451,6 +451,10 @@ export const es: EnTranslations = {
       "noResults": "No products match your search.",
       "packagesBody": "Claudium package bundles available for purchase soon.",
       "packagesEmpty": "No Claudium Packages are available right now.",
+      "packageBonus": "+{bonus} bonus",
+      "packageDiscount": "{percent}% off",
+      "packageFeatured": "Featured",
+      "packageBuy": "Buy for {price} {currency}",
       "wallet": {
         "title": "Cartera de Solana",
         "unlinked": "Conecta una aplicación de cartera y firma una vez para vincular su dirección pública a tu cuenta de WoC. Nunca recibimos tu frase de recuperación ni tu clave privada.",

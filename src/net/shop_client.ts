@@ -48,6 +48,9 @@ export interface ClaudiumPackage {
   price: number;
   currency: string;
   displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
 }
 
 export interface ClaudiumHistoryEntry {

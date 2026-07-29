@@ -451,6 +451,10 @@ export const ja_JP: EnTranslations = {
       "noResults": "検索条件に一致する商品はありません。",
       "packagesBody": "クラウディウムパッケージは近日購入可能になります。",
       "packagesEmpty": "現在利用できるクラウディウムパッケージはありません。",
+      "packageBonus": "+{bonus} ボーナス",
+      "packageDiscount": "{percent}% オフ",
+      "packageFeatured": "注目",
+      "packageBuy": "{price} {currency} で購入",
       "wallet": {
         "title": "Solanaウォレット",
         "unlinked": "ウォレットアプリを接続し、一度署名して公開アドレスをWoCアカウントにリンクしてください。リカバリーフレーズや秘密鍵を受け取ることはありません。",

@@ -648,11 +648,38 @@ export interface ClaudiumPackageRow {
   stripePriceId: string | null;
   enabled: boolean;
   displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
   createdAt: string;
   updatedAt: string;
 }
 
 export type ClaudiumPackagesData = Paginated<ClaudiumPackageRow>;
+
+// Claudium Packages Stripe purchases (Phase 8): the payment history / audit
+// log the admin panel shows. Field shapes mirror
+// server/claudium_purchases_db.ts's ClaudiumPurchaseRecord.
+export type ClaudiumPurchaseStatus = 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+
+export interface ClaudiumPurchaseRow {
+  id: number;
+  accountId: number;
+  accountUsername: string;
+  packageId: number | null;
+  packageName: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  amountTotal: number;
+  currency: string;
+  status: ClaudiumPurchaseStatus;
+  stripeSessionId: string;
+  stripePaymentIntentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClaudiumPurchasesData = Paginated<ClaudiumPurchaseRow>;
 
 export interface ShopInventoryRow {
   id: number;
