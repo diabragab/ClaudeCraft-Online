@@ -49,6 +49,7 @@ import { routes as shopStorefrontCatalogRoutes } from '../shop_storefront_catalo
 import { routes as shopStorefrontOrdersRoutes } from '../shop_storefront_orders_routes';
 import { routes as shopStorefrontPackagesRoutes } from '../shop_storefront_packages_routes';
 import { routes as steamRoutes } from '../steam';
+import { routes as stripeWebhookRoutes } from '../stripe_webhook_routes';
 import { routes as userAssetsRoutes } from '../user_assets_routes';
 import { routes as walletRoutes } from '../wallet';
 // new:endpoint imports appear above this line (npm run new:endpoint)
@@ -174,6 +175,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...shopStorefrontOrdersRoutes,
   ...shopStorefrontPackagesRoutes,
   ...shopBuyRoutes,
+  ...stripeWebhookRoutes,
   // new:endpoint spreads appear above this line (npm run new:endpoint)
 ];
 

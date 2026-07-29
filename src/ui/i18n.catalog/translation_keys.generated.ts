@@ -128,6 +128,7 @@ export type TranslationKeyFlat =
   | 'apiError.shop.insufficient_gold'
   | 'apiError.shop.invalid_input'
   | 'apiError.shop.invalid_status_transition'
+  | 'apiError.shop.invalid_webhook_signature'
   | 'apiError.shop.not_deliverable'
   | 'apiError.shop.not_found'
   | 'apiError.shop.out_of_stock'

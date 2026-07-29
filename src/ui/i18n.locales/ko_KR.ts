@@ -7011,6 +7011,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.stripe_unavailable':
     '카드 결제를 현재 이용할 수 없습니다. 나중에 다시 시도해 주세요.',
   'apiError.shop.purchase_not_found': '해당 구매 내역을 찾을 수 없습니다.',
+  'apiError.shop.invalid_webhook_signature': '이 요청을 확인할 수 없습니다.',
   'apiError.steam.invalid_ticket':
     'Steam이 이 연동 요청을 확인하지 못했습니다. 데스크톱 앱에서 다시 시도해 주세요.',
   'apiError.steam.banned': '해당 Steam 계정은 연동할 수 없습니다.',

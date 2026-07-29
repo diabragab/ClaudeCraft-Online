@@ -115,6 +115,7 @@ const KNOWN_CODES = [
   'shop.package_disabled',
   'shop.stripe_unavailable',
   'shop.purchase_not_found',
+  'shop.invalid_webhook_signature',
 ];
 
 // The parametric contract pins: the matcher

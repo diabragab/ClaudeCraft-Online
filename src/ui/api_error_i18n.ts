@@ -133,6 +133,7 @@ export const API_ERROR_KEYS = {
   'shop.package_disabled': 'apiError.shop.package_disabled',
   'shop.stripe_unavailable': 'apiError.shop.stripe_unavailable',
   'shop.purchase_not_found': 'apiError.shop.purchase_not_found',
+  'shop.invalid_webhook_signature': 'apiError.shop.invalid_webhook_signature',
 } satisfies Record<string, TranslationKey>;
 
 /** The message of an Error, or the string form of any other thrown value. */

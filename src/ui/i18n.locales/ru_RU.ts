@@ -7147,6 +7147,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.package_disabled': 'Этот набор Клаудиума сейчас недоступен для покупки.',
   'apiError.shop.stripe_unavailable': 'Оплата картой сейчас недоступна. Попробуйте позже.',
   'apiError.shop.purchase_not_found': 'Эта покупка не найдена.',
+  'apiError.shop.invalid_webhook_signature': 'Не удалось проверить этот запрос.',
   'apiError.steam.invalid_ticket':
     'Steam не смог подтвердить этот запрос на привязку. Повторите попытку из настольного приложения.',
   'apiError.steam.banned': 'Этот аккаунт Steam нельзя привязать.',

@@ -7028,6 +7028,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.stripe_unavailable':
     'カード購入は現在ご利用いただけません。しばらくしてから再度お試しください。',
   'apiError.shop.purchase_not_found': 'この購入が見つかりません。',
+  'apiError.shop.invalid_webhook_signature': 'このリクエストを確認できませんでした。',
   'apiError.steam.invalid_ticket':
     'Steamがこの連携リクエストを確認できませんでした。デスクトップアプリからもう一度お試しください。',
   'apiError.steam.banned': 'そのSteamアカウントは連携できません。',

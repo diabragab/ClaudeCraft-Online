@@ -2843,7 +2843,8 @@ export const zh_CN: EnTranslations = {
       "package_not_found": "未找到该克劳迪币礼包。",
       "package_disabled": "该克劳迪币礼包目前无法购买。",
       "stripe_unavailable": "银行卡购买功能目前不可用，请稍后重试。",
-      "purchase_not_found": "未找到该笔购买记录。"
+      "purchase_not_found": "未找到该笔购买记录。",
+      "invalid_webhook_signature": "无法验证此请求。"
     }
   },
   "guide": {

@@ -6684,6 +6684,7 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.package_disabled': '該克勞迪幣禮包目前無法購買。',
   'apiError.shop.stripe_unavailable': '信用卡購買功能目前無法使用，請稍後再試。',
   'apiError.shop.purchase_not_found': '找不到該筆購買記錄。',
+  'apiError.shop.invalid_webhook_signature': '無法驗證此請求。',
   'apiError.steam.invalid_ticket': 'Steam 無法驗證此連結請求。請在桌面應用程式中重試。',
   'apiError.steam.banned': '該 Steam 帳號無法連結。',
   'apiError.steam.already_linked': '你的帳號已連結一個 Steam 帳號。',

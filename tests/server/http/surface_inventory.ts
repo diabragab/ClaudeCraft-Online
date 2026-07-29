@@ -1293,6 +1293,20 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     requireOwnedExpected: null,
     match: /^\/api\/shop\/packages\/(\d+)\/checkout$/,
   },
+  // Stripe webhook delivery (Phase 8, server/stripe_webhook_routes.ts): a
+  // DIFFERENT prefix owner than the legacy /api/claudium/stripe/webhook
+  // (server/claudium.ts). Authenticated by the Stripe signature check inside
+  // the handler, not a bearer token.
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'POST',
+    path: '/api/shop/claudium/stripe/webhook',
+    handler: 'server/stripe_webhook_routes.ts webhookHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.public,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
   {
     dispatcher: DISPATCH.mainApi,
     method: 'POST',

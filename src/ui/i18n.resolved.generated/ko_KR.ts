@@ -2843,7 +2843,8 @@ export const ko_KR: EnTranslations = {
       "package_not_found": "해당 클라우디움 패키지를 찾을 수 없습니다.",
       "package_disabled": "해당 클라우디움 패키지는 현재 구매할 수 없습니다.",
       "stripe_unavailable": "카드 결제를 현재 이용할 수 없습니다. 나중에 다시 시도해 주세요.",
-      "purchase_not_found": "해당 구매 내역을 찾을 수 없습니다."
+      "purchase_not_found": "해당 구매 내역을 찾을 수 없습니다.",
+      "invalid_webhook_signature": "이 요청을 확인할 수 없습니다."
     }
   },
   "guide": {

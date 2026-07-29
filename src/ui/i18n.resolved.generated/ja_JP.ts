@@ -2843,7 +2843,8 @@ export const ja_JP: EnTranslations = {
       "package_not_found": "このクラウディウムパッケージが見つかりません。",
       "package_disabled": "このクラウディウムパッケージは現在購入できません。",
       "stripe_unavailable": "カード購入は現在ご利用いただけません。しばらくしてから再度お試しください。",
-      "purchase_not_found": "この購入が見つかりません。"
+      "purchase_not_found": "この購入が見つかりません。",
+      "invalid_webhook_signature": "このリクエストを確認できませんでした。"
     }
   },
   "guide": {

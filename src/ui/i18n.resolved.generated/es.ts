@@ -2843,7 +2843,8 @@ export const es: EnTranslations = {
       "package_not_found": "That Claudium Package could not be found.",
       "package_disabled": "That Claudium Package is not available for purchase right now.",
       "stripe_unavailable": "Card purchases are unavailable right now. Please try again later.",
-      "purchase_not_found": "That purchase could not be found."
+      "purchase_not_found": "That purchase could not be found.",
+      "invalid_webhook_signature": "This request could not be verified."
     }
   },
   "guide": {

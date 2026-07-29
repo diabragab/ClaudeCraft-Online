@@ -2843,7 +2843,8 @@ export const ru_RU: EnTranslations = {
       "package_not_found": "Этот набор Клаудиума не найден.",
       "package_disabled": "Этот набор Клаудиума сейчас недоступен для покупки.",
       "stripe_unavailable": "Оплата картой сейчас недоступна. Попробуйте позже.",
-      "purchase_not_found": "Эта покупка не найдена."
+      "purchase_not_found": "Эта покупка не найдена.",
+      "invalid_webhook_signature": "Не удалось проверить этот запрос."
     }
   },
   "guide": {

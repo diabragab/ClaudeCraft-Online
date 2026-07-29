@@ -230,6 +230,7 @@ export const ERROR_CODES = deepFreeze({
   'shop.package_disabled': { params: [] },
   'shop.stripe_unavailable': { params: [] },
   'shop.purchase_not_found': { params: [] },
+  'shop.invalid_webhook_signature': { params: [] },
 } as const);
 
 /** A stable error code: one of the keys of ERROR_CODES. */
