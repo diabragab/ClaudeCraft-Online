@@ -136,18 +136,18 @@ export const hudChromeStrings = {
     close: 'Close WOC Store',
     tabsLabel: 'WOC Store sections',
     storeTab: 'Store',
+    packagesTab: 'Packages',
     rewardsTab: 'Daily Rewards',
     loading: 'Loading WOC Store...',
     error: 'The WOC Store is unavailable right now. Please try again shortly.',
-    balance: 'Gold Balance',
+    balance: 'Claudium Balance',
     buyClaudium: 'Purchase Claudium',
     owned: 'Owned',
-    needMoreTitle: 'More Gold Required',
-    needMoreBody: 'You need {shortfall} more to purchase {item}.',
-    needMoreOk: 'OK',
+    needMoreTitle: 'More Claudium Required',
+    needMoreBody: 'You need {shortfall} more Claudium to purchase {item}.',
     cancel: 'Cancel',
     confirmTitle: 'Confirm Cosmetic Purchase',
-    confirmBody: 'Purchase {item} for {cost}?',
+    confirmBody: 'Purchase {item} for {cost} Claudium?',
     confirmPurchase: 'Purchase',
     priceChanged:
       'The price changed before the purchase completed. Review the refreshed price and confirm again.',
@@ -157,14 +157,19 @@ export const hudChromeStrings = {
     armoryTitle: 'The Armory',
     armoryBody:
       'Limited weapon skins from the Season 1 Armory. Account-wide, purely cosmetic, and shown to everyone around you.',
-    // The general catalog (Phase 5/6): every active shop_products row priced
-    // in gold, delivered immediately on purchase.
-    generalBody: 'Everything for sale here is priced in gold and delivered right away.',
+    // The general catalog (Phase 7): every active shop_products row priced
+    // in Claudium, delivered immediately on purchase.
+    generalBody: 'Everything for sale here is priced in Claudium and delivered right away.',
     searchPlaceholder: 'Search the Shop',
     categoryFilterLabel: 'Filter by category',
     categoryFilterAll: 'All categories',
     uncategorized: 'Uncategorized',
     noResults: 'No products match your search.',
+    // Claudium Packages (Phase 7): a read-only listing of the admin-managed
+    // purchase tiers (server/claudium_packages.ts). No buy flow here yet, so
+    // the copy stays purely informational.
+    packagesBody: 'Claudium package bundles available for purchase soon.',
+    packagesEmpty: 'No Claudium Packages are available right now.',
     wallet: {
       title: 'Solana wallet',
       unlinked:

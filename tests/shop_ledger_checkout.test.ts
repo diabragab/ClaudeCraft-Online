@@ -3,11 +3,14 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 vi.mock('../server/claudium', () => ({ grantWeaponSkinForShop: vi.fn() }));
 
 import { grantWeaponSkinForShop } from '../server/claudium';
+import { ClaudiumLedgerService } from '../server/claudium_ledger';
+import type {
+  ClaudiumDebitResult,
+  ClaudiumHistoryEntry,
+  ClaudiumLedgerDb,
+} from '../server/claudium_ledger_db';
 import { configureShopDeliveryRuntime } from '../server/shop_delivery';
-import {
-  configureShopGoldCheckoutRuntime,
-  ShopGoldCheckoutService,
-} from '../server/shop_gold_checkout';
+import { ShopLedgerCheckoutService } from '../server/shop_ledger_checkout';
 import type {
   ShopAccountLookup,
   ShopOrderCreateInput,
@@ -30,10 +33,10 @@ import { ShopProductsService } from '../server/shop_products';
 const grantWeaponSkinForShopMock = vi.mocked(grantWeaponSkinForShop);
 
 // Minimal in-memory fakes mirroring the real Db contracts (server/CLAUDE.md:
-// "Endpoint tests: FakeDb, not a pg-mock"), the same shape as
-// tests/shop_claudium_checkout.test.ts, scoped to exactly what
-// ShopGoldCheckoutService's orchestration calls: getProduct, createOrder,
-// applyTransition (the pending->paid/cancelled path).
+// "Endpoint tests: FakeDb, not a pg-mock"), scoped to exactly what
+// ShopLedgerCheckoutService's orchestration calls: getProduct, createOrder,
+// applyTransition (the pending->paid/cancelled path), plus a FakeClaudiumLedgerDb
+// for the debit itself.
 class FakeProductsDb implements ShopProductsDb {
   products = new Map<number, ShopProductRecord>();
   async insertProduct(): Promise<ShopProductRecord> {
@@ -91,7 +94,7 @@ class FakeOrdersDb implements ShopOrdersDb {
           productId: item.productId,
         };
       }
-      const unitPrice = product.priceGoldCopper ?? 0;
+      const unitPrice = product.priceClaudium ?? 0;
       items.push({
         id: items.length + 1,
         productId: item.productId,
@@ -166,6 +169,32 @@ class FakeAccountLookup implements ShopAccountLookup {
   }
 }
 
+class FakeClaudiumLedgerDb implements ClaudiumLedgerDb {
+  balances = new Map<number, number>();
+
+  async getBalance(accountId: number): Promise<number> {
+    return this.balances.get(accountId) ?? 0;
+  }
+
+  async addBalance(accountId: number, amount: number): Promise<number> {
+    const balance = (this.balances.get(accountId) ?? 0) + amount;
+    this.balances.set(accountId, balance);
+    return balance;
+  }
+
+  async removeBalance(accountId: number, amount: number): Promise<ClaudiumDebitResult> {
+    const current = this.balances.get(accountId) ?? 0;
+    if (current < amount) return { ok: false, error: 'insufficient_balance' };
+    const balance = current - amount;
+    this.balances.set(accountId, balance);
+    return { ok: true, balance };
+  }
+
+  async getHistory(): Promise<ClaudiumHistoryEntry[]> {
+    return [];
+  }
+}
+
 const ACCOUNT_ID = 7;
 const CHARACTER_ID = 42;
 
@@ -177,14 +206,16 @@ function baseProduct(overrides: Partial<ShopProductRecord> = {}): ShopProductRec
     slug: 'armory-cinderbrand-sword',
     description: '',
     categoryId: null,
-    priceGoldCopper: 20000,
-    priceClaudium: null,
+    priceGoldCopper: null,
+    priceClaudium: 200,
     priceUsdCents: null,
     railSol: false,
     railUsdc: false,
     railWoc: false,
     status: 'active',
     featured: false,
+    icon: null,
+    displayOrder: 0,
     grantKind: 'weapon_skin',
     grantItemId: 'cinderbrand_sword',
     grantQuantity: 1,
@@ -197,16 +228,24 @@ function baseProduct(overrides: Partial<ShopProductRecord> = {}): ShopProductRec
 function setup(): {
   productsDb: FakeProductsDb;
   ordersDb: FakeOrdersDb;
-  svc: ShopGoldCheckoutService;
+  ledgerDb: FakeClaudiumLedgerDb;
+  svc: ShopLedgerCheckoutService;
 } {
   const productsDb = new FakeProductsDb();
   const ordersDb = new FakeOrdersDb();
+  const ledgerDb = new FakeClaudiumLedgerDb();
   const products = new ShopProductsService(productsDb, new FakeCategoryLookup());
   const orders = new ShopOrdersService(ordersDb, new FakeAccountLookup());
-  return { productsDb, ordersDb, svc: new ShopGoldCheckoutService(products, orders) };
+  const ledger = new ClaudiumLedgerService(ledgerDb);
+  return {
+    productsDb,
+    ordersDb,
+    ledgerDb,
+    svc: new ShopLedgerCheckoutService(products, orders, ledger),
+  };
 }
 
-describe('ShopGoldCheckoutService.purchase', () => {
+describe('ShopLedgerCheckoutService.purchase', () => {
   beforeEach(() => {
     grantWeaponSkinForShopMock.mockReset();
     configureShopDeliveryRuntime({ mailItemToCharacter: vi.fn(() => true) });
@@ -240,13 +279,12 @@ describe('ShopGoldCheckoutService.purchase', () => {
     expect(result).toEqual({ ok: false, error: 'not_found' });
   });
 
-  it('propagates an order-creation rejection (e.g. out of stock) without spending gold', async () => {
-    const { productsDb, ordersDb, svc } = setup();
+  it('propagates an order-creation rejection (e.g. out of stock) without touching the ledger', async () => {
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
     const product = baseProduct();
     productsDb.products.set(1, product);
     ordersDb.outOfStockProductIds.add(1);
-    const spendGoldFromCharacter = vi.fn(() => 999_999);
-    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter });
+    ledgerDb.balances.set(ACCOUNT_ID, 999_999);
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -256,16 +294,15 @@ describe('ShopGoldCheckoutService.purchase', () => {
     });
 
     expect(result).toEqual({ ok: false, error: 'insufficient_stock' });
-    expect(spendGoldFromCharacter).not.toHaveBeenCalled();
+    expect(await ledgerDb.getBalance(ACCOUNT_ID)).toBe(999_999);
   });
 
   it('deducts the exact order total, marks the order paid, and grants the weapon skin on success', async () => {
-    const { productsDb, ordersDb, svc } = setup();
-    const product = baseProduct({ priceGoldCopper: 20000 });
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
+    const product = baseProduct({ priceClaudium: 200 });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
-    const spendGoldFromCharacter = vi.fn(() => 5_000);
-    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter });
+    ledgerDb.balances.set(ACCOUNT_ID, 5_000);
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -277,24 +314,24 @@ describe('ShopGoldCheckoutService.purchase', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.order.status).toBe('paid');
-    expect(result.balance).toBe(5_000);
-    expect(spendGoldFromCharacter).toHaveBeenCalledWith(CHARACTER_ID, 20000);
+    expect(result.balance).toBe(4_800);
+    expect(await ledgerDb.getBalance(ACCOUNT_ID)).toBe(4_800);
     expect(grantWeaponSkinForShopMock).toHaveBeenCalledWith(ACCOUNT_ID, 'cinderbrand_sword');
   });
 
   it("mails an item-kind grant to the buyer's live character on success, scaled by quantity", async () => {
-    const { productsDb, ordersDb, svc } = setup();
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
     const product = baseProduct({
       grantKind: 'item',
       grantItemId: 'healing_potion',
       grantQuantity: 3,
-      priceGoldCopper: 500,
+      priceClaudium: 50,
     });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
+    ledgerDb.balances.set(ACCOUNT_ID, 10_000);
     const mailItemToCharacter = vi.fn(() => true);
     configureShopDeliveryRuntime({ mailItemToCharacter });
-    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter: () => 10_000 });
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -308,12 +345,12 @@ describe('ShopGoldCheckoutService.purchase', () => {
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
   });
 
-  it('cancels the pending order and reports insufficient_gold without granting anything', async () => {
-    const { productsDb, ordersDb, svc } = setup();
-    const product = baseProduct();
+  it('cancels the pending order and reports insufficient_claudium without granting anything', async () => {
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
+    const product = baseProduct({ priceClaudium: 200 });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
-    configureShopGoldCheckoutRuntime({ spendGoldFromCharacter: () => null });
+    ledgerDb.balances.set(ACCOUNT_ID, 50);
 
     const result = await svc.purchase({
       accountId: ACCOUNT_ID,
@@ -322,8 +359,9 @@ describe('ShopGoldCheckoutService.purchase', () => {
       quantity: 1,
     });
 
-    expect(result).toEqual({ ok: false, error: 'insufficient_gold', balance: null });
+    expect(result).toEqual({ ok: false, error: 'insufficient_claudium', balance: null });
     expect(ordersDb.orders[0]?.status).toBe('cancelled');
+    expect(await ledgerDb.getBalance(ACCOUNT_ID)).toBe(50);
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
   });
 });

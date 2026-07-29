@@ -14,7 +14,7 @@ vi.mock('../src/ui/armory_inspect', () => ({
 vi.mock('../src/ui/portrait_chip', () => ({ portraitChipHtml: () => '' }));
 
 import { DailyRewardsWindow } from '../src/ui/daily_rewards_window';
-import { formatMoney } from '../src/ui/i18n';
+import { formatNumber } from '../src/ui/i18n';
 import type { GeneralStoreCard, ShopCatalogProduct } from '../src/ui/woc_general_store_view';
 import type { IWorld } from '../src/world_api';
 
@@ -32,11 +32,13 @@ function rootStub(body: Record<string, unknown> | null = null): HTMLElement {
   };
   return {
     style: { display: 'block' },
+    classList: { toggle: vi.fn(), add: vi.fn(), remove: vi.fn() },
     querySelector(selector: string) {
       if (selector === '.dr-body') return body;
       if (selector === '[data-woc-store-loading]') return indicator;
       return null;
     },
+    querySelectorAll: () => [],
   } as unknown as HTMLElement;
 }
 
@@ -48,7 +50,9 @@ function weaponSkinProduct(overrides: Partial<ShopCatalogProduct> = {}): ShopCat
     slug: 'armory-cinderbrand-sword',
     description: '',
     categoryId: null,
-    priceGoldCopper: 200,
+    priceClaudium: 200,
+    icon: null,
+    displayOrder: 0,
     status: 'active',
     featured: false,
     grantKind: 'weapon_skin',
@@ -214,7 +218,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     paintStore(body as unknown as HTMLElement);
 
     expect(writes).toBe(2);
-    expect(html).toContain(formatMoney(1_250));
+    expect(html).toContain(formatNumber(1_250, { maximumFractionDigits: 0 }));
   });
 
   it('restores unchanged store markup after the rewards tab occupied the shared body', () => {
@@ -294,13 +298,13 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(body.innerHTML).not.toContain('dr-error');
   });
 
-  it('opens the need-more-gold dialog from an authoritative insufficient-balance response', async () => {
+  it('opens the need-more-Claudium dialog from an authoritative insufficient-balance response', async () => {
     const root = rootStub();
     const dialog: { body: string; onOk?: () => void } = { body: '' };
     const purchase = vi.fn(async () => ({
       ok: false,
       balance: 100,
-      reason: 'insufficient_gold',
+      reason: 'insufficient_claudium',
     }));
     const window = new DailyRewardsWindow({
       root: () => root,
@@ -314,7 +318,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
         dialog.onOk = onOk;
       },
     });
-    const card = weaponSkinCard({ product: weaponSkinProduct({ id: 42, priceGoldCopper: 200 }) });
+    const card = weaponSkinCard({ product: weaponSkinProduct({ id: 42, priceClaudium: 200 }) });
 
     await (
       window as unknown as { purchaseProduct(card: GeneralStoreCard): Promise<void> }
@@ -322,8 +326,8 @@ describe('DailyRewardsWindow store refresh behavior', () => {
 
     expect(purchase).toHaveBeenCalledWith(42, 1);
     expect((window as unknown as { storeBalance: number | null }).storeBalance).toBe(100);
-    // shortfall = 200 - 100 = 100 copper.
-    expect(dialog.body).toContain(formatMoney(100));
+    // shortfall = 200 - 100 = 100 Claudium.
+    expect(dialog.body).toContain(formatNumber(100, { maximumFractionDigits: 0 }));
     expect(dialog.body).toContain('Cinderbrand');
     // No external CTA anymore (gold is earned in-world, never purchased): OK
     // is purely dismissive and must not throw.

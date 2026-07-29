@@ -193,6 +193,7 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': 'WOC 상점 닫기',
   'hudChrome.wocStore.tabsLabel': 'WOC 상점 구역',
   'hudChrome.wocStore.storeTab': '상점',
+  'hudChrome.wocStore.packagesTab': '패키지',
   'hudChrome.wocStore.rewardsTab': '일일 보상',
   'hudChrome.wocStore.loading': 'WOC 상점 불러오는 중…',
   'hudChrome.wocStore.error': '현재 WOC 상점을 이용할 수 없습니다. 잠시 후 다시 시도해 주세요.',
@@ -218,6 +219,8 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.categoryFilterAll': '모든 카테고리',
   'hudChrome.wocStore.uncategorized': '미분류',
   'hudChrome.wocStore.noResults': '검색 조건에 맞는 상품이 없습니다.',
+  'hudChrome.wocStore.packagesBody': '클라우디움 패키지는 곧 구매할 수 있습니다.',
+  'hudChrome.wocStore.packagesEmpty': '현재 이용 가능한 클라우디움 패키지가 없습니다.',
   'hudChrome.wocStore.wallet.title': 'Solana 지갑',
   'hudChrome.wocStore.wallet.unlinked':
     '지갑 앱을 연결한 뒤 한 번 서명하여 공개 주소를 WoC 계정에 연결하세요. 복구 문구나 개인 키는 절대로 전달되지 않습니다.',

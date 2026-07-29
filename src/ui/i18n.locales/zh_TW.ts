@@ -189,6 +189,7 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': '關閉 WOC 商店',
   'hudChrome.wocStore.tabsLabel': 'WOC 商店分區',
   'hudChrome.wocStore.storeTab': '商店',
+  'hudChrome.wocStore.packagesTab': '禮包',
   'hudChrome.wocStore.rewardsTab': '每日獎勵',
   'hudChrome.wocStore.loading': '正在載入 WOC 商店…',
   'hudChrome.wocStore.error': 'WOC 商店目前無法使用，請稍後再試。',
@@ -211,6 +212,8 @@ export const zh_TW: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.categoryFilterAll': '所有分類',
   'hudChrome.wocStore.uncategorized': '未分類',
   'hudChrome.wocStore.noResults': '沒有符合搜尋條件的商品。',
+  'hudChrome.wocStore.packagesBody': '克勞迪幣禮包即將開放購買。',
+  'hudChrome.wocStore.packagesEmpty': '目前沒有可用的克勞迪幣禮包。',
   'hudChrome.wocStore.wallet.title': 'Solana 錢包',
   'hudChrome.wocStore.wallet.unlinked':
     '連接錢包應用程式，然後簽署一次，將其公開地址綁定到你的 WoC 帳號。我們絕不會取得你的復原短語或私鑰。',

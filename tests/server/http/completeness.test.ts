@@ -118,8 +118,10 @@ const REGISTRY_ONLY_PATHS = new Set<string>([
   '/api/shop/products/:slug',
   '/api/shop/orders',
   '/api/shop/orders/:id',
-  '/api/shop/claudium/purchase',
-  '/api/shop/gold/purchase',
+  '/api/shop/buy',
+  '/api/shop/claudium/balance',
+  '/api/shop/claudium/history',
+  '/api/shop/packages',
 ]);
 
 // Every legacy /api ladder row (dispatcher === main handleApi), minus the
@@ -329,8 +331,17 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     { method: 'POST', path: '/api/shop/orders' },
     { method: 'GET', path: '/api/shop/orders' },
     { method: 'GET', path: '/api/shop/orders/:id' },
-    { method: 'POST', path: '/api/shop/claudium/purchase' },
-    { method: 'POST', path: '/api/shop/gold/purchase' },
+    // Phase 7: the internal Claudium ledger's checkout (POST /api/shop/buy,
+    // server/shop_buy_routes.ts) plus its balance/history reads
+    // (server/claudium_ledger_routes.ts) and the public Claudium Packages
+    // catalog read (server/shop_storefront_packages_routes.ts). Same
+    // registry-only shape, no legacy ladder twin. This is a DIFFERENT prefix
+    // owner than the /api/claudium/* family below (server/claudium.ts's
+    // external-economy pass-through), so the two never collide on a path.
+    { method: 'POST', path: '/api/shop/buy' },
+    { method: 'GET', path: '/api/shop/claudium/balance' },
+    { method: 'GET', path: '/api/shop/claudium/history' },
+    { method: 'GET', path: '/api/shop/packages' },
     // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
     // asserted with the internal family below).
     { method: 'GET', path: '/api/daily-rewards/leaderboard' },

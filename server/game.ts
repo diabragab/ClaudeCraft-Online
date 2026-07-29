@@ -2610,34 +2610,19 @@ export class GameServer {
   /**
    * In-game Shop item delivery (Phase 5): mails a purchased item into the
    * buyer's own live mailbox, immediately, via the sim's postOffice. Injected
-   * into the Claudium checkout orchestration via configureShopRuntime
-   * (server/shop_claudium_checkout.ts), the same deferred liveGame() closure
-   * pattern as grantWeaponSkinsToAccount above. Returns false when the
-   * character has no live session on THIS realm process; the caller already
-   * verified account ownership of characterId, and a Claudium purchase always
-   * originates from that character's own active session, so false here means
-   * the session dropped between the charge and delivery, not a spoofed id.
+   * into the checkout orchestration via configureShopDeliveryRuntime
+   * (server/shop_delivery.ts), the same deferred liveGame() closure pattern as
+   * grantWeaponSkinsToAccount above. Returns false when the character has no
+   * live session on THIS realm process; the caller already verified account
+   * ownership of characterId, and a purchase always originates from that
+   * character's own active session, so false here means the session dropped
+   * between the charge and delivery, not a spoofed id.
    */
   mailShopItemToCharacter(characterId: number, itemId: string, count: number): boolean {
     const session = this.sessionsByCharacterId.get(characterId);
     if (!session) return false;
     this.sim.mailShopItem(session.pid, itemId, count);
     return true;
-  }
-
-  /**
-   * In-game Shop gold checkout (server/shop_gold_checkout.ts): deducts an
-   * order's total from the buyer's own live copper purse via Sim.spendShopGold.
-   * Injected into the checkout orchestration via configureShopGoldCheckoutRuntime,
-   * the same deferred liveGame() closure pattern as mailShopItemToCharacter
-   * above. Returns null when the character has no live session on THIS realm
-   * process, or when the deduction itself fails (not enough gold); the
-   * caller already verified account ownership of characterId.
-   */
-  spendShopGoldFromCharacter(characterId: number, amountCopper: number): number | null {
-    const session = this.sessionsByCharacterId.get(characterId);
-    if (!session) return null;
-    return this.sim.spendShopGold(session.pid, amountCopper);
   }
 
   private unequipAccountMechChroma(session: ClientSession, chromaId: string): void {

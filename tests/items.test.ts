@@ -470,62 +470,6 @@ describe('items vendor: buy / sell / sellAllJunk / buyBack', () => {
   });
 });
 
-describe('items.spendShopGold', () => {
-  it('deducts the exact amount and returns the resulting balance', () => {
-    const sim = makeWorld();
-    const pid = sim.addPlayer('warrior', 'Aleph');
-    const ctx = ctxOf(sim);
-    const meta = (sim as unknown as { players: Map<number, { copper: number }> }).players.get(pid)!;
-    meta.copper = 1000;
-
-    const balance = items.spendShopGold(ctx, pid, 400);
-
-    expect(balance).toBe(600);
-    expect(meta.copper).toBe(600);
-  });
-
-  it('refuses and deducts nothing when the player cannot afford it', () => {
-    const sim = makeWorld();
-    const pid = sim.addPlayer('warrior', 'Aleph');
-    const ctx = ctxOf(sim);
-    const meta = (sim as unknown as { players: Map<number, { copper: number }> }).players.get(pid)!;
-    meta.copper = 100;
-
-    const balance = items.spendShopGold(ctx, pid, 400);
-
-    expect(balance).toBeNull();
-    expect(meta.copper).toBe(100);
-  });
-
-  it('refuses a negative or non-finite amount without touching the balance', () => {
-    const sim = makeWorld();
-    const pid = sim.addPlayer('warrior', 'Aleph');
-    const ctx = ctxOf(sim);
-    const meta = (sim as unknown as { players: Map<number, { copper: number }> }).players.get(pid)!;
-    meta.copper = 1000;
-
-    expect(items.spendShopGold(ctx, pid, -1)).toBeNull();
-    expect(items.spendShopGold(ctx, pid, Number.NaN)).toBeNull();
-    expect(meta.copper).toBe(1000);
-  });
-
-  it('returns null for an unresolvable pid', () => {
-    const sim = makeWorld();
-    const ctx = ctxOf(sim);
-    expect(items.spendShopGold(ctx, 99999, 100)).toBeNull();
-  });
-
-  it('the Sim delegate forwards to the same module function', () => {
-    const sim = makeWorld();
-    const pid = sim.addPlayer('warrior', 'Aleph');
-    const meta = (sim as unknown as { players: Map<number, { copper: number }> }).players.get(pid)!;
-    meta.copper = 1000;
-
-    expect(sim.spendShopGold(pid, 250)).toBe(750);
-    expect(meta.copper).toBe(750);
-  });
-});
-
 describe('items module determinism', () => {
   it('two identical drives produce identical copper / inventory / equipment / vendorBuyback', () => {
     function drive() {

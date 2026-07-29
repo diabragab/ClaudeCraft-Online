@@ -181,7 +181,7 @@ import {
 import { buildCraftingView, craftingReagentSig, craftLearnHints } from './crafting_view';
 import { renderCraftingWindow, stationNameText } from './crafting_window';
 import { shouldRefreshDailyRewardsLauncher } from './daily_rewards_launcher_core';
-import { DailyRewardsWindow } from './daily_rewards_window';
+import { type ClaudiumPackageDisplay, DailyRewardsWindow } from './daily_rewards_window';
 import { decorativeArtImg } from './decorative_art';
 import {
   deedBroadcastLine,
@@ -613,11 +613,12 @@ export interface ReportHooks {
  * snapshot() reads the current service state; buy()/spend() begin the client-signed
  * purchase / cosmetic-redeem flows. All values originate in the economy service.
  */
-// In-game Shop hooks (Phase 5/6): main.ts injects the general shop_products
-// catalog + Gold checkout when online via attachShop. balance is the
-// player's own live gold in copper, read straight off IWorld, entirely
-// separate from ClaudiumHooks below (the "Buy Claudium" purchase modal):
-// never conflate the two numbers.
+// In-game Shop hooks (Phase 7): main.ts injects the general shop_products
+// catalog + the internal Claudium ledger checkout when online via
+// attachShop. balance is the caller's own DB-backed Claudium balance
+// (server/claudium_ledger.ts), read via the ledger REST reads, entirely
+// separate from ClaudiumHooks below (the "Buy Claudium" purchase modal,
+// still the external economy proxy): never conflate the two numbers.
 export interface ShopHooks {
   catalogSnapshot(
     query: string,
@@ -632,6 +633,8 @@ export interface ShopHooks {
     productId: number,
     quantity: number,
   ): Promise<{ ok: boolean; balance: number | null; reason: string | null }>;
+  /** The Packages tab (Phase 7): the enabled-only Claudium Packages catalog. */
+  packagesSnapshot?(): Promise<{ available: boolean; packages: ClaudiumPackageDisplay[] }>;
 }
 
 export interface ClaudiumHooks {
@@ -4101,9 +4104,11 @@ export class Hud {
     onWalletConnect: () => {
       window.dispatchEvent(new CustomEvent('woc:wallet-verify'));
     },
-    // storeBalance/purchase deal in the player's own live gold (Phase 6), an
-    // entirely different number from claudiumBalance (the separate "Buy
-    // Claudium" launcher badge below): never cross-write one into the other.
+    // storeBalance/purchase deal in the caller's own DB-backed Claudium
+    // balance (Phase 7, server/claudium_ledger.ts), read through shopHooks,
+    // an entirely different seam from claudiumBalance (the separate "Buy
+    // Claudium" launcher badge below, still the external economy proxy):
+    // never cross-write one into the other.
     storeEnabled: () => this.shopHooks !== null,
     catalogSnapshot: async (query, categoryId) => {
       const snapshot = await this.shopHooks?.catalogSnapshot(query, categoryId);
@@ -4112,6 +4117,10 @@ export class Hud {
     purchase: async (productId, quantity) => {
       const result = await this.shopHooks?.purchase(productId, quantity);
       return result ?? { ok: false, balance: null, reason: 'unavailable' };
+    },
+    packagesSnapshot: async () => {
+      const snapshot = await this.shopHooks?.packagesSnapshot?.();
+      return snapshot ?? { available: false, packages: [] };
     },
     confirmDialog: (title, body, okText, cancelText, onOk) =>
       this.confirmDialog(title, body, okText, cancelText, onOk),

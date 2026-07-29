@@ -188,6 +188,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': 'WOCストアを閉じる',
   'hudChrome.wocStore.tabsLabel': 'WOCストアのセクション',
   'hudChrome.wocStore.storeTab': 'ストア',
+  'hudChrome.wocStore.packagesTab': 'パッケージ',
   'hudChrome.wocStore.rewardsTab': 'デイリー報酬',
   'hudChrome.wocStore.loading': 'WOCストアを読み込み中…',
   'hudChrome.wocStore.error': 'WOCストアは現在利用できません。しばらくしてからお試しください。',
@@ -213,6 +214,8 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.categoryFilterAll': 'すべてのカテゴリ',
   'hudChrome.wocStore.uncategorized': '未分類',
   'hudChrome.wocStore.noResults': '検索条件に一致する商品はありません。',
+  'hudChrome.wocStore.packagesBody': 'クラウディウムパッケージは近日購入可能になります。',
+  'hudChrome.wocStore.packagesEmpty': '現在利用できるクラウディウムパッケージはありません。',
   'hudChrome.wocStore.wallet.title': 'Solanaウォレット',
   'hudChrome.wocStore.wallet.unlinked':
     'ウォレットアプリを接続し、一度署名して公開アドレスをWoCアカウントにリンクしてください。リカバリーフレーズや秘密鍵を受け取ることはありません。',

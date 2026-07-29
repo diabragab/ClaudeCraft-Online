@@ -206,8 +206,9 @@ export const ERROR_CODES = deepFreeze({
   // differently (an out-of-stock line item versus a disallowed status button).
   'shop.out_of_stock': { params: [] },
   'shop.invalid_status_transition': { params: [] },
-  // shop: the in-game Shop's Claudium checkout (Phase 5,
-  // server/shop_claudium_checkout.ts). Distinct from the generic pair above
+  // shop: the in-game Shop's checkout (originally Phase 5's external-service
+  // Claudium checkout, now Phase 7's internal-ledger checkout,
+  // server/shop_ledger_checkout.ts). Distinct from the generic pair above
   // because the HUD reacts to each differently (an insufficient-balance
   // dialog offers "Buy Claudium"; a price change re-confirms at the new cost).
   'shop.insufficient_claudium': { params: [] },
@@ -215,9 +216,10 @@ export const ERROR_CODES = deepFreeze({
   'shop.claudium_unavailable': { params: [] },
   'shop.not_deliverable': { params: [] },
   'shop.character_not_found': { params: [] },
-  // shop: the in-game Shop's Gold checkout (Phase 6,
-  // server/shop_gold_checkout.ts). Distinct from insufficient_claudium
-  // because it is a different currency and reason the HUD needs to tell apart.
+  // shop: the in-game Shop's Gold checkout (Phase 6, since removed in Phase 7
+  // when the Shop moved entirely onto the internal Claudium ledger). Kept
+  // per the append-only error-code catalog rule (AIP-193): no live route
+  // emits this code anymore, but it is never renamed or removed.
   'shop.insufficient_gold': { params: [] },
 } as const);
 

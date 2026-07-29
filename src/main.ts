@@ -156,7 +156,13 @@ import {
   resumeRoute,
   savePlayMarker,
 } from './net/resume_play';
-import { listShopCategories, listShopProducts, purchaseWithGold } from './net/shop_client';
+import {
+  buyProduct,
+  claudiumBalance,
+  listClaudiumPackages,
+  listShopCategories,
+  listShopProducts,
+} from './net/shop_client';
 import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
@@ -2465,22 +2471,25 @@ async function startGame(
         };
       },
     };
-    // In-game Shop (Phase 5/6): the general shop_products catalog + Gold
-    // checkout, reusing the exact online-only closure pattern above. No
-    // external economy service involved: balance is the player's own live
-    // gold, read straight off the online world's inventory facet.
-    // characterId is only available on the concrete ClientWorld (not IWorld),
-    // which is why this closure lives in main.ts rather than in hud.ts.
+    // In-game Shop (Phase 7): the general shop_products catalog + the internal
+    // Claudium ledger checkout, reusing the exact online-only closure pattern
+    // above. No external economy service involved: balance is the player's
+    // own DB-backed Claudium balance (server/claudium_ledger.ts), read via
+    // the ledger REST reads, not the player's live gold purse. characterId is
+    // only available on the concrete ClientWorld (not IWorld), which is why
+    // this closure lives in main.ts rather than in hud.ts.
     const characterId = online.characterId;
     const shopHooks: ShopHooks = {
       catalogSnapshot: async (query, categoryId) => {
-        const [categories, products] = await Promise.all([
+        const [balance, categories, products] = await Promise.all([
+          claudiumBalance(),
           listShopCategories(),
           listShopProducts(query, categoryId ?? undefined),
         ]);
-        return { available: true, balance: online.copper, categories, products };
+        return { available: true, balance, categories, products };
       },
-      purchase: (productId, quantity) => purchaseWithGold(productId, characterId, quantity),
+      purchase: (productId, quantity) => buyProduct(productId, characterId, quantity),
+      packagesSnapshot: async () => ({ available: true, packages: await listClaudiumPackages() }),
     };
     if (!NATIVE_APP) {
       hud.attachClaudium(claudiumHooks);

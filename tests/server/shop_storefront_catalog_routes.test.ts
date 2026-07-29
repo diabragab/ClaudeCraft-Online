@@ -55,6 +55,8 @@ function productRecord(overrides: Partial<ShopProductRecord> = {}): ShopProductR
     grantKind: 'none',
     grantItemId: null,
     grantQuantity: 1,
+    icon: null,
+    displayOrder: 0,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,

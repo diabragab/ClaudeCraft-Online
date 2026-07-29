@@ -687,22 +687,6 @@ export function buyItem(ctx: SimContext, npcId: number, itemId: string, pid?: nu
   ctx.emit({ type: 'vendor', action: 'buy', itemId, pid: meta.entityId });
 }
 
-// In-game Shop gold checkout (server/shop_gold_checkout.ts): deducts a
-// shop_products purchase from the player's own purse, the same copper field
-// buyItem above debits. Not a vendor command (no NPC, no range/dead gate):
-// the Shop is reachable from anywhere via the Treasure Chest icon, exactly
-// like the Claudium checkout it sits beside. Returns the resulting balance,
-// or null when the player cannot be resolved or does not have enough gold
-// (no partial deduction on a failed check).
-export function spendShopGold(ctx: SimContext, pid: number, amountCopper: number): number | null {
-  const r = ctx.resolve(pid);
-  if (!r) return null;
-  const { meta } = r;
-  if (!Number.isFinite(amountCopper) || amountCopper < 0 || meta.copper < amountCopper) return null;
-  meta.copper -= amountCopper;
-  return meta.copper;
-}
-
 function vendorInRange(ctx: SimContext, p: Entity): boolean {
   return [...ctx.entities.values()].some(
     (e) =>

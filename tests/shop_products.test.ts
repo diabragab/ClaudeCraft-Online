@@ -59,6 +59,7 @@ class FakeShopProductsDb implements ShopProductsDb {
     filtered.sort((a, b) => {
       if (params.sort === 'name') return a.name.localeCompare(b.name) * dir;
       if (params.sort === 'createdAt') return a.createdAt.localeCompare(b.createdAt) * dir;
+      if (params.sort === 'displayOrder') return (a.displayOrder - b.displayOrder) * dir;
       return a.updatedAt.localeCompare(b.updatedAt) * dir;
     });
     const total = filtered.length;
@@ -116,6 +117,8 @@ const BASE_CREATE: ShopProductCreateInput = {
   grantKind: 'none',
   grantItemId: '',
   grantQuantity: '',
+  icon: '',
+  displayOrder: 0,
 };
 
 describe('ShopProductsService', () => {

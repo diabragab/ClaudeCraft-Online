@@ -11,7 +11,7 @@ import {
 } from './daily_rewards_view';
 import { markDialogRoot } from './dialog_root';
 import { esc } from './esc';
-import { formatDateTime, formatMoney, formatNumber, t } from './i18n';
+import { formatDateTime, formatNumber, t } from './i18n';
 import { iconDataUrl } from './icons';
 import { rovingTarget } from './roving_index';
 import { svgIcon } from './ui_icons';
@@ -78,6 +78,17 @@ export function dailyRewardReasonText(
   }
 }
 
+// Mirrors src/net/shop_client.ts's ClaudiumPackage wire shape (ui/ never
+// imports net/, src/CLAUDE.md's dependency direction).
+export interface ClaudiumPackageDisplay {
+  id: number;
+  name: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  price: number;
+  currency: string;
+}
+
 export interface DailyRewardsWindowDeps {
   root(): HTMLElement;
   world(): IWorld;
@@ -91,8 +102,8 @@ export interface DailyRewardsWindowDeps {
   onWalletConnect?(): void;
   storeEnabled?(): boolean;
   /** The in-game Shop's general catalog (Phase 5): server-side search + category
-   *  filter. balance is the player's own live gold in copper (Phase 6), never
-   *  an external service's currency. */
+   *  filter. balance is the caller's own DB-backed Claudium balance
+   *  (Phase 7, server/claudium_ledger.ts), never the player's live gold. */
   catalogSnapshot?(
     query: string,
     categoryId: number | null,
@@ -102,11 +113,14 @@ export interface DailyRewardsWindowDeps {
     categories: { id: number; name: string; slug: string }[];
     products: ShopCatalogProduct[];
   }>;
-  /** Buy one unit(s) of a product with the player's own gold; delivery is immediate server-side. */
+  /** Buy one unit(s) of a product with the caller's own Claudium balance; delivery is immediate server-side. */
   purchase?(
     productId: number,
     quantity: number,
   ): Promise<{ ok: boolean; balance: number | null; reason: string | null }>;
+  /** The Packages tab (Phase 7): the enabled-only Claudium Packages catalog
+   *  (server/claudium_packages.ts). Read-only for now, no purchase flow. */
+  packagesSnapshot?(): Promise<{ available: boolean; packages: ClaudiumPackageDisplay[] }>;
   confirmDialog?(
     title: string,
     body: string,
@@ -123,7 +137,7 @@ export class DailyRewardsWindow {
   private renderSeq = 0;
   private lastHistory: DailyRewardHistory = { payouts: [] };
   private spinOverlay: HTMLElement | null = null;
-  private tab: 'store' | 'rewards' = 'store';
+  private tab: 'store' | 'packages' | 'rewards' = 'store';
   private storeBalance: number | null = null;
   private storeProducts: ShopCatalogProduct[] = [];
   private storeCategories: { id: number; name: string; slug: string }[] = [];
@@ -137,6 +151,11 @@ export class DailyRewardsWindow {
   private storeError = false;
   private paintedStoreBody: HTMLElement | null = null;
   private paintedStoreMarkup: string | null = null;
+  private packages: ClaudiumPackageDisplay[] = [];
+  private packagesLoading = false;
+  private packagesReady = false;
+  private packagesError = false;
+  private paintedPackagesMarkup: string | null = null;
 
   private readonly wheelValues = [20, 30, 40, 50, 75, 100, 150, 250];
 
@@ -249,7 +268,7 @@ export class DailyRewardsWindow {
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-woc-store-tab]'));
     const select = (button: HTMLButtonElement, focus: boolean): void => {
       const tab = button.dataset.wocStoreTab;
-      if (tab !== 'store' && tab !== 'rewards') return;
+      if (tab !== 'store' && tab !== 'packages' && tab !== 'rewards') return;
       this.tab = tab;
       this.syncTabs();
       if (focus) button.focus();
@@ -283,6 +302,10 @@ export class DailyRewardsWindow {
       await this.renderStore(focus);
       return;
     }
+    if (this.tab === 'packages') {
+      await this.renderPackages(focus);
+      return;
+    }
     await this.render(focus);
   }
 
@@ -292,12 +315,17 @@ export class DailyRewardsWindow {
       this.deps.root().classList.remove('store-active');
       return;
     }
-    this.deps.root().classList.toggle('store-active', this.tab === 'store');
+    this.deps
+      .root()
+      .classList.toggle('store-active', this.tab === 'store' || this.tab === 'packages');
     const panel = this.deps.root().querySelector<HTMLElement>('.woc-store-body');
-    panel?.setAttribute(
-      'aria-labelledby',
-      this.tab === 'store' ? 'woc-store-tab-store' : 'woc-store-tab-rewards',
-    );
+    const labelledBy =
+      this.tab === 'store'
+        ? 'woc-store-tab-store'
+        : this.tab === 'packages'
+          ? 'woc-store-tab-packages'
+          : 'woc-store-tab-rewards';
+    panel?.setAttribute('aria-labelledby', labelledBy);
     this.deps
       .root()
       .querySelectorAll<HTMLButtonElement>('[data-woc-store-tab]')
@@ -339,6 +367,75 @@ export class DailyRewardsWindow {
       this.syncStoreLoading();
     }
     if (this.isOpen && this.tab === 'store') this.paintStore(body);
+  }
+
+  private async renderPackages(focus: 'open' | null): Promise<void> {
+    const root = this.deps.root();
+    const body = root.querySelector<HTMLElement>('.dr-body');
+    if (!body) return;
+    if (focus === 'open')
+      root.querySelector<HTMLButtonElement>('[data-woc-store-tab="packages"]')?.focus();
+    this.packagesLoading = true;
+    this.packagesError = false;
+    this.syncStoreLoading();
+    try {
+      const snapshot = (await this.deps.packagesSnapshot?.()) ?? {
+        available: false,
+        packages: [],
+      };
+      if (!this.isOpen || this.tab !== 'packages') return;
+      if (!snapshot.available) throw new Error('packages snapshot unavailable');
+      this.packages = snapshot.packages;
+      this.packagesReady = true;
+    } catch {
+      this.packagesError = !this.packagesReady;
+    } finally {
+      this.packagesLoading = false;
+      this.syncStoreLoading();
+    }
+    if (this.isOpen && this.tab === 'packages') this.paintPackages(body);
+  }
+
+  private paintPackages(body: HTMLElement): void {
+    if (this.packagesError) {
+      this.replacePackagesBody(
+        body,
+        `<div class="dr-empty dr-error" role="alert">${esc(t('hudChrome.wocStore.error'))}</div>`,
+      );
+      return;
+    }
+    const grid =
+      this.packages.length === 0
+        ? `<div class="dr-empty">${esc(t('hudChrome.wocStore.packagesEmpty'))}</div>`
+        : `<div class="armory-grid">${this.packages.map((pkg) => this.packageCardHtml(pkg)).join('')}</div>`;
+    const markup =
+      `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.packagesTab'))}</h2><p>${esc(t('hudChrome.wocStore.packagesBody'))}</p></div></div>` +
+      grid;
+    this.replacePackagesBody(body, markup);
+  }
+
+  private packageCardHtml(pkg: ClaudiumPackageDisplay): string {
+    const total = formatNumber(pkg.claudiumAmount + pkg.bonusAmount, { maximumFractionDigits: 0 });
+    const price = formatNumber(pkg.price / 100, {
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2,
+    });
+    return (
+      `<article class="armory-card">` +
+      `<span class="armory-card-copy"><h4>${esc(pkg.name)}</h4>` +
+      `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${total}</strong></span>` +
+      `<span>${esc(price)} ${esc(pkg.currency)}</span></span>` +
+      `</article>`
+    );
+  }
+
+  /** Mirrors replaceStoreBody's same-markup skip, kept on its own field so a
+   *  Packages repaint never fights the Store tab's memoized markup. */
+  private replacePackagesBody(body: HTMLElement, markup: string): void {
+    if (this.paintedPackagesMarkup === markup && this.paintedStoreBody === body) return;
+    body.innerHTML = markup;
+    this.paintedStoreBody = body;
+    this.paintedPackagesMarkup = markup;
   }
 
   /** Re-project the product grid from the last catalog snapshot plus the live
@@ -383,7 +480,7 @@ export class DailyRewardsWindow {
     return {
       skin,
       art: armorySkinArt(skin.id),
-      costGoldCopper: card.product.priceGoldCopper,
+      costClaudium: card.product.priceClaudium,
       purchasable: card.purchasable,
       owned: card.owned,
       applied: card.applied,
@@ -402,13 +499,16 @@ export class DailyRewardsWindow {
       );
       return;
     }
-    const balance = esc(formatMoney(this.storeBalance));
+    const balance = formatNumber(this.storeBalance, { maximumFractionDigits: 0 });
     const markup =
       `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.title'))}</h2><p>${esc(t('hudChrome.wocStore.generalBody'))}</p></div>` +
-      `<div class="woc-store-balance"><span>${esc(t('hudChrome.wocStore.balance'))}</span><strong>${balance}</strong></div></div>` +
+      `<div class="woc-store-balance"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><span>${esc(t('hudChrome.wocStore.balance'))}</span><strong>${balance}</strong><button type="button" data-buy-claudium>${esc(t('hudChrome.wocStore.buyClaudium'))}</button></div></div>` +
       this.storeControlsHtml() +
       this.storeGridHtml();
     if (!this.replaceStoreBody(body, markup)) return;
+    body.querySelector<HTMLButtonElement>('[data-buy-claudium]')?.addEventListener('click', () => {
+      this.openPackagesFromStore();
+    });
     body
       .querySelector<HTMLInputElement>('[data-store-search]')
       ?.addEventListener('input', (event) => {
@@ -486,14 +586,14 @@ export class DailyRewardsWindow {
       : card.grantKind === 'item' && card.product.grantItemId
         ? iconDataUrl('item', card.product.grantItemId, 128)
         : null;
-    const priceGoldCopper = card.product.priceGoldCopper;
+    const priceClaudium = card.product.priceClaudium;
     const state = card.owned
       ? card.applied
         ? `<span class="armory-state applied">${esc(t('hudChrome.wocStore.applied'))}</span>`
         : `<span class="armory-state">${esc(t('hudChrome.wocStore.owned'))}</span>`
-      : !card.purchasable || priceGoldCopper === null
+      : !card.purchasable || priceClaudium === null
         ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
-        : `<span class="armory-cost"><strong>${esc(formatMoney(priceGoldCopper))}</strong></span>`;
+        : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
     const rarityClass = skin ? ` rarity-${esc(skin.rarity)}` : '';
     return (
       `<article class="armory-card${rarityClass}${card.owned ? ' owned' : ''}${card.applied ? ' applied' : ''}">` +
@@ -569,7 +669,7 @@ export class DailyRewardsWindow {
   }
 
   private requestPurchase(card: GeneralStoreCard): void {
-    const cost = card.product.priceGoldCopper;
+    const cost = card.product.priceClaudium;
     if (card.owned || !card.purchasable || cost === null) return;
     if (!card.affordable) {
       this.openNeedMoreDialog(card, cost, this.storeBalance);
@@ -580,7 +680,10 @@ export class DailyRewardsWindow {
       : card.product.name;
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.confirmTitle'),
-      t('hudChrome.wocStore.confirmBody', { item: name, cost: formatMoney(cost) }),
+      t('hudChrome.wocStore.confirmBody', {
+        item: name,
+        cost: formatNumber(cost, { maximumFractionDigits: 0 }),
+      }),
       t('hudChrome.wocStore.confirmPurchase'),
       t('hudChrome.wocStore.cancel'),
       () => void this.purchaseProduct(card),
@@ -590,14 +693,14 @@ export class DailyRewardsWindow {
   private async purchaseProduct(card: GeneralStoreCard): Promise<void> {
     const productId = card.product.id;
     const result = await this.deps.purchase?.(productId, 1);
-    if (result?.reason === 'insufficient_gold') {
+    if (result?.reason === 'insufficient_claudium') {
       if (result.balance !== null) {
         this.storeBalance = result.balance;
         this.rebuildStoreCards();
         const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
         if (body) this.paintStore(body);
       }
-      this.openNeedMoreDialog(card, card.product.priceGoldCopper ?? 0, result.balance);
+      this.openNeedMoreDialog(card, card.product.priceClaudium ?? 0, result.balance);
       return;
     }
     if (!result?.ok) {
@@ -615,23 +718,34 @@ export class DailyRewardsWindow {
 
   private openNeedMoreDialog(
     card: GeneralStoreCard,
-    costGoldCopper: number,
+    costClaudium: number,
     balance: number | null,
   ): void {
     const knownBalance = balance ?? this.storeBalance;
     const name = card.weaponSkinId
       ? localizeWeaponSkin(WEAPON_SKINS[card.weaponSkinId]).name
       : card.product.name;
-    const shortfall = formatMoney(Math.max(0, costGoldCopper - (knownBalance ?? 0)));
+    const shortfall = formatNumber(Math.max(0, costClaudium - (knownBalance ?? 0)), {
+      maximumFractionDigits: 0,
+    });
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.needMoreTitle'),
       t('hudChrome.wocStore.needMoreBody', { item: name, shortfall }),
-      t('hudChrome.wocStore.needMoreOk'),
+      t('hudChrome.wocStore.buyClaudium'),
       t('hudChrome.wocStore.cancel'),
-      () => {
-        /* purely informational: the player still needs to earn the gold in-world */
-      },
+      () => this.openPackagesFromStore(),
     );
+  }
+
+  /** Switches to the read-only Packages tab (Phase 7: no external Claudium
+   *  checkout exists anymore, so "buy more Claudium" points at the in-game
+   *  Packages listing instead of an external service's purchase flow). */
+  private openPackagesFromStore(): void {
+    if (!this.storeEnabled()) return;
+    this.armoryInspect?.close();
+    this.tab = 'packages';
+    this.syncTabs();
+    void this.renderCurrent(null);
   }
 
   private paint(view: DailyRewardsView): void {
@@ -699,6 +813,7 @@ export class DailyRewardsWindow {
     return (
       `<div class="woc-store-tabs" role="tablist" aria-label="${esc(t('hudChrome.wocStore.tabsLabel'))}">` +
       `<button id="woc-store-tab-store" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="store">${esc(t('hudChrome.wocStore.storeTab'))}</button>` +
+      `<button id="woc-store-tab-packages" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="packages">${esc(t('hudChrome.wocStore.packagesTab'))}</button>` +
       `<button id="woc-store-tab-rewards" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="rewards">${esc(t('hudChrome.wocStore.rewardsTab'))}</button>` +
       `<span class="woc-store-loading" data-woc-store-loading role="status" aria-live="polite" aria-label="${esc(t('hudChrome.wocStore.loading'))}" aria-busy="false"><i aria-hidden="true"></i></span></div>`
     );

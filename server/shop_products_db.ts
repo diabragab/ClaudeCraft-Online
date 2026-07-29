@@ -56,6 +56,12 @@ ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS featured BOOLEAN NOT NULL DEF
 ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS grant_kind TEXT NOT NULL DEFAULT 'none';
 ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS grant_item_id TEXT;
 ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS grant_quantity INT NOT NULL DEFAULT 1;
+-- Phase 7 (the in-repo Claudium economy): an admin-set icon (a URL or a
+-- served asset path; NULL falls back to the client's existing grant-based
+-- icon resolution) and an explicit admin-controlled sort key, independent of
+-- name/createdAt/updatedAt.
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS icon TEXT;
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS display_order INT NOT NULL DEFAULT 0;
 -- Postgres does not auto-index the referencing side of an FK (see
 -- server/maps_db.ts / server/shop_categories_db.ts for the same lesson).
 CREATE INDEX IF NOT EXISTS shop_products_category ON shop_products(category_id);
@@ -70,7 +76,7 @@ CREATE INDEX IF NOT EXISTS shop_products_featured ON shop_products(status, creat
 const PRODUCT_COLS = `id, sku, name, slug, description, category_id,
   price_gold_copper, price_claudium, price_usd_cents,
   rail_sol, rail_usdc, rail_woc, status, featured,
-  grant_kind, grant_item_id, grant_quantity, created_at, updated_at`;
+  grant_kind, grant_item_id, grant_quantity, icon, display_order, created_at, updated_at`;
 
 function isoString(value: unknown): string {
   return value instanceof Date ? value.toISOString() : String(value ?? '');
@@ -94,6 +100,8 @@ interface ProductDbRow {
   grant_kind: string;
   grant_item_id: string | null;
   grant_quantity: number;
+  icon: string | null;
+  display_order: number;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -125,6 +133,8 @@ function toRecord(row: ProductDbRow): ShopProductRecord {
     grantKind: row.grant_kind as ShopProductRecord['grantKind'],
     grantItemId: row.grant_item_id ?? null,
     grantQuantity: row.grant_quantity,
+    icon: row.icon ?? null,
+    displayOrder: row.display_order,
     createdAt: isoString(row.created_at),
     updatedAt: isoString(row.updated_at),
   };
@@ -134,6 +144,7 @@ const SORT_COLUMN: Record<ShopProductListParams['sort'], string> = {
   name: 'name',
   createdAt: 'created_at',
   updatedAt: 'updated_at',
+  displayOrder: 'display_order',
 };
 
 export class PgShopProductsDb implements ShopProductsDb {
@@ -145,8 +156,8 @@ export class PgShopProductsDb implements ShopProductsDb {
          (sku, name, slug, description, category_id,
           price_gold_copper, price_claudium, price_usd_cents,
           rail_sol, rail_usdc, rail_woc, status, featured,
-          grant_kind, grant_item_id, grant_quantity)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+          grant_kind, grant_item_id, grant_quantity, icon, display_order)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
        RETURNING ${PRODUCT_COLS}`,
       [
         row.sku,
@@ -165,6 +176,8 @@ export class PgShopProductsDb implements ShopProductsDb {
         row.grantKind,
         row.grantItemId,
         row.grantQuantity,
+        row.icon,
+        row.displayOrder,
       ],
     );
     return toRecord(res.rows[0]);
@@ -253,6 +266,8 @@ export class PgShopProductsDb implements ShopProductsDb {
       ['grantKind', 'grant_kind'],
       ['grantItemId', 'grant_item_id'],
       ['grantQuantity', 'grant_quantity'],
+      ['icon', 'icon'],
+      ['displayOrder', 'display_order'],
     ];
     for (const [key, column] of columnFor) {
       if (patch[key] === undefined) continue;

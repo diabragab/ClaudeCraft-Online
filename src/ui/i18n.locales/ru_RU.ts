@@ -188,6 +188,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': 'Закрыть магазин WOC',
   'hudChrome.wocStore.tabsLabel': 'Разделы магазина WOC',
   'hudChrome.wocStore.storeTab': 'Магазин',
+  'hudChrome.wocStore.packagesTab': 'Пакеты',
   'hudChrome.wocStore.rewardsTab': 'Ежедневные награды',
   'hudChrome.wocStore.loading': 'Загрузка магазина WOC…',
   'hudChrome.wocStore.error': 'Магазин WOC сейчас недоступен. Повторите попытку позже.',
@@ -213,6 +214,8 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.categoryFilterAll': 'Все категории',
   'hudChrome.wocStore.uncategorized': 'Без категории',
   'hudChrome.wocStore.noResults': 'Нет товаров, соответствующих поиску.',
+  'hudChrome.wocStore.packagesBody': 'Наборы Клаудиума скоро будут доступны для покупки.',
+  'hudChrome.wocStore.packagesEmpty': 'Сейчас нет доступных наборов Клаудиума.',
   'hudChrome.wocStore.wallet.title': 'Кошелёк Solana',
   'hudChrome.wocStore.wallet.unlinked':
     'Подключите приложение кошелька, затем один раз подпишите сообщение, чтобы привязать его публичный адрес к учётной записи WoC. Мы никогда не получаем вашу фразу восстановления или закрытый ключ.',

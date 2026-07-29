@@ -1235,21 +1235,47 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
   {
     dispatcher: DISPATCH.mainApi,
     method: 'POST',
-    path: '/api/shop/claudium/purchase',
-    handler: 'server/shop_storefront_claudium_routes.ts purchaseHandler (registry-only RouteDef)',
+    path: '/api/shop/buy',
+    handler: 'server/shop_buy_routes.ts buyHandler (registry-only RouteDef)',
     contentType: PROBLEM_JSON,
     authScope: AUTH_SCOPE.full,
     limiter: null,
     requireOwnedExpected: null,
   },
+  // Claudium ledger (Phase 7): the in-repo balance/history reads over
+  // server/claudium_ledger.ts. Lives under /api/shop/claudium/* rather than
+  // /api/claudium/* (server/claudium.ts's own prefix, the pass-through to the
+  // external economy service) so the two systems never collide on a path.
   {
     dispatcher: DISPATCH.mainApi,
-    method: 'POST',
-    path: '/api/shop/gold/purchase',
-    handler: 'server/shop_storefront_gold_routes.ts purchaseHandler (registry-only RouteDef)',
+    method: 'GET',
+    path: '/api/shop/claudium/balance',
+    handler: 'server/claudium_ledger_routes.ts balanceHandler (registry-only RouteDef)',
     contentType: PROBLEM_JSON,
-    authScope: AUTH_SCOPE.full,
+    authScope: AUTH_SCOPE.bearer,
     limiter: null,
+    requireOwnedExpected: null,
+  },
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'GET',
+    path: '/api/shop/claudium/history',
+    handler: 'server/claudium_ledger_routes.ts historyHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.bearer,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  // Claudium Packages (Phase 7): the public storefront read over the
+  // admin-managed catalog of purchase tiers (server/claudium_packages.ts).
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'GET',
+    path: '/api/shop/packages',
+    handler: 'server/shop_storefront_packages_routes.ts listHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.public,
+    limiter: 'publicReadRateLimited',
     requireOwnedExpected: null,
   },
   {
@@ -2279,6 +2305,77 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: REQUIRE_OWNED.operator404,
     match: /^\/admin\/api\/shop\/orders\/(\d+)\/refund$/,
+  },
+
+  // Claudium ledger admin adjust (Phase 7): grant/deduct an account's
+  // Claudium (ADMIN_ADD/ADMIN_REMOVE), server/claudium_ledger_routes.ts.
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/claudium/accounts/:id/adjust',
+    handler: 'server/claudium_ledger_routes.ts adjustHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.operator404,
+    match: /^\/admin\/api\/claudium\/accounts\/(\d+)\/adjust$/,
+  },
+
+  // Claudium Packages (Phase 7): admin CRUD over the purchase-tier catalog,
+  // server/claudium_packages_routes.ts. Same registry-only shape as
+  // categories/products/inventory/orders above.
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/shop/packages',
+    handler: 'server/claudium_packages_routes.ts listHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/shop/packages',
+    handler: 'server/claudium_packages_routes.ts createHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/shop/packages/:id',
+    handler: 'server/claudium_packages_routes.ts getHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.operator404,
+    match: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/shop/packages/:id',
+    handler: 'server/claudium_packages_routes.ts updateHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.operator404,
+    match: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/shop/packages/:id/delete',
+    handler: 'server/claudium_packages_routes.ts deleteHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: REQUIRE_OWNED.operator404,
+    match: /^\/admin\/api\/shop\/packages\/(\d+)\/delete$/,
   },
 
   // -------------------------------------------------------------------------

@@ -21,7 +21,7 @@ import {
   weaponTypeLabel,
 } from './armory_labels';
 import { esc } from './esc';
-import { formatMoney, t } from './i18n';
+import { formatNumber, t } from './i18n';
 import { svgIcon } from './ui_icons';
 import type { ArmorySkinRow } from './woc_store_view';
 
@@ -190,12 +190,13 @@ export class ArmoryInspect {
     const row = this.row;
     if (!host || !row) return;
     const price =
-      row.costGoldCopper === null
+      row.costClaudium === null
         ? ''
-        : `<span class="armory-price"><strong>${esc(formatMoney(row.costGoldCopper))}</strong></span>`;
+        : `<span class="armory-price"><img src="/claudium/icons/claudium_coin_64.webp" alt="">` +
+          `<strong>${formatNumber(row.costClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
     let actions = '';
     if (!row.owned) {
-      const canBuy = row.purchasable && row.costGoldCopper !== null;
+      const canBuy = row.purchasable && row.costClaudium !== null;
       const label = canBuy ? t('hudChrome.wocStore.buySkin') : t('hudChrome.wocStore.unavailable');
       actions =
         `${price}<button type="button" class="armory-buy" data-armory-buy${canBuy ? '' : ' disabled'}>` +

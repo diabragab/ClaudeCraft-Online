@@ -546,7 +546,7 @@ export class PostOffice {
     );
   }
 
-  // In-game Shop hook (Phase 5, server/shop_claudium_checkout.ts): posts a
+  // In-game Shop hook (Phase 7, server/shop_ledger_checkout.ts): posts a
   // purchased item once the Claudium charge has already succeeded. The
   // caller resolves accountId -> live pid and only calls this for a session
   // it already verified is online; a stack, not a single count, since a

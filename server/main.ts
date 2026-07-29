@@ -287,7 +287,6 @@ import { BUG_REPORT_MAX_BODY_BYTES, configureReportsRuntime } from './reports';
 import { createRetentionSweep, RETENTION_SWEEP_BATCH_SIZE } from './retention_sweep';
 import { resolveSfxOverlayFile } from './sfx_overlay';
 import { configureShopDeliveryRuntime } from './shop_delivery';
-import { configureShopGoldCheckoutRuntime } from './shop_gold_checkout';
 import { handleSitePresenceHeartbeat } from './site_presence';
 import { adminRolesForAccount } from './staff_db';
 import {
@@ -2576,20 +2575,15 @@ configureClaudiumRuntime({
     liveGame().grantWeaponSkinsToAccount(accountId, skinIds),
 });
 
-// In-game Shop (Phase 5/6): item-grant products deliver by mailing straight
-// into the buyer's live mailbox, shared by every checkout currency
-// (Claudium, Gold). Weapon-skin products need no hook of their own here;
-// they reuse grantWeaponSkinForShop (server/claudium.ts), already wired above.
+// In-game Shop (Phase 7): item-grant products deliver by mailing straight into
+// the buyer's live mailbox. Weapon-skin products need no hook of their own
+// here; they reuse grantWeaponSkinForShop (server/claudium.ts), already wired
+// above. Checkout itself (server/shop_ledger_checkout.ts) needs no live-game
+// hook: it spends the DB-backed Claudium ledger directly, never the player's
+// live session.
 configureShopDeliveryRuntime({
   mailItemToCharacter: (characterId, itemId, count) =>
     liveGame().mailShopItemToCharacter(characterId, itemId, count),
-});
-
-// In-game Shop gold checkout (Phase 6): deducts an order's total from the
-// buyer's own live copper purse, no external economy service involved.
-configureShopGoldCheckoutRuntime({
-  spendGoldFromCharacter: (characterId, amountCopper) =>
-    liveGame().spendShopGoldFromCharacter(characterId, amountCopper),
 });
 
 // configureAdminRuntime(game) and configureInternalRuntime(game) pass the live

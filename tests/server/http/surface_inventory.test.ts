@@ -167,8 +167,9 @@ const registryExactPaths = new Set(
 );
 
 // Registry-only PARAM routes: the shop catalog family (server/shop_categories_
-// routes.ts, shop_products_routes.ts, shop_inventory_routes.ts, and now the
-// Phase 4 public storefront routes) are :id/:slug families with NO legacy
+// routes.ts, shop_products_routes.ts, shop_inventory_routes.ts, the Phase 4
+// public storefront routes, and the Phase 7 Claudium ledger admin adjust +
+// Claudium Packages admin CRUD routes) are :id/:slug families with NO legacy
 // Match-regex counterpart at all (every earlier :id family, migrated or
 // registry-only, still has one). The param gate below otherwise requires
 // every inventory `match` source to be found by scanning DISPATCHER_SOURCES
@@ -177,7 +178,7 @@ const registryExactPaths = new Set(
 // the exact-path gate already uses: convert each such RouteDef's :id/:slug
 // path template into the SAME regex-source shape its SURFACE_INVENTORY row's
 // `match` field records, and union it into the source-derived set.
-const REGISTRY_ONLY_PARAM_PREFIXES = ['/admin/api/shop/', '/api/shop/'];
+const REGISTRY_ONLY_PARAM_PREFIXES = ['/admin/api/shop/', '/api/shop/', '/admin/api/claudium/'];
 // Every :param segment is numeric EXCEPT :slug (the storefront's slug-keyed
 // category/product detail routes), which matches any non-slash run, mirroring
 // the exact `match` regexes in tests/server/http/surface_inventory.ts.

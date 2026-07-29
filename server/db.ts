@@ -14,6 +14,8 @@ import { APPLE_AUTH_SCHEMA } from './apple_auth_db';
 import type { BankBonusFacts } from './bank_entitlements';
 import { seedChatFilterDefaults } from './chat_filter_db';
 import type { ChatLogRow } from './chat_log';
+import { CLAUDIUM_LEDGER_SCHEMA } from './claudium_ledger_db';
+import { CLAUDIUM_PACKAGES_SCHEMA } from './claudium_packages_db';
 import { CONCURRENT_INDEX_MIGRATIONS } from './concurrent_indexes';
 import type { RankedDeedsAccount } from './deeds_board';
 import { DISCORD_SCHEMA } from './discord_db';
@@ -1115,6 +1117,13 @@ export async function ensureSchema(): Promise<void> {
     // Shop orders (Phase 3): references both shop_products and accounts, so
     // it runs after both are in place.
     await client.query(SHOP_ORDERS_SCHEMA);
+    // Claudium ledger + Claudium Packages (Phase 7): the in-repo premium
+    // currency the Shop now spends exclusively. claudium_accounts/
+    // claudium_history reference accounts(id); claudium_packages is
+    // self-contained (no FK). Applied unconditionally (idempotent), like the
+    // other schema modules.
+    await client.query(CLAUDIUM_LEDGER_SCHEMA);
+    await client.query(CLAUDIUM_PACKAGES_SCHEMA);
     // Seed the Armory (Phase 5): mirrors the Season 1 weapon-skin registry into
     // shop_products under a dedicated "Armory" category, so the in-game Shop
     // sells them through the one general Shop System. Idempotent (ON CONFLICT

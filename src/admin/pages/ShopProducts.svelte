@@ -27,7 +27,7 @@
   let page = $state(1);
   let statusFilter = $state('');
   let categoryFilter = $state('');
-  let sort = $state<'name' | 'createdAt' | 'updatedAt'>('updatedAt');
+  let sort = $state<'name' | 'createdAt' | 'updatedAt' | 'displayOrder'>('updatedAt');
   let dir = $state<'asc' | 'desc'>('desc');
   let searchTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -108,6 +108,8 @@
     railWoc: boolean;
     status: ShopProductStatus;
     featured: boolean;
+    icon: string;
+    displayOrder: string;
     grantKind: 'none' | 'weapon_skin' | 'item';
     grantItemId: string;
     grantQuantity: string;
@@ -128,6 +130,8 @@
       railWoc: false,
       status: 'draft',
       featured: false,
+      icon: '',
+      displayOrder: '0',
       grantKind: 'none',
       grantItemId: '',
       grantQuantity: '',
@@ -149,6 +153,8 @@
       railWoc: form.railWoc,
       status: form.status,
       featured: form.featured,
+      icon: form.icon.trim(),
+      displayOrder: Number(form.displayOrder) || 0,
       grantKind: form.grantKind,
       grantItemId: form.grantItemId.trim(),
       grantQuantity: form.grantQuantity.trim(),
@@ -195,6 +201,8 @@
       railWoc: row.railWoc,
       status: row.status,
       featured: row.featured,
+      icon: row.icon ?? '',
+      displayOrder: String(row.displayOrder),
       grantKind: row.grantKind,
       grantItemId: row.grantItemId ?? '',
       grantQuantity: String(row.grantQuantity),
@@ -283,6 +291,12 @@
   </label>
   <label class="shop-checkbox"><input type="checkbox" bind:checked={form.featured} /> {t('shopProducts.featuredLabel')}</label>
   <div class="shop-field-wide shop-hint">{t('shopProducts.featuredHint')}</div>
+  <label>{t('shopProducts.iconLabel')}
+    <input placeholder={t('shopProducts.iconPlaceholder')} maxlength="300" bind:value={form.icon} />
+  </label>
+  <label>{t('shopProducts.displayOrderLabel')}
+    <input inputmode="numeric" pattern="[0-9]*" bind:value={form.displayOrder} />
+  </label>
   <label>{t('shopProducts.grantKindLabel')}
     <select bind:value={form.grantKind}>
       <option value="none">{t('shopProducts.grantKindNone')}</option>
@@ -334,6 +348,7 @@
       <option value="updatedAt">{t('shopProducts.sortLabel')}: {t('shopProducts.sortUpdated')}</option>
       <option value="name">{t('shopProducts.sortLabel')}: {t('shopProducts.sortName')}</option>
       <option value="createdAt">{t('shopProducts.sortLabel')}: {t('shopProducts.sortCreated')}</option>
+      <option value="displayOrder">{t('shopProducts.sortLabel')}: {t('shopProducts.sortDisplayOrder')}</option>
     </select>
     {#if list}
       <div class="pager">
@@ -357,6 +372,7 @@
           <th>{t('shopProducts.colPrice')}</th>
           <th>{t('shopProducts.colStatus')}</th>
           <th>{t('shopProducts.colFeatured')}</th>
+          <th class="num">{t('shopProducts.colDisplayOrder')}</th>
           <th>{t('shopProducts.colGrant')}</th>
           {#if canManage}<th>{t('shopCommon.colActions')}</th>{/if}
         </tr>
@@ -375,6 +391,7 @@
               {:else}{t('shopProducts.statusArchived')}{/if}
             </td>
             <td>{row.featured ? t('shopCommon.yes') : t('shopCommon.no')}</td>
+            <td class="num">{row.displayOrder}</td>
             <td>
               {#if row.grantKind === 'weapon_skin'}{t('shopProducts.grantKindWeaponSkin')}
               {:else if row.grantKind === 'item'}{t('shopProducts.grantKindItem')}

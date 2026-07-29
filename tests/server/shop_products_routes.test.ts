@@ -54,6 +54,8 @@ function productRecord(overrides: Partial<ShopProductRecord> = {}): ShopProductR
     grantKind: 'none',
     grantItemId: null,
     grantQuantity: 1,
+    icon: null,
+    displayOrder: 0,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
@@ -133,7 +135,7 @@ describe('shop products routes: list', () => {
     expect(body).toEqual({
       success: true,
       error: null,
-      data: { rows: [productRecord()], total: 1, page: 1, limit: 20 },
+      data: { rows: [{ ...productRecord(), enabled: false }], total: 1, page: 1, limit: 20 },
     });
   });
 });
@@ -152,7 +154,11 @@ describe('shop products routes: create', () => {
     await runRoute(route, ctx);
     const { status, body } = captured(ctx);
     expect(status).toBe(200);
-    expect(body).toEqual({ success: true, error: null, data: productRecord() });
+    expect(body).toEqual({
+      success: true,
+      error: null,
+      data: { ...productRecord(), enabled: false },
+    });
   });
 
   it('404s a rejected unknown category as shop.not_found', async () => {
@@ -221,7 +227,11 @@ describe('shop products routes: get/update/delete by id', () => {
     await runRoute(route, ctx);
     const { status, body } = captured(ctx);
     expect(status).toBe(200);
-    expect(body).toEqual({ success: true, error: null, data: productRecord() });
+    expect(body).toEqual({
+      success: true,
+      error: null,
+      data: { ...productRecord(), enabled: false },
+    });
   });
 
   it('404s a missing product', async () => {
@@ -254,7 +264,11 @@ describe('shop products routes: get/update/delete by id', () => {
     await runRoute(route, ctx);
     const { status, body } = captured(ctx);
     expect(status).toBe(200);
-    expect(body).toEqual({ success: true, error: null, data: productRecord({ name: 'Renamed' }) });
+    expect(body).toEqual({
+      success: true,
+      error: null,
+      data: { ...productRecord({ name: 'Renamed' }), enabled: false },
+    });
   });
 
   it('deletes a product via the /:id/delete suffix', async () => {

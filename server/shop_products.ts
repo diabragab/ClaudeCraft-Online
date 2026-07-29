@@ -24,13 +24,13 @@ import { validSlugFormat } from './shop_slug';
 
 export type ShopProductStatus = 'draft' | 'active' | 'archived';
 export type ShopSortDirection = 'asc' | 'desc';
-export type ShopProductSort = 'name' | 'createdAt' | 'updatedAt';
+export type ShopProductSort = 'name' | 'createdAt' | 'updatedAt' | 'displayOrder';
 // What a purchase of this product delivers (Phase 5, the in-game Shop).
 // 'none' is every product predating this column (web-storefront-only
 // products with no automated delivery, admin fulfills manually). 'weapon_skin'
 // reuses the Season 1 Armory account-cosmetics grant; 'item' mails
 // grantQuantity of grantItemId (a sim ITEMS key) to the buyer's live
-// character. See server/shop_claudium_checkout.ts for the delivery path.
+// character. See server/shop_delivery.ts for the delivery path.
 export type ShopProductGrantKind = 'none' | 'weapon_skin' | 'item';
 
 export interface ShopProductRecord {
@@ -54,6 +54,10 @@ export interface ShopProductRecord {
   grantKind: ShopProductGrantKind;
   grantItemId: string | null;
   grantQuantity: number;
+  /** An admin-set icon URL/asset path, or null to fall back to the client's grant-based icon. */
+  icon: string | null;
+  /** Admin-controlled sort key for storefront/admin ordering (Enable/Disable, Feature, Reorder). */
+  displayOrder: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -91,6 +95,9 @@ export interface ShopProductCreateInput {
   grantItemId: string;
   /** Wire string, same convention as the price fields; '' means the default of 1. */
   grantQuantity: string;
+  /** '' means no icon (stored as SQL NULL), same convention as the price fields. */
+  icon: string;
+  displayOrder: number;
 }
 
 /** The already-shape-validated update body; an absent field means unchanged. */
@@ -111,6 +118,8 @@ export interface ShopProductUpdateInput {
   grantKind?: ShopProductGrantKind;
   grantItemId?: string;
   grantQuantity?: string;
+  icon?: string;
+  displayOrder?: number;
 }
 
 /** The insert/update shape the db layer persists: prices resolved to number|null. */
@@ -131,6 +140,8 @@ export interface ShopProductWriteRow {
   grantKind: ShopProductGrantKind;
   grantItemId: string | null;
   grantQuantity: number;
+  icon: string | null;
+  displayOrder: number;
 }
 
 export type ShopProductErrorCode =
@@ -167,8 +178,11 @@ export interface ShopCategoryLookup {
   getCategory(id: number): Promise<{ id: number } | null>;
 }
 
+// 'enabled' is not its own column: Enable/Disable (per the admin CRUD spec) toggles
+// between status 'active' and 'archived', the same status enum every other rule here
+// already keys off, so there is only ever one source of truth for availability.
 export function shopProductJson(product: ShopProductRecord): Record<string, unknown> {
-  return { ...product };
+  return { ...product, enabled: product.status === 'active' };
 }
 
 /** Parse an optional wire price string: '' means no price, else a non-negative integer. */
@@ -256,6 +270,10 @@ export class ShopProductsService {
     }
     const grantQuantity = grantKind === 'none' ? 1 : grantQuantityParsed;
 
+    const iconRaw = (input.icon ?? existing?.icon ?? '').trim();
+    const icon = iconRaw === '' ? null : iconRaw;
+    const displayOrder = input.displayOrder ?? existing?.displayOrder ?? 0;
+
     return {
       ok: true,
       row: {
@@ -275,6 +293,8 @@ export class ShopProductsService {
         grantKind,
         grantItemId,
         grantQuantity,
+        icon,
+        displayOrder,
       },
     };
   }
@@ -331,6 +351,8 @@ export class ShopProductsService {
       patch.grantItemId = resolved.row.grantItemId;
       patch.grantQuantity = resolved.row.grantQuantity;
     }
+    if (input.icon !== undefined) patch.icon = resolved.row.icon;
+    if (input.displayOrder !== undefined) patch.displayOrder = resolved.row.displayOrder;
     const product = await this.db.updateProduct(id, patch);
     if (!product) return { ok: false, error: 'not_found' };
     return { ok: true, product };

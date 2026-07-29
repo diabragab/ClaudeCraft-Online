@@ -56,7 +56,7 @@ function productsService(): ShopProductsService {
 
 const PRICE_MAX_LEN = 20;
 const productStatusEnum = enum_(['draft', 'active', 'archived']);
-const productSortEnum = enum_(['name', 'createdAt', 'updatedAt']);
+const productSortEnum = enum_(['name', 'createdAt', 'updatedAt', 'displayOrder']);
 const sortDirEnum = enum_(['asc', 'desc']);
 const productGrantKindEnum = enum_(['none', 'weapon_skin', 'item']);
 
@@ -88,6 +88,8 @@ const createProductBodySchema = object({
   grantKind: optional(productGrantKindEnum, 'none'),
   grantItemId: optional(str({ maxLength: 64 }), ''),
   grantQuantity: optional(str({ maxLength: 10 }), ''),
+  icon: optional(str({ maxLength: 300 }), ''),
+  displayOrder: optional(num({ int: true, min: 0 }), 0),
 });
 
 const updateProductBodySchema = object({
@@ -107,6 +109,8 @@ const updateProductBodySchema = object({
   grantKind: optional(productGrantKindEnum),
   grantItemId: optional(str({ maxLength: 64 })),
   grantQuantity: optional(str({ maxLength: 10 })),
+  icon: optional(str({ maxLength: 300 })),
+  displayOrder: optional(num({ int: true, min: 0 })),
 });
 
 export type ListProductsQuery = Infer<typeof listProductsQuerySchema>;

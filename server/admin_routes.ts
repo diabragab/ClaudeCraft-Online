@@ -249,6 +249,37 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
     pattern: /^\/admin\/api\/shop\/orders\/(\d+)\/refund$/,
     permission: 'shop.manage',
   },
+
+  // Claudium ledger (Phase 7, server/claudium_ledger_routes.ts): granting or
+  // deducting an account's balance is a write on player currency, so it
+  // needs shop.manage like every other shop write above, not the weaker
+  // shop.read.
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/claudium\/accounts\/(\d+)\/adjust$/,
+    permission: 'shop.manage',
+  },
+
+  // Claudium Packages (Phase 7, server/claudium_packages_routes.ts): the
+  // admin-managed catalog of Claudium purchase tiers. Same GET/POST shape
+  // as categories/products/inventory above.
+  { method: 'GET', pattern: '/admin/api/shop/packages', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/packages', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)\/delete$/,
+    permission: 'shop.manage',
+  },
 ];
 
 function matches(pattern: string | RegExp, path: string): boolean {

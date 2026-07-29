@@ -25,7 +25,7 @@ describe('buildArmorySections', () => {
     expect(sections.map((s) => s.rows.length)).toEqual([8, 7, 7, 7]);
     // No service rows: the game must not invent a price for a missing SKU.
     const ice = sections[1].rows.find((r) => r.skin.id === 'ice_fang_sword');
-    expect(ice?.costGoldCopper).toBeNull();
+    expect(ice?.costClaudium).toBeNull();
     expect(ice?.purchasable).toBe(false);
     expect(ice?.affordable).toBe(false);
     expect(ice?.shortfall).toBeNull();
@@ -39,7 +39,7 @@ describe('buildArmorySections', () => {
     });
     const ice = sections.flatMap((s) => s.rows).find((r) => r.skin.id === 'ice_fang_sword');
     expect(ice?.purchasable).toBe(true);
-    expect(ice?.costGoldCopper).toBe(2400);
+    expect(ice?.costClaudium).toBe(2400);
     expect(ice?.affordable).toBe(true);
     expect(ice?.shortfall).toBe(0);
   });

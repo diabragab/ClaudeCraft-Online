@@ -622,7 +622,11 @@ export interface ShopProductRow {
   railUsdc: boolean;
   railWoc: boolean;
   status: ShopProductStatus;
+  /** Computed by shopProductJson (server/shop_products.ts): status === 'active'. */
+  enabled: boolean;
   featured: boolean;
+  icon: string | null;
+  displayOrder: number;
   grantKind: 'none' | 'weapon_skin' | 'item';
   grantItemId: string | null;
   grantQuantity: number;
@@ -631,6 +635,24 @@ export interface ShopProductRow {
 }
 
 export type ShopProductsData = Paginated<ShopProductRow>;
+
+// Claudium Packages (Phase 7): the admin-managed catalog of Claudium purchase
+// tiers. Field shapes mirror server/claudium_packages.ts's ClaudiumPackageRecord.
+export interface ClaudiumPackageRow {
+  id: number;
+  name: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  price: number;
+  currency: string;
+  stripePriceId: string | null;
+  enabled: boolean;
+  displayOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClaudiumPackagesData = Paginated<ClaudiumPackageRow>;
 
 export interface ShopInventoryRow {
   id: number;

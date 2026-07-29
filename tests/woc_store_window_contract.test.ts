@@ -20,29 +20,32 @@ const mobileCss = readFileSync(new URL('../src/styles/hud.mobile.css', import.me
 
 describe('WOC Store window contract', () => {
   it('opens on the Store tab and keeps Daily Rewards as a sub-tab', () => {
-    expect(storeWindow).toContain("private tab: 'store' | 'rewards' = 'store'");
+    expect(storeWindow).toContain("private tab: 'store' | 'packages' | 'rewards' = 'store'");
     expect(storeWindow).toContain('data-woc-store-tab="store"');
+    expect(storeWindow).toContain('data-woc-store-tab="packages"');
     expect(storeWindow).toContain('data-woc-store-tab="rewards"');
   });
 
-  it('shows an informational need-more-gold dialog when the selected product is unaffordable', () => {
+  it('shows an informational need-more-Claudium dialog when the selected product is unaffordable', () => {
     const purchase = storeWindow.slice(storeWindow.indexOf('private requestPurchase'));
     expect(purchase).toContain('if (!card.affordable)');
     expect(purchase).toContain("t('hudChrome.wocStore.needMoreTitle')");
-    // Gold is earned in-world, never purchased: no external top-up CTA.
+    // No external economy service: "buy more Claudium" routes to the
+    // in-game read-only Packages tab, never an external checkout.
+    expect(storeWindow).toContain('openPackagesFromStore');
     expect(storeWindow).not.toContain('openClaudiumFromStore');
   });
 
-  it('uses the authoritative insufficient-balance response for the need-more-gold flow', () => {
+  it('uses the authoritative insufficient-balance response for the need-more-Claudium flow', () => {
     const purchase = storeWindow.slice(storeWindow.indexOf('private async purchaseProduct'));
-    expect(purchase).toContain("result?.reason === 'insufficient_gold'");
+    expect(purchase).toContain("result?.reason === 'insufficient_claudium'");
     expect(purchase).toContain('result.balance');
     expect(purchase).toContain('this.openNeedMoreDialog');
-    expect(purchase.indexOf("result?.reason === 'insufficient_gold'")).toBeLessThan(
+    expect(purchase.indexOf("result?.reason === 'insufficient_claudium'")).toBeLessThan(
       purchase.indexOf('this.storeError = true'),
     );
     expect(main).toContain('purchase: (productId, quantity) =>');
-    expect(main).toContain('purchaseWithGold(productId, characterId, quantity)');
+    expect(main).toContain('buyProduct(productId, characterId, quantity)');
   });
 
   it('marks owned products and prevents another purchase attempt', () => {
@@ -77,7 +80,7 @@ describe('WOC Store window contract', () => {
     expect(storeWindow).toContain("rovingTarget(ke.key, i, tabs.length, 'horizontal')");
     expect(storeWindow).toContain('aria-controls="woc-store-panel"');
     expect(storeWindow).toContain('role="tabpanel"');
-    expect(storeWindow).toContain("panel?.setAttribute(\n      'aria-labelledby'");
+    expect(storeWindow).toContain("panel?.setAttribute('aria-labelledby', labelledBy);");
   });
 
   it('keeps Escape scoped to the top Armory inspector and exposes toggle state', () => {
@@ -272,8 +275,8 @@ describe('WOC Store window contract', () => {
     const catalogSnapshot = hook.slice(0, hook.indexOf('purchase:'));
     expect(catalogSnapshot).toContain('listShopCategories()');
     expect(catalogSnapshot).toContain('listShopProducts(query, categoryId ?? undefined)');
-    // No external economy service: balance is the player's own live gold.
-    expect(catalogSnapshot).toContain('online.copper');
+    // The Shop's own Claudium ledger balance, not the external economy proxy.
+    expect(catalogSnapshot).toContain('claudiumBalance()');
   });
 
   it('distinguishes a complete Claudium pack refresh from typed economy fallbacks', () => {
