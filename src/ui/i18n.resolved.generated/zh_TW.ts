@@ -2839,7 +2839,11 @@ export const zh_TW: EnTranslations = {
       "claudium_unavailable": "克勞迪幣購買功能目前無法使用。",
       "not_deliverable": "此物品無法自動發放。",
       "character_not_found": "未找到角色。",
-      "insufficient_gold": "您的金幣不足，無法完成此次購買。"
+      "insufficient_gold": "您的金幣不足，無法完成此次購買。",
+      "package_not_found": "找不到該克勞迪幣禮包。",
+      "package_disabled": "該克勞迪幣禮包目前無法購買。",
+      "stripe_unavailable": "信用卡購買功能目前無法使用，請稍後再試。",
+      "purchase_not_found": "找不到該筆購買記錄。"
     }
   },
   "guide": {

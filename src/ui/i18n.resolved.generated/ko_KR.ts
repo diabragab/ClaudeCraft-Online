@@ -2839,7 +2839,11 @@ export const ko_KR: EnTranslations = {
       "claudium_unavailable": "현재 클라우디움 구매를 이용할 수 없습니다.",
       "not_deliverable": "이 아이템은 자동으로 지급할 수 없습니다.",
       "character_not_found": "캐릭터를 찾을 수 없습니다.",
-      "insufficient_gold": "금화가 부족하여 구매할 수 없습니다."
+      "insufficient_gold": "금화가 부족하여 구매할 수 없습니다.",
+      "package_not_found": "해당 클라우디움 패키지를 찾을 수 없습니다.",
+      "package_disabled": "해당 클라우디움 패키지는 현재 구매할 수 없습니다.",
+      "stripe_unavailable": "카드 결제를 현재 이용할 수 없습니다. 나중에 다시 시도해 주세요.",
+      "purchase_not_found": "해당 구매 내역을 찾을 수 없습니다."
     }
   },
   "guide": {

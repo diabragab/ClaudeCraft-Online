@@ -1278,6 +1278,21 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: 'publicReadRateLimited',
     requireOwnedExpected: null,
   },
+  // Claudium Package purchases (Phase 8, server/claudium_purchases_routes.ts):
+  // starts a real-money Stripe Checkout Session for a package. :id is the
+  // PACKAGE id (a catalog item), not an account-owned resource, so this row
+  // carries no requireOwned loader.
+  {
+    dispatcher: DISPATCH.mainApi,
+    method: 'POST',
+    path: '/api/shop/packages/:id/checkout',
+    handler: 'server/claudium_purchases_routes.ts checkoutHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.full,
+    limiter: null,
+    requireOwnedExpected: null,
+    match: /^\/api\/shop\/packages\/(\d+)\/checkout$/,
+  },
   {
     dispatcher: DISPATCH.mainApi,
     method: 'POST',

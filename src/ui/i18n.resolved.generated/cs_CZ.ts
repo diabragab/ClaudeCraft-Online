@@ -2839,7 +2839,11 @@ export const cs_CZ: EnTranslations = {
       "claudium_unavailable": "Claudium purchases are unavailable right now.",
       "not_deliverable": "This item cannot be delivered automatically.",
       "character_not_found": "Character not found.",
-      "insufficient_gold": "You do not have enough gold for this purchase."
+      "insufficient_gold": "You do not have enough gold for this purchase.",
+      "package_not_found": "That Claudium Package could not be found.",
+      "package_disabled": "That Claudium Package is not available for purchase right now.",
+      "stripe_unavailable": "Card purchases are unavailable right now. Please try again later.",
+      "purchase_not_found": "That purchase could not be found."
     }
   },
   "guide": {

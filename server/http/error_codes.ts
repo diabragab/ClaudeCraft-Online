@@ -221,6 +221,15 @@ export const ERROR_CODES = deepFreeze({
   // per the append-only error-code catalog rule (AIP-193): no live route
   // emits this code anymore, but it is never renamed or removed.
   'shop.insufficient_gold': { params: [] },
+  // shop: Claudium Package purchases (Phase 8, server/claudium_purchases.ts),
+  // the real-money Stripe checkout that credits the Claudium ledger.
+  // Distinct from the generic pair above so the storefront and admin surfaces
+  // react to each differently (a disabled package hides the Buy button; an
+  // unavailable Stripe config surfaces a "try again later" notice).
+  'shop.package_not_found': { params: [] },
+  'shop.package_disabled': { params: [] },
+  'shop.stripe_unavailable': { params: [] },
+  'shop.purchase_not_found': { params: [] },
 } as const);
 
 /** A stable error code: one of the keys of ERROR_CODES. */

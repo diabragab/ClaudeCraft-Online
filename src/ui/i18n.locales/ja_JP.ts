@@ -7023,6 +7023,11 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.not_deliverable': 'このアイテムは自動で届けられません。',
   'apiError.shop.character_not_found': 'キャラクターが見つかりません。',
   'apiError.shop.insufficient_gold': '金貨が不足しているため購入できません。',
+  'apiError.shop.package_not_found': 'このクラウディウムパッケージが見つかりません。',
+  'apiError.shop.package_disabled': 'このクラウディウムパッケージは現在購入できません。',
+  'apiError.shop.stripe_unavailable':
+    'カード購入は現在ご利用いただけません。しばらくしてから再度お試しください。',
+  'apiError.shop.purchase_not_found': 'この購入が見つかりません。',
   'apiError.steam.invalid_ticket':
     'Steamがこの連携リクエストを確認できませんでした。デスクトップアプリからもう一度お試しください。',
   'apiError.steam.banned': 'そのSteamアカウントは連携できません。',

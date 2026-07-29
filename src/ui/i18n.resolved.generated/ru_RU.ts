@@ -2839,7 +2839,11 @@ export const ru_RU: EnTranslations = {
       "claudium_unavailable": "Покупки за Клаудиум сейчас недоступны.",
       "not_deliverable": "Этот предмет нельзя выдать автоматически.",
       "character_not_found": "Персонаж не найден.",
-      "insufficient_gold": "Недостаточно золота для этой покупки."
+      "insufficient_gold": "Недостаточно золота для этой покупки.",
+      "package_not_found": "Этот набор Клаудиума не найден.",
+      "package_disabled": "Этот набор Клаудиума сейчас недоступен для покупки.",
+      "stripe_unavailable": "Оплата картой сейчас недоступна. Попробуйте позже.",
+      "purchase_not_found": "Эта покупка не найдена."
     }
   },
   "guide": {

@@ -7143,6 +7143,10 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'apiError.shop.not_deliverable': 'Этот предмет нельзя выдать автоматически.',
   'apiError.shop.character_not_found': 'Персонаж не найден.',
   'apiError.shop.insufficient_gold': 'Недостаточно золота для этой покупки.',
+  'apiError.shop.package_not_found': 'Этот набор Клаудиума не найден.',
+  'apiError.shop.package_disabled': 'Этот набор Клаудиума сейчас недоступен для покупки.',
+  'apiError.shop.stripe_unavailable': 'Оплата картой сейчас недоступна. Попробуйте позже.',
+  'apiError.shop.purchase_not_found': 'Эта покупка не найдена.',
   'apiError.steam.invalid_ticket':
     'Steam не смог подтвердить этот запрос на привязку. Повторите попытку из настольного приложения.',
   'apiError.steam.banned': 'Этот аккаунт Steam нельзя привязать.',

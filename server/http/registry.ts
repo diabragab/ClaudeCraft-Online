@@ -29,6 +29,7 @@ import { routes as characterRoutes } from '../characters';
 import { routes as claudiumRoutes } from '../claudium';
 import { routes as claudiumLedgerRoutes } from '../claudium_ledger_routes';
 import { routes as claudiumPackagesRoutes } from '../claudium_packages_routes';
+import { routes as claudiumPurchasesRoutes } from '../claudium_purchases_routes';
 import { routes as dailyRewardRoutes } from '../daily_rewards';
 import { routes as deedsRoutes } from '../deeds';
 import { routes as desktopLoginRoutes } from '../desktop_login_routes';
@@ -156,6 +157,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...claudiumRoutes,
   ...claudiumLedgerRoutes,
   ...claudiumPackagesRoutes,
+  ...claudiumPurchasesRoutes,
   ...dailyRewardRoutes,
   ...mapsRoutes,
   ...userAssetsRoutes,

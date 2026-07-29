@@ -122,6 +122,7 @@ const REGISTRY_ONLY_PATHS = new Set<string>([
   '/api/shop/claudium/balance',
   '/api/shop/claudium/history',
   '/api/shop/packages',
+  '/api/shop/packages/:id/checkout',
 ]);
 
 // Every legacy /api ladder row (dispatcher === main handleApi), minus the
@@ -342,6 +343,9 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     { method: 'GET', path: '/api/shop/claudium/balance' },
     { method: 'GET', path: '/api/shop/claudium/history' },
     { method: 'GET', path: '/api/shop/packages' },
+    // Phase 8: the Claudium Package Stripe checkout session start
+    // (server/claudium_purchases_routes.ts). :id is the package id.
+    { method: 'POST', path: '/api/shop/packages/:id/checkout' },
     // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
     // asserted with the internal family below).
     { method: 'GET', path: '/api/daily-rewards/leaderboard' },

@@ -111,6 +111,10 @@ const KNOWN_CODES = [
   'shop.not_deliverable',
   'shop.character_not_found',
   'shop.insufficient_gold',
+  'shop.package_not_found',
+  'shop.package_disabled',
+  'shop.stripe_unavailable',
+  'shop.purchase_not_found',
 ];
 
 // The parametric contract pins: the matcher

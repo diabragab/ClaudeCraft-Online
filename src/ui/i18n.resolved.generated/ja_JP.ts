@@ -2839,7 +2839,11 @@ export const ja_JP: EnTranslations = {
       "claudium_unavailable": "現在クラウディウムでの購入はご利用いただけません。",
       "not_deliverable": "このアイテムは自動で届けられません。",
       "character_not_found": "キャラクターが見つかりません。",
-      "insufficient_gold": "金貨が不足しているため購入できません。"
+      "insufficient_gold": "金貨が不足しているため購入できません。",
+      "package_not_found": "このクラウディウムパッケージが見つかりません。",
+      "package_disabled": "このクラウディウムパッケージは現在購入できません。",
+      "stripe_unavailable": "カード購入は現在ご利用いただけません。しばらくしてから再度お試しください。",
+      "purchase_not_found": "この購入が見つかりません。"
     }
   },
   "guide": {
