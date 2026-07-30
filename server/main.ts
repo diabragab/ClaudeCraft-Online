@@ -391,6 +391,8 @@ const STATIC_PAGE_ALIASES = new Map([
   ['/wiki/', '/guide.html'],
   ['/editor', '/editor.html'],
   ['/editor/', '/editor.html'],
+  ['/store', '/store.html'],
+  ['/store/', '/store.html'],
 ]);
 // Chat-log and perf-report retention days (0 = forever) plus the Turnstile secret
 // and the hard per-IP WS cap now live on the boot Config (see activeConfig above):
@@ -1098,7 +1100,11 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
   // own shell, so deep paths (/wiki/classes/...) fall back to guide.html rather than the
   // game's index.html. (It previously 302'd to a standalone MediaWiki; that is retired.)
   const isGuide = urlPath === '/wiki' || urlPath.startsWith('/wiki/');
-  const shell = isGuide ? 'guide.html' : isAdminRequest(req) ? 'admin.html' : 'index.html';
+  // The public storefront: a client-routed SPA served at /store with its own
+  // shell, so deep paths (/store/products/...) fall back to store.html.
+  const isStore = urlPath === '/store' || urlPath.startsWith('/store/');
+  const nonGuideShell = isStore ? 'store.html' : isAdminRequest(req) ? 'admin.html' : 'index.html';
+  const shell = isGuide ? 'guide.html' : nonGuideShell;
   // Pretty-URL aliases for standalone static pages.
   urlPath = STATIC_PAGE_ALIASES.get(urlPath) ?? urlPath;
   if (urlPath === '/' || urlPath === '/admin' || urlPath === '/admin/') urlPath = `/${shell}`;
