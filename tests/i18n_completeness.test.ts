@@ -169,6 +169,8 @@ describe('i18n whole-catalog completeness', () => {
       'hudChrome.claudium.title', // "Claudium" - in-game currency brand
       'hudChrome.claudium.balanceUnit', // "{amount} Claudium" - currency brand
       'hudChrome.claudium.storeCost', // "{amount} Claudium" - currency brand
+      'store.brand', // "World of ClaudeCraft Store" - brand (storefront SPA)
+      'store.priceClaudium', // "{amount} Claudium" - currency brand
       'guide.controls.discord', // "Discord" - brand (Guide controls-page action label)
       'desktop.crash.title', // "World of ClaudeCraft" - brand (desktop crash dialog title)
       'auth.emailPlaceholder', // "you@example.com" - RFC 2606 example address, kept verbatim
