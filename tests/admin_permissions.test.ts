@@ -66,9 +66,12 @@ describe('admin permission vocabulary', () => {
   });
 
   it('gives viewer the general read permissions, excluding the restricted ones', () => {
-    // Reads that are NOT part of the general viewer bundle: anti-bot internals
-    // and Operations/Usage are admin/superadmin only.
-    const restricted = ['botdetector.read', 'ops_usage.read'];
+    // Reads that are NOT part of the general viewer bundle: anti-bot internals,
+    // Operations/Usage, and the Shop back office (categories/products/inventory/
+    // orders/Claudium ledger and packages) are admin/superadmin only (see
+    // claudium_packages_routes.test.ts / claudium_purchases_routes.test.ts's own
+    // "403s a viewer role (no shop.read)" pins).
+    const restricted = ['botdetector.read', 'ops_usage.read', 'shop.read'];
     const reads = ADMIN_PERMISSIONS.filter(
       (permission) => permission.endsWith('.read') && !restricted.includes(permission),
     );
