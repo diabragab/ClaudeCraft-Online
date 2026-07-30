@@ -118,6 +118,20 @@ export const API_ERROR_KEYS = {
   'steam.upstream': 'apiError.steam.upstream',
   'wallet.handoff_invalid': 'apiError.wallet.handoff_invalid',
   'ota_updates.invalid_input': 'apiError.ota_updates.invalid_input',
+
+  // shop: the in-game Shop / Claudium ledger / Claudium Packages checkout family.
+  'shop.not_found': 'apiError.shop.not_found',
+  'shop.character_not_found': 'apiError.shop.character_not_found',
+  'shop.out_of_stock': 'apiError.shop.out_of_stock',
+  'shop.invalid_status_transition': 'apiError.shop.invalid_status_transition',
+  'shop.insufficient_claudium': 'apiError.shop.insufficient_claudium',
+  'shop.not_deliverable': 'apiError.shop.not_deliverable',
+  'shop.invalid_input': 'apiError.shop.invalid_input',
+  'shop.package_disabled': 'apiError.shop.package_disabled',
+  'shop.package_not_found': 'apiError.shop.package_not_found',
+  'shop.purchase_not_found': 'apiError.shop.purchase_not_found',
+  'shop.stripe_unavailable': 'apiError.shop.stripe_unavailable',
+  'shop.invalid_webhook_signature': 'apiError.shop.invalid_webhook_signature',
 } satisfies Record<string, TranslationKey>;
 
 /** The message of an Error, or the string form of any other thrown value. */

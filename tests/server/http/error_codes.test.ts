@@ -73,6 +73,18 @@ const EXPECTED_CODES = [
   'steam.account_taken',
   'steam.upstream',
   'ota_updates.invalid_input',
+  'shop.not_found',
+  'shop.character_not_found',
+  'shop.out_of_stock',
+  'shop.invalid_status_transition',
+  'shop.insufficient_claudium',
+  'shop.not_deliverable',
+  'shop.invalid_input',
+  'shop.package_disabled',
+  'shop.package_not_found',
+  'shop.purchase_not_found',
+  'shop.stripe_unavailable',
+  'shop.invalid_webhook_signature',
 ];
 
 describe('ERROR_CODES catalog', () => {
