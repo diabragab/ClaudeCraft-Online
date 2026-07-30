@@ -635,3 +635,160 @@ export interface PerfCaptureStatus {
   endsAt: number | null; // epoch ms the in-flight capture closes
   last: PerfCaptureResult | null;
 }
+
+// Shop catalog (Phase 1 backend, Phase 2 admin UI): categories, products,
+// inventory. Field shapes mirror server/shop_categories.ts / shop_products.ts /
+// shop_inventory.ts's *Record types exactly (see API.md).
+
+export type ShopCategoryStatus = 'active' | 'archived';
+
+export interface ShopCategoryRow {
+  id: number;
+  name: string;
+  slug: string;
+  description: string;
+  parentId: number | null;
+  sortOrder: number;
+  status: ShopCategoryStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ShopCategoriesData = Paginated<ShopCategoryRow>;
+
+export type ShopProductStatus = 'draft' | 'active' | 'archived';
+
+export interface ShopProductRow {
+  id: number;
+  sku: string;
+  name: string;
+  slug: string;
+  description: string;
+  categoryId: number | null;
+  priceGoldCopper: number | null;
+  priceClaudium: number | null;
+  priceUsdCents: number | null;
+  railSol: boolean;
+  railUsdc: boolean;
+  railWoc: boolean;
+  status: ShopProductStatus;
+  /** Computed by shopProductJson (server/shop_products.ts): status === 'active'. */
+  enabled: boolean;
+  featured: boolean;
+  icon: string | null;
+  displayOrder: number;
+  grantKind: 'none' | 'weapon_skin' | 'item';
+  grantItemId: string | null;
+  grantQuantity: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ShopProductsData = Paginated<ShopProductRow>;
+
+// Claudium Packages (Phase 7): the admin-managed catalog of Claudium purchase
+// tiers. Field shapes mirror server/claudium_packages.ts's ClaudiumPackageRecord.
+export interface ClaudiumPackageRow {
+  id: number;
+  name: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  price: number;
+  currency: string;
+  stripePriceId: string | null;
+  enabled: boolean;
+  displayOrder: number;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClaudiumPackagesData = Paginated<ClaudiumPackageRow>;
+
+// Claudium Packages Stripe purchases (Phase 8): the payment history / audit
+// log the admin panel shows. Field shapes mirror
+// server/claudium_purchases_db.ts's ClaudiumPurchaseRecord.
+export type ClaudiumPurchaseStatus = 'pending' | 'paid' | 'failed' | 'expired' | 'refunded';
+
+export interface ClaudiumPurchaseRow {
+  id: number;
+  accountId: number;
+  accountUsername: string;
+  packageId: number | null;
+  packageName: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  amountTotal: number;
+  currency: string;
+  status: ClaudiumPurchaseStatus;
+  stripeSessionId: string;
+  stripePaymentIntentId: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ClaudiumPurchasesData = Paginated<ClaudiumPurchaseRow>;
+
+export interface ShopInventoryRow {
+  id: number;
+  productId: number;
+  productSku: string;
+  productName: string;
+  quantityOnHand: number;
+  quantityReserved: number;
+  lowStockThreshold: number;
+  unlimited: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ShopInventoryData = Paginated<ShopInventoryRow>;
+
+// Shop orders (Phase 3 backend + admin UI): back-office order entry and
+// fulfillment over the catalog above. Field shapes mirror
+// server/shop_orders.ts's ShopOrderRecord/ShopOrderDetail/ShopOrderItemRecord/
+// ShopOrderStatusHistoryRecord exactly (see API.md).
+
+export type ShopOrderStatus = 'pending' | 'paid' | 'fulfilled' | 'cancelled' | 'refunded';
+export type ShopOrderCurrency = 'gold' | 'claudium' | 'usd';
+
+export interface ShopOrderRow {
+  id: number;
+  accountId: number;
+  accountUsername: string;
+  status: ShopOrderStatus;
+  currency: ShopOrderCurrency;
+  totalAmount: number;
+  note: string;
+  createdByAdminId: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ShopOrdersData = Paginated<ShopOrderRow>;
+
+export interface ShopOrderItemRow {
+  id: number;
+  productId: number | null;
+  productSku: string;
+  productName: string;
+  unitPrice: number;
+  quantity: number;
+  lineTotal: number;
+}
+
+export interface ShopOrderStatusHistoryRow {
+  id: number;
+  fromStatus: ShopOrderStatus | null;
+  toStatus: ShopOrderStatus;
+  adminAccountId: number | null;
+  note: string;
+  createdAt: string;
+}
+
+export interface ShopOrderDetailData extends ShopOrderRow {
+  items: ShopOrderItemRow[];
+  history: ShopOrderStatusHistoryRow[];
+}

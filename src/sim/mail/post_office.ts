@@ -20,6 +20,7 @@ import {
   HEROIC_MARK_LETTER,
   type LetterDef,
   QUEST_LETTERS,
+  SHOP_PURCHASE_LETTER,
   WELCOME_LETTER,
 } from '../content/letters';
 import { ITEMS } from '../data';
@@ -558,6 +559,22 @@ export class PostOffice {
       this.mailKeyFor(meta),
       meta.name,
       { ...HEROIC_MARK_LETTER, items: [{ itemId, count }] },
+      'system',
+    );
+  }
+
+  // In-game Shop hook (server/shop_ledger_checkout.ts): posts a purchased
+  // item once the Claudium charge has already succeeded. The caller resolves
+  // accountId -> live pid and only calls this for a session it already
+  // verified is online; a stack, not a single count, since a purchase can be
+  // for more than one unit.
+  mailShopItem(pid: number, itemId: string, count: number): void {
+    const meta = this.ctx.players.get(pid);
+    if (!meta || count <= 0) return;
+    this.sendLetter(
+      this.mailKeyFor(meta),
+      meta.name,
+      { ...SHOP_PURCHASE_LETTER, items: [{ itemId, count }] },
       'system',
     );
   }

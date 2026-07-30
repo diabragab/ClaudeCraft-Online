@@ -44,6 +44,16 @@ export const WELCOME_LETTER: LetterDef = {
   delaySeconds: 0,
 };
 
+// In-game Shop delivery (server/shop_delivery.ts): the letter a Shop
+// purchase's item grant arrives in (src/sim/mail/post_office.ts mailShopItem).
+export const SHOP_PURCHASE_LETTER: LetterDef = {
+  letterId: 'shop_purchase',
+  senderName: 'The Shop',
+  subject: 'Your purchase has arrived',
+  body: 'Thank you for your purchase. Your item is enclosed.\n\n- The Shop',
+  delaySeconds: 0,
+};
+
 // Heroic Marks reward letter: posted to a heroic final-boss participant who took
 // the daily lockout but was not standing at the corpse to loot their marks (a
 // back-line healer, a fallen or released raider). The mark stacks ride as the

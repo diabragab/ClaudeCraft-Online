@@ -20,6 +20,8 @@ export const ADMIN_PERMISSIONS = [
   'botdetector.read',
   'botdetector.configure',
   'staff.manage',
+  'shop.read',
+  'shop.manage',
 ] as const;
 
 export type AdminPermission = (typeof ADMIN_PERMISSIONS)[number];

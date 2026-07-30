@@ -140,6 +140,17 @@ export function configureClaudiumRuntime(rt: ClaudiumGameHooks): void {
   claudiumRuntime = rt;
 }
 
+/**
+ * In-game Shop weapon-skin delivery (server/shop_ledger_checkout.ts):
+ * reuses the exact grant path the old WOC Store Armory purchase used
+ * (noteWeaponSkinGrants below), so a shop_products row with
+ * grantKind='weapon_skin' delivers through the SAME account-cosmetics grant,
+ * not a second one.
+ */
+export function grantWeaponSkinForShop(accountId: number, skinId: string): void {
+  noteWeaponSkinGrants(accountId, [skinId]);
+}
+
 function noteWeaponSkinGrants(accountId: number, skinIds: string[]): void {
   const known = skinIds.filter(isKnownWeaponSkinId);
   if (known.length === 0) return;

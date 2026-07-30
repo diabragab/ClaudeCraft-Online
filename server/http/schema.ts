@@ -196,6 +196,38 @@ export function object<S extends Shape>(shape: S): Schema<InferShape<S>> {
   });
 }
 
+export interface ArrayOpts {
+  minLength?: number;
+  maxLength?: number;
+}
+
+/**
+ * An array of `item`-shaped elements, optionally length-bounded. Rejects a
+ * non-array input with code 'type' at the array's own pointer; otherwise
+ * decodes every element and collects EVERY element's issues in one pass
+ * (never first-fail, the same discipline object() applies to its fields),
+ * nesting each element's pointer as '/<index>' (e.g. '/items/0/quantity').
+ */
+export function array<T>(item: Schema<T>, opts: ArrayOpts = {}): Schema<T[]> {
+  return makeSchema<T[]>((input, pointer = '') => {
+    if (!Array.isArray(input)) return fail(pointer, 'type');
+    const issues: Issue[] = [];
+    if (opts.minLength !== undefined && input.length < opts.minLength) {
+      issues.push({ pointer, code: 'minLength', params: { minLength: opts.minLength } });
+    }
+    if (opts.maxLength !== undefined && input.length > opts.maxLength) {
+      issues.push({ pointer, code: 'maxLength', params: { maxLength: opts.maxLength } });
+    }
+    const values: T[] = [];
+    for (let i = 0; i < input.length; i++) {
+      const result = item.decode(input[i], `${pointer}/${i}`);
+      if (result.ok) values.push(result.value);
+      else issues.push(...result.issues);
+    }
+    return issues.length > 0 ? { ok: false, issues } : { ok: true, value: values };
+  });
+}
+
 /** Clone a default per use so a mutable (object/array) default is never shared across decodes. */
 function cloneDefault<T>(def: T): T {
   return def !== null && typeof def === 'object' ? structuredClone(def) : def;

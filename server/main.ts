@@ -287,6 +287,7 @@ import { resolveReportTarget } from './report_target';
 import { BUG_REPORT_MAX_BODY_BYTES, configureReportsRuntime } from './reports';
 import { createRetentionSweep, RETENTION_SWEEP_BATCH_SIZE } from './retention_sweep';
 import { resolveSfxOverlayFile } from './sfx_overlay';
+import { configureShopDeliveryRuntime } from './shop_delivery';
 import { handleSitePresenceHeartbeat } from './site_presence';
 import { adminRolesForAccount } from './staff_db';
 import {
@@ -2569,6 +2570,15 @@ configureDiscordRuntime({
 configureClaudiumRuntime({
   grantWeaponSkins: (accountId, skinIds) =>
     liveGame().grantWeaponSkinsToAccount(accountId, skinIds),
+});
+
+// In-game Shop item delivery mirrors the Claudium weapon-skin hook wiring
+// above. Checkout itself (server/shop_ledger_checkout.ts) needs no live-game
+// hook: it spends the DB-backed Claudium ledger directly, never the player's
+// live session.
+configureShopDeliveryRuntime({
+  mailItemToCharacter: (characterId, itemId, count) =>
+    liveGame().mailShopItemToCharacter(characterId, itemId, count),
 });
 
 // configureAdminRuntime(game) and configureInternalRuntime(game) pass the live

@@ -15,6 +15,7 @@
     firstVisiblePage,
     IP_ROUTE_PERMISSION,
     itemForPage,
+    SHOP_ORDER_DETAIL_PERMISSION,
   } from './pages/pages';
   import Login from './components/Login.svelte';
   import AdminShell from './components/AdminShell.svelte';
@@ -35,6 +36,13 @@
   import UnstuckReports from './pages/UnstuckReports.svelte';
   import IpAssociations from './pages/IpAssociations.svelte';
   import Staff from './pages/Staff.svelte';
+  import ShopCategories from './pages/ShopCategories.svelte';
+  import ShopProducts from './pages/ShopProducts.svelte';
+  import ShopInventory from './pages/ShopInventory.svelte';
+  import ShopOrders from './pages/ShopOrders.svelte';
+  import ShopOrderDetail from './pages/ShopOrderDetail.svelte';
+  import ClaudiumPackages from './pages/ClaudiumPackages.svelte';
+  import ClaudiumPurchases from './pages/ClaudiumPurchases.svelte';
 
   // Root of the admin SPA. Shows the login overlay until authed, then the shared
   // navigation shell and the routed page. The {#key session.locale} wrapper
@@ -59,6 +67,12 @@
     'bug-reports': BugReports,
     'unstuck-reports': UnstuckReports,
     staff: Staff,
+    'shop-categories': ShopCategories,
+    'shop-products': ShopProducts,
+    'shop-inventory': ShopInventory,
+    'shop-orders': ShopOrders,
+    'shop-packages': ClaudiumPackages,
+    'claudium-purchases': ClaudiumPurchases,
   } satisfies Record<AdminPage, Component>;
   // Permission route guard (presentation only; the server re-checks every
   // call): a route the operator cannot open renders their first visible page
@@ -66,13 +80,19 @@
   let guardedRoute = $derived.by((): AdminRoute | null => {
     if (!auth.permissionsLoaded) return null;
     const permission =
-      route.page === 'ip' ? IP_ROUTE_PERMISSION : itemForPage(route.page).permission;
+      route.page === 'ip'
+        ? IP_ROUTE_PERMISSION
+        : route.page === 'shop-order-detail'
+          ? SHOP_ORDER_DETAIL_PERMISSION
+          : itemForPage(route.page).permission;
     if (auth.can(permission)) return route;
     const fallback = firstVisiblePage((candidate) => auth.can(candidate));
     return fallback === null ? null : { page: fallback };
   });
   let Page = $derived(
-    guardedRoute === null || guardedRoute.page === 'ip' ? null : PAGE_COMPONENTS[guardedRoute.page],
+    guardedRoute === null || guardedRoute.page === 'ip' || guardedRoute.page === 'shop-order-detail'
+      ? null
+      : PAGE_COMPONENTS[guardedRoute.page],
   );
 
   setAdminNavigation({
@@ -110,6 +130,10 @@
       {#if guardedRoute.page === 'ip'}
         {#key guardedRoute.ip}
           <IpAssociations ip={guardedRoute.ip} />
+        {/key}
+      {:else if guardedRoute.page === 'shop-order-detail'}
+        {#key guardedRoute.id}
+          <ShopOrderDetail id={guardedRoute.id} />
         {/key}
       {:else if Page}
         <Page />

@@ -21,7 +21,13 @@ export type AdminPage =
   | 'blocked-ips'
   | 'bug-reports'
   | 'unstuck-reports'
-  | 'staff';
+  | 'staff'
+  | 'shop-categories'
+  | 'shop-products'
+  | 'shop-inventory'
+  | 'shop-orders'
+  | 'shop-packages'
+  | 'claudium-purchases';
 
 export interface AdminNavItem {
   id: AdminPage;
@@ -58,6 +64,23 @@ export const NAV_SECTIONS: readonly AdminNavSection[] = [
     items: [
       { id: 'accounts', labelKey: 'nav.accounts', permission: 'accounts.read' },
       { id: 'characters', labelKey: 'nav.characters', permission: 'accounts.read' },
+    ],
+  },
+  {
+    id: 'shop',
+    labelKey: 'nav.shop',
+    defaultPage: 'shop-categories',
+    items: [
+      { id: 'shop-categories', labelKey: 'nav.shopCategories', permission: 'shop.read' },
+      { id: 'shop-products', labelKey: 'nav.shopProducts', permission: 'shop.read' },
+      { id: 'shop-inventory', labelKey: 'nav.shopInventory', permission: 'shop.read' },
+      { id: 'shop-orders', labelKey: 'nav.shopOrders', permission: 'shop.read' },
+      { id: 'shop-packages', labelKey: 'nav.shopPackages', permission: 'shop.read' },
+      {
+        id: 'claudium-purchases',
+        labelKey: 'nav.claudiumPurchases',
+        permission: 'shop.read',
+      },
     ],
   },
   {
@@ -120,6 +143,10 @@ export function itemForPage(page: AdminPage): AdminNavItem {
 // The IP-associations detail route lives outside the nav tree; it reads the
 // same data as the accounts/shared-IP pages.
 export const IP_ROUTE_PERMISSION: AdminPermission = 'accounts.read';
+
+// The order-detail route (linked from the Orders list row) also lives
+// outside the nav tree, the same shape as the IP-associations route above.
+export const SHOP_ORDER_DETAIL_PERMISSION: AdminPermission = 'shop.read';
 
 export type PermissionCheck = (permission: AdminPermission) => boolean;
 

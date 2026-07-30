@@ -165,6 +165,127 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
     pattern: /^\/admin\/api\/user-assets\/(\d+)\/(block|unblock)$/,
     permission: 'content.moderate',
   },
+
+  // Shop catalog (categories/products/inventory): reads need shop.read,
+  // writes need shop.manage. Registry-only RouteDefs (server/shop_categories_
+  // routes.ts, shop_products_routes.ts, shop_inventory_routes.ts), same
+  // new-route rule as the maps/user-assets rows above. GET and POST only:
+  // requireAdmin's central authorization gate answers 405 for any other
+  // method (server/http/middleware/require_admin.ts), so update is POST to
+  // the plain :id path and delete is a literal POST .../:id/delete suffix,
+  // the same shape as the /admin/api/maps/:id/unpublish row above.
+  { method: 'GET', pattern: '/admin/api/shop/categories', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/categories', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/categories\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/categories\/(\d+)$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/categories\/(\d+)\/delete$/,
+    permission: 'shop.manage',
+  },
+
+  { method: 'GET', pattern: '/admin/api/shop/products', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/products', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/products\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/products\/(\d+)$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/products\/(\d+)\/delete$/,
+    permission: 'shop.manage',
+  },
+
+  { method: 'GET', pattern: '/admin/api/shop/inventory', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/inventory', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/inventory\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/inventory\/(\d+)$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/inventory\/(\d+)\/delete$/,
+    permission: 'shop.manage',
+  },
+
+  { method: 'GET', pattern: '/admin/api/shop/orders', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/orders', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/orders\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/orders\/(\d+)\/status$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/orders\/(\d+)\/cancel$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/orders\/(\d+)\/refund$/,
+    permission: 'shop.manage',
+  },
+
+  // Claudium ledger (server/claudium_ledger_routes.ts): granting or
+  // deducting an account's balance is a write on player currency, so it
+  // needs shop.manage like every other shop write above, not the weaker
+  // shop.read.
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/claudium\/accounts\/(\d+)\/adjust$/,
+    permission: 'shop.manage',
+  },
+
+  // Claudium Packages (server/claudium_packages_routes.ts): the
+  // admin-managed catalog of Claudium purchase tiers. Same GET/POST shape
+  // as categories/products/inventory above.
+  { method: 'GET', pattern: '/admin/api/shop/packages', permission: 'shop.read' },
+  { method: 'POST', pattern: '/admin/api/shop/packages', permission: 'shop.manage' },
+  {
+    method: 'GET',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)$/,
+    permission: 'shop.manage',
+  },
+  {
+    method: 'POST',
+    pattern: /^\/admin\/api\/shop\/packages\/(\d+)\/delete$/,
+    permission: 'shop.manage',
+  },
+
+  // Claudium Package purchases (server/claudium_purchases_routes.ts):
+  // the payment history / audit log. Read-only surface, same shop.read as
+  // every other shop read above.
+  { method: 'GET', pattern: '/admin/api/shop/claudium/purchases', permission: 'shop.read' },
 ];
 
 function matches(pattern: string | RegExp, path: string): boolean {

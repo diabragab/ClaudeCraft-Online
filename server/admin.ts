@@ -1479,7 +1479,10 @@ export function resetAdminDbForTests(): void {
 // The admin-auth gate reads its two db functions (accountAndScopeForToken and
 // adminRolesForAccount) off the active bundle, so a setAdminDbForTests fake drives
 // it too. AdminDb is a superset of AdminAuthDb, so the getter is assignable.
-const requireAdmin = createRequireAdmin((): AdminAuthDb => adminDb());
+// Exported so the migrated shop RouteDef modules (server/shop_*_routes.ts,
+// server/claudium_*_routes.ts) mount the SAME instance this file's own routes
+// use, rather than a parallel gate.
+export const requireAdmin = createRequireAdmin((): AdminAuthDb => adminDb());
 
 /**
  * The four moderation actions the enum route accepts. The central permission gate

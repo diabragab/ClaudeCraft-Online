@@ -27,6 +27,9 @@ import { routes as appleAuthRoutes } from '../apple_auth';
 import { routes as authRoutes } from '../auth_routes';
 import { routes as characterRoutes } from '../characters';
 import { routes as claudiumRoutes } from '../claudium';
+import { routes as claudiumLedgerRoutes } from '../claudium_ledger_routes';
+import { routes as claudiumPackagesRoutes } from '../claudium_packages_routes';
+import { routes as claudiumPurchasesRoutes } from '../claudium_purchases_routes';
 import { routes as dailyRewardRoutes } from '../daily_rewards';
 import { routes as deedsRoutes } from '../deeds';
 import { routes as desktopLoginRoutes } from '../desktop_login_routes';
@@ -38,7 +41,16 @@ import { routes as mapsRoutes } from '../maps_routes';
 import { routes as oauthRoutes } from '../oauth';
 import { routes as otaUpdatesRoutes } from '../ota_updates';
 import { routes as reportsRoutes } from '../reports';
+import { routes as shopBuyRoutes } from '../shop_buy_routes';
+import { routes as shopCategoriesRoutes } from '../shop_categories_routes';
+import { routes as shopInventoryRoutes } from '../shop_inventory_routes';
+import { routes as shopOrdersRoutes } from '../shop_orders_routes';
+import { routes as shopProductsRoutes } from '../shop_products_routes';
+import { routes as shopStorefrontCatalogRoutes } from '../shop_storefront_catalog_routes';
+import { routes as shopStorefrontOrdersRoutes } from '../shop_storefront_orders_routes';
+import { routes as shopStorefrontPackagesRoutes } from '../shop_storefront_packages_routes';
 import { routes as steamRoutes } from '../steam';
+import { routes as stripeWebhookRoutes } from '../stripe_webhook_routes';
 import { routes as userAssetsRoutes } from '../user_assets_routes';
 import { routes as walletRoutes } from '../wallet';
 // new:endpoint imports appear above this line (npm run new:endpoint)
@@ -125,6 +137,9 @@ export const apiRoutes: readonly RouteDef[] = [
   ...githubRoutes,
   ...desktopLoginRoutes,
   ...claudiumRoutes,
+  ...claudiumLedgerRoutes,
+  ...claudiumPackagesRoutes,
+  ...claudiumPurchasesRoutes,
   ...dailyRewardRoutes,
   ...mapsRoutes,
   ...userAssetsRoutes,
@@ -134,6 +149,15 @@ export const apiRoutes: readonly RouteDef[] = [
   ...deedsRoutes,
   ...steamRoutes,
   ...otaUpdatesRoutes,
+  ...shopCategoriesRoutes,
+  ...shopProductsRoutes,
+  ...shopInventoryRoutes,
+  ...shopOrdersRoutes,
+  ...shopStorefrontCatalogRoutes,
+  ...shopStorefrontOrdersRoutes,
+  ...shopStorefrontPackagesRoutes,
+  ...shopBuyRoutes,
+  ...stripeWebhookRoutes,
   // new:endpoint spreads appear above this line (npm run new:endpoint)
 ];
 

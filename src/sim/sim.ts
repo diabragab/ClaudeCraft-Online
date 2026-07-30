@@ -9395,6 +9395,12 @@ export class Sim {
     return this.postOffice.mailInfoFor(pid);
   }
 
+  // In-game Shop delivery hook (server/game.ts): server/ never reaches into
+  // postOffice directly, so this thin delegate is the seam.
+  mailShopItem(pid: number, itemId: string, count: number): void {
+    this.postOffice.mailShopItem(pid, itemId, count);
+  }
+
   mailUnreadFor(pid: number): number {
     return this.postOffice.mailUnreadFor(pid);
   }

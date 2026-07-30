@@ -6,7 +6,10 @@ export interface AdminNavigation {
   back: (event: MouseEvent) => void;
 }
 
-export type AdminRoute = { page: AdminPage } | { page: 'ip'; ip: string };
+export type AdminRoute =
+  | { page: AdminPage }
+  | { page: 'ip'; ip: string }
+  | { page: 'shop-order-detail'; id: number };
 
 const NAVIGATION_CONTEXT = Symbol('admin-navigation');
 
@@ -24,6 +27,10 @@ export function parseAdminRoute(url: URL): AdminRoute {
   const page = url.searchParams.get('page');
   const ip = url.searchParams.get('ip')?.trim();
   if (page === 'ip' && ip) return { page: 'ip', ip };
+  if (page === 'shop-order-detail') {
+    const id = Number(url.searchParams.get('id'));
+    if (Number.isInteger(id) && id > 0) return { page: 'shop-order-detail', id };
+  }
   if (PAGES.some((candidate) => candidate.id === page)) {
     return { page: page as AdminPage };
   }
@@ -41,6 +48,8 @@ export function routeHref(route: AdminRoute): string {
   url.searchParams.set('page', route.page);
   if (route.page === 'ip') url.searchParams.set('ip', route.ip);
   else url.searchParams.delete('ip');
+  if (route.page === 'shop-order-detail') url.searchParams.set('id', String(route.id));
+  else url.searchParams.delete('id');
   return `${url.pathname}${url.search}${url.hash}`;
 }
 

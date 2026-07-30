@@ -186,4 +186,18 @@ export const apiErrorStrings = {
   ota_updates: {
     invalid_input: 'Invalid input.',
   },
+  shop: {
+    not_found: 'That item is no longer available.',
+    character_not_found: 'Your character could not be found online. Try logging in first.',
+    out_of_stock: 'That item is out of stock.',
+    invalid_status_transition: 'That order cannot be updated from its current status.',
+    insufficient_claudium: 'You do not have enough Claudium for this purchase.',
+    not_deliverable: 'That item cannot be delivered right now.',
+    invalid_input: 'Invalid input.',
+    package_disabled: 'That Claudium package is not currently available.',
+    package_not_found: 'That Claudium package could not be found.',
+    purchase_not_found: 'That purchase could not be found.',
+    stripe_unavailable: 'Real-money purchases are not available right now.',
+    invalid_webhook_signature: 'That request could not be verified.',
+  },
 };

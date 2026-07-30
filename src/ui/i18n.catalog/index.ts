@@ -16,6 +16,7 @@ import { itemNames, itemStrings } from './items';
 import { mergeEntities, mergeExtra, mergeStrings } from './merge';
 import { questStrings } from './quests';
 import { shellStrings } from './shell';
+import { storeStrings } from './store';
 
 export { abilityStrings, classAbilityNames } from './abilities';
 export { apiErrorStrings } from './api_error';
@@ -44,6 +45,7 @@ export { mergeEntities, mergeExtra, mergeStrings } from './merge';
 export { questStrings } from './quests';
 // Re-export the catalog public surface (every name the old i18n.en.ts exported).
 export { shellStrings } from './shell';
+export { storeStrings } from './store';
 
 type ItemSetEntityText = Record<
   string,
@@ -225,6 +227,7 @@ export const en = {
   apiError: apiErrorStrings,
   guide: guideStrings,
   editor: editorStrings,
+  store: storeStrings,
   // Cosmetic skin-select event overlay. Rarity names reuse itemUi.quality.*.
   skinEvent: {
     title: 'Cosmetic Cache',

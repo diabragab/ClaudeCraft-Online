@@ -2682,6 +2682,24 @@ export class GameServer {
       .catch((err) => console.error('failed to grant account weapon skins:', err));
   }
 
+  /**
+   * In-game Shop item delivery: mails a purchased item into the buyer's own
+   * live mailbox, immediately, via the sim's postOffice. Injected into the
+   * checkout orchestration via configureShopDeliveryRuntime
+   * (server/shop_delivery.ts), the same deferred liveGame() closure pattern as
+   * grantWeaponSkinsToAccount above. Returns false when the character has no
+   * live session on THIS realm process; the caller already verified account
+   * ownership of characterId, and a purchase always originates from that
+   * character's own active session, so false here means the session dropped
+   * between the charge and delivery, not a spoofed id.
+   */
+  mailShopItemToCharacter(characterId: number, itemId: string, count: number): boolean {
+    const session = this.sessionsByCharacterId.get(characterId);
+    if (!session) return false;
+    this.sim.mailShopItem(session.pid, itemId, count);
+    return true;
+  }
+
   private unequipAccountMechChroma(session: ClientSession, chromaId: string): void {
     const skin = mechChromaSkinIndex(chromaId);
     const itemId = mechChromaItemId(chromaId);

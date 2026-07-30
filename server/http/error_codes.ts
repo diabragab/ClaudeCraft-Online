@@ -193,6 +193,37 @@ export const ERROR_CODES = deepFreeze({
   // wallet: the desktop browser handoff was malformed, expired, or mismatched.
   'wallet.handoff_invalid': { params: [] },
   'ota_updates.invalid_input': { params: [] },
+
+  // --- In-game Shop family codes (server/shop_*.ts, server/claudium_*.ts,
+  // server/stripe_webhook_routes.ts). The generalized shop_products catalog,
+  // the Claudium ledger, and the Stripe checkout/webhook surface. ---
+
+  // The requested category/product/order/package/purchase row does not exist.
+  'shop.not_found': { params: [] },
+  // The account has no live session on this realm to resolve a character against.
+  'shop.character_not_found': { params: [] },
+  // The requested quantity exceeds available stock.
+  'shop.out_of_stock': { params: [] },
+  // The order's status transition is not a legal one from its current state.
+  'shop.invalid_status_transition': { params: [] },
+  // The buyer's Claudium balance is insufficient to complete the purchase.
+  'shop.insufficient_claudium': { params: [] },
+  // The product has no configured grant (grantKind 'none'); it can be listed
+  // but never checked out.
+  'shop.not_deliverable': { params: [] },
+  // Request body/query failed shape validation.
+  'shop.invalid_input': { params: [] },
+  // The Claudium Package is disabled and not currently purchasable.
+  'shop.package_disabled': { params: [] },
+  // The requested Claudium Package does not exist.
+  'shop.package_not_found': { params: [] },
+  // The requested Claudium purchase record does not exist.
+  'shop.purchase_not_found': { params: [] },
+  // Stripe is not configured on this server (no STRIPE_SECRET_KEY): real-money
+  // checkout is unavailable.
+  'shop.stripe_unavailable': { params: [] },
+  // The Stripe webhook signature failed verification (server/stripe_webhook_routes.ts).
+  'shop.invalid_webhook_signature': { params: [] },
 } as const);
 
 /** A stable error code: one of the keys of ERROR_CODES. */

@@ -15,6 +15,9 @@ import { validCharName } from './auth';
 import type { BankBonusFacts } from './bank_entitlements';
 import { seedChatFilterDefaults } from './chat_filter_db';
 import type { ChatLogRow } from './chat_log';
+import { CLAUDIUM_LEDGER_SCHEMA } from './claudium_ledger_db';
+import { CLAUDIUM_PACKAGES_SCHEMA } from './claudium_packages_db';
+import { CLAUDIUM_PURCHASES_SCHEMA } from './claudium_purchases_db';
 import {
   buildCommunityTestCharacters,
   communityTestAccountsEnabled,
@@ -48,6 +51,11 @@ import {
 import { RATELIMIT_PRUNE_SQL, RATELIMIT_SCHEMA } from './ratelimit_db';
 import { REALM } from './realm';
 import { chooseArchiveName } from './reclaim_name';
+import { seedArmoryCatalog } from './shop_armory_seed';
+import { SHOP_CATEGORIES_SCHEMA } from './shop_categories_db';
+import { SHOP_INVENTORY_SCHEMA } from './shop_inventory_db';
+import { SHOP_ORDERS_SCHEMA } from './shop_orders_db';
+import { SHOP_PRODUCTS_SCHEMA } from './shop_products_db';
 import { SOCIAL_SCHEMA } from './social_db';
 import { UNSTUCK_SCHEMA } from './unstuck_db';
 import { USER_ASSETS_SCHEMA } from './user_assets_db';
@@ -1117,6 +1125,22 @@ export async function ensureSchema(): Promise<void> {
     // block, unblock). FK-references accounts(id), so it runs after SCHEMA.
     // Applied unconditionally (idempotent), like the other schema modules.
     await client.query(CONTENT_MODERATION_SCHEMA);
+    // In-game Shop catalog (categories -> products -> inventory -> orders,
+    // FK dependency order) plus the Claudium ledger/packages/purchases economy
+    // (ledger before packages before purchases). All FK-reference accounts(id),
+    // so they run after SCHEMA. Applied unconditionally (idempotent), like the
+    // other schema modules.
+    await client.query(SHOP_CATEGORIES_SCHEMA);
+    await client.query(SHOP_PRODUCTS_SCHEMA);
+    await client.query(SHOP_INVENTORY_SCHEMA);
+    await client.query(SHOP_ORDERS_SCHEMA);
+    await client.query(CLAUDIUM_LEDGER_SCHEMA);
+    await client.query(CLAUDIUM_PACKAGES_SCHEMA);
+    await client.query(CLAUDIUM_PURCHASES_SCHEMA);
+    // Season 1 Armory weapon-skin catalog: seeds shop_products rows for every
+    // collection on first boot only, self-healing a pre-existing deployment's
+    // rows on later boots (see server/shop_armory_seed.ts).
+    await seedArmoryCatalog(client);
     // Seed the chat-filter word lists + config on first boot only (idempotent).
     // Runs under the same advisory lock so concurrent realm boots don't race.
     await seedChatFilterDefaults(client);
