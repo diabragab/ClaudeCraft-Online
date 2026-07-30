@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08080d" />
+<meta name="color-scheme" content="dark" />
+<title>World of ClaudeCraft Store</title>
+<meta name="description" content="Browse and order World of ClaudeCraft merchandise and account goods: categories, featured items, and your order history." />
+<meta name="robots" content="index, follow" />
+<link rel="manifest" href="/manifest.webmanifest" />
+<link rel="canonical" href="https://worldofclaudecraft.com/store" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="World of ClaudeCraft" />
+<meta property="og:title" content="World of ClaudeCraft Store" />
+<meta property="og:description" content="Browse and order World of ClaudeCraft merchandise and account goods." />
+<meta property="og:url" content="https://worldofclaudecraft.com/store" />
+<meta property="og:image" content="https://worldofclaudecraft.com/woc_logo_square.webp" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="World of ClaudeCraft Store" />
+<meta name="twitter:description" content="Browse and order World of ClaudeCraft merchandise and account goods." />
+<meta name="twitter:image" content="https://worldofclaudecraft.com/woc_logo_square.webp" />
+
+<!-- i18n stored-locale modulepreload (mirrors guide.html / index.html / play.html). -->
+<script>
+  (function () {
+    try {
+      var loc = localStorage.getItem('locale');
+      if (!loc) return;
+      var map = __I18N_LOCALE_CHUNKS__;
+      var href = map && map[loc];
+      if (typeof href !== 'string') return;
+      var link = document.createElement('link');
+      link.rel = 'modulepreload';
+      link.href = href;
+      link.crossOrigin = 'anonymous';
+      document.head.appendChild(link);
+    } catch (e) {
+      // No stored locale / no templated map (dev) / storage blocked: do nothing.
+    }
+  })();
+</script>
+</head>
+<body class="store-body">
+<div id="store-app"></div>
+<noscript>
+  <div style="max-width:640px;margin:48px auto;padding:0 24px;color:#f0ebd8;font-family:Georgia,serif;">
+    <h1>World of ClaudeCraft Store</h1>
+    <p>The store needs JavaScript enabled. You can still
+      <a href="/play" style="color:#ffd100">play the game</a>.</p>
+  </div>
+</noscript>
+<script type="module" src="/src/store/main.ts"></script>
+</body>
+</html>
