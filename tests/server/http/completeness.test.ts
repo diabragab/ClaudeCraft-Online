@@ -113,6 +113,19 @@ const REGISTRY_ONLY_PATHS = new Set<string>([
   '/api/steam/link',
   '/api/steam/status',
   '/api/ota/updates',
+  '/api/shop/categories',
+  '/api/shop/categories/:slug',
+  '/api/shop/products',
+  '/api/shop/products/:slug',
+  '/api/shop/orders',
+  '/api/shop/orders/:id',
+  '/api/shop/buy',
+  '/api/shop/claudium/balance',
+  '/api/shop/claudium/history',
+  '/api/shop/packages',
+  '/api/shop/packages/:id/checkout',
+  '/api/shop/claudium/stripe/webhook',
+  '/api/shop/packages/purchases/:sessionId',
 ]);
 
 // Every legacy /api ladder row (dispatcher === main handleApi), minus the
@@ -315,6 +328,36 @@ describe('registry completeness: migrated baseline (public reads + auth + charac
     // The OTA update check (server/ota_updates.ts): registry-only like the
     // deeds trio, env-gated dark until OTA_MANIFEST_URL is set.
     { method: 'POST', path: '/api/ota/updates' },
+    // Public storefront (server/shop_storefront_catalog_routes.ts +
+    // shop_storefront_orders_routes.ts): registry-only like the deeds/Steam
+    // families above, no legacy twin.
+    { method: 'GET', path: '/api/shop/categories' },
+    { method: 'GET', path: '/api/shop/categories/:slug' },
+    { method: 'GET', path: '/api/shop/products' },
+    { method: 'GET', path: '/api/shop/products/:slug' },
+    { method: 'POST', path: '/api/shop/orders' },
+    { method: 'GET', path: '/api/shop/orders' },
+    { method: 'GET', path: '/api/shop/orders/:id' },
+    // The internal Claudium ledger's checkout (POST /api/shop/buy,
+    // server/shop_buy_routes.ts) plus its balance/history reads
+    // (server/claudium_ledger_routes.ts) and the public Claudium Packages
+    // catalog read (server/shop_storefront_packages_routes.ts). Same
+    // registry-only shape; lives under /api/shop/claudium/* rather than
+    // /api/claudium/* (server/claudium.ts's own prefix, the pass-through to
+    // the external economy service) so the two systems never collide.
+    { method: 'POST', path: '/api/shop/buy' },
+    { method: 'GET', path: '/api/shop/claudium/balance' },
+    { method: 'GET', path: '/api/shop/claudium/history' },
+    { method: 'GET', path: '/api/shop/packages' },
+    // Starts a real-money Stripe Checkout Session for a Claudium Package
+    // (server/claudium_purchases_routes.ts). :id is the package id.
+    { method: 'POST', path: '/api/shop/packages/:id/checkout' },
+    // Stripe webhook delivery (server/stripe_webhook_routes.ts): a different
+    // prefix owner than /api/claudium/stripe/webhook below.
+    { method: 'POST', path: '/api/shop/claudium/stripe/webhook' },
+    // Claudium Package purchase status poll, keyed on the opaque Stripe
+    // session id (server/claudium_purchases_routes.ts).
+    { method: 'GET', path: '/api/shop/packages/purchases/:sessionId' },
     // v0.20.0: the paginated daily leaderboard read (the ops-side sibling is
     // asserted with the internal family below).
     { method: 'GET', path: '/api/daily-rewards/leaderboard' },

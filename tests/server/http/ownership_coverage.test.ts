@@ -62,7 +62,19 @@ import {
   setMapsGuardDbForTests,
   setMapsServiceForTests,
 } from '../../../server/maps_routes';
+import {
+  resetClaudiumPurchasesAuthDbForTests,
+  resetClaudiumPurchasesServiceForTests,
+  setClaudiumPurchasesAuthDbForTests,
+  setClaudiumPurchasesServiceForTests,
+} from '../../../server/claudium_purchases_routes';
 import { resetRateLimits } from '../../../server/ratelimit';
+import {
+  resetStorefrontOrdersAuthDbForTests,
+  resetStorefrontOrdersServiceForTests,
+  setStorefrontOrdersAuthDbForTests,
+  setStorefrontOrdersServiceForTests,
+} from '../../../server/shop_storefront_orders_routes';
 import {
   resetUserAssetsGuardDbForTests,
   resetUserAssetsServiceForTests,
@@ -115,6 +127,18 @@ function concretePath(path: string): string {
     .join('/');
 }
 
+// Every :param segment name in a route path, e.g. '/api/shop/packages/purchases/:sessionId'
+// -> ['sessionId']. Most account-owned routes key on ':id' (requireOwned's default param
+// name), but server/claudium_purchases_routes.ts's requireOwnedPurchase middleware keys on
+// ':sessionId' (a Stripe opaque token, not a bigserial), so authedCtx must populate
+// ctx.params under whatever name the route's own schema decodes, not a hardcoded 'id'.
+function paramNames(path: string): string[] {
+  return path
+    .split('/')
+    .filter((segment) => segment.startsWith(':'))
+    .map((segment) => segment.slice(1));
+}
+
 // Install the denying character db seam: the bearer resolves to a full-scope
 // account, the moderation gate passes, and getCharacter ALWAYS misses (the
 // deny-by-default path the loader must answer with a 404). lifetimeXpStanding is
@@ -148,6 +172,27 @@ function installDenyingMapsAndAssets(): void {
   } as unknown as import('../../../server/user_assets').UserAssetsService);
 }
 
+// Install the shop orders + Claudium package purchases deny environment: the
+// bearer guards resolve the valid token to the caller, and each route's own
+// owner loader (requireOwnedOrder / requireOwnedPurchase) always MISSES (the
+// fake getOrder/getPurchaseBySessionId returns null), so both account-owned
+// Shop :id/:sessionId routes exercise their deny path the same way the
+// characters/maps/user-assets families above do.
+function installDenyingShopOrdersAndPurchases(): void {
+  const authOverrides = {
+    accountAndScopeForToken: async () => ({ accountId: CALLER_ACCOUNT_ID, scope: 'full' as const }),
+    moderationStatusForAccount: async () => NOT_LOCKED,
+  };
+  setStorefrontOrdersAuthDbForTests(authOverrides);
+  setClaudiumPurchasesAuthDbForTests(authOverrides);
+  setStorefrontOrdersServiceForTests({
+    getOrder: async () => null,
+  } as unknown as import('../../../server/shop_orders').ShopOrdersService);
+  setClaudiumPurchasesServiceForTests({
+    getPurchaseBySessionId: async () => null,
+  } as unknown as import('../../../server/claudium_purchases').ClaudiumPurchasesService);
+}
+
 // Install a fully stubbed runtime so a handler that DID run (the negative control,
 // or a regression where the loader is missing) cannot crash on an unconfigured
 // runtime. The deny sweep never reaches these; they exist so the failure mode of a
@@ -174,11 +219,15 @@ function installFakeRuntime(): void {
 // path, and params.id set to a valid numeric id (the router is bypassed, so params
 // are supplied directly).
 function authedCtx(route: RouteDef): Ctx {
+  const params: Record<string, string> = {};
+  for (const name of paramNames(route.path)) {
+    params[name] = name === 'action' ? 'suspend' : REQUESTED_ID;
+  }
   return fakeCtx({
     method: route.method,
     url: concretePath(route.path),
     headers: { authorization: `Bearer ${VALID_TOKEN}` },
-    params: { id: REQUESTED_ID },
+    params,
   });
 }
 
@@ -211,6 +260,7 @@ describe('ownership coverage: registry-wide deny-by-default sweep', () => {
     installDenyingCharacterDb();
     installFakeRuntime();
     installDenyingMapsAndAssets();
+    installDenyingShopOrdersAndPurchases();
   });
 
   afterEach(() => {
@@ -220,6 +270,10 @@ describe('ownership coverage: registry-wide deny-by-default sweep', () => {
     resetMapsServiceForTests();
     resetUserAssetsGuardDbForTests();
     resetUserAssetsServiceForTests();
+    resetStorefrontOrdersAuthDbForTests();
+    resetStorefrontOrdersServiceForTests();
+    resetClaudiumPurchasesAuthDbForTests();
+    resetClaudiumPurchasesServiceForTests();
     vi.restoreAllMocks();
   });
 
