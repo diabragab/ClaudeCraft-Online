@@ -181,6 +181,7 @@ export const hudChromeStrings = {
     close: 'Close WOC Store',
     tabsLabel: 'WOC Store sections',
     storeTab: 'Store',
+    packagesTab: 'Packages',
     rewardsTab: 'Daily Rewards',
     loading: 'Loading WOC Store...',
     error: 'The WOC Store is unavailable right now. Please try again shortly.',
@@ -201,6 +202,22 @@ export const hudChromeStrings = {
     armoryTitle: 'The Armory',
     armoryBody:
       'Limited weapon skins from the Season 1 Armory. Account-wide, purely cosmetic, and shown to everyone around you.',
+    // The general catalog: every active shop_products row priced in
+    // Claudium, delivered immediately on purchase.
+    generalBody: 'Everything for sale here is priced in Claudium and delivered right away.',
+    searchPlaceholder: 'Search the Shop',
+    categoryFilterLabel: 'Filter by category',
+    categoryFilterAll: 'All categories',
+    uncategorized: 'Uncategorized',
+    noResults: 'No products match your search.',
+    // Claudium Packages: the admin-managed real-money purchase tiers
+    // (server/claudium_packages.ts), bought via Stripe Checkout.
+    packagesBody: 'Bundles of Claudium available for purchase with real money.',
+    packagesEmpty: 'No Claudium Packages are available right now.',
+    packageBonus: '+{bonus} bonus',
+    packageDiscount: '{percent}% off',
+    packageFeatured: 'Featured',
+    packageBuy: 'Buy for {price} {currency}',
     wallet: {
       title: 'Solana wallet',
       unlinked:

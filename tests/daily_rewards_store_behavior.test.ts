@@ -4,23 +4,37 @@ vi.mock('../src/ui/armory_inspect', () => ({
   ArmoryInspect: class {
     openSkinId: string | null = null;
     close(): void {}
-    destroy(): void {}
     open(): void {}
-    async prewarm(): Promise<void> {}
     refresh(): void {}
   },
   badgeLabel: () => '',
   rarityLabel: () => '',
   weaponTypeLabel: () => '',
 }));
-vi.mock('../src/ui/portrait_chip', () => ({
-  hydratePortraits: () => undefined,
-  portraitChipHtml: () => '',
+vi.mock('../src/ui/portrait_chip', () => ({ portraitChipHtml: () => '' }));
+// PackageInspect touches `document` (a real DOM); this suite runs in the
+// plain Node env like the ArmoryInspect mock above, so it is stubbed rather
+// than exercised for real. The stub captures its constructor deps and the
+// package passed to open() so the tests below can assert on both.
+const packageInspectState = vi.hoisted(() => ({
+  deps: null as null | { requestBuy(pkg: unknown): void },
+  openedWith: null as unknown,
+}));
+vi.mock('../src/ui/package_inspect', () => ({
+  PackageInspect: class {
+    constructor(deps: { requestBuy(pkg: unknown): void }) {
+      packageInspectState.deps = deps;
+    }
+    open(pkg: unknown): void {
+      packageInspectState.openedWith = pkg;
+    }
+    close(): void {}
+  },
 }));
 
-import { WEAPON_SKINS } from '../src/sim/content/weapon_skins';
 import { DailyRewardsWindow } from '../src/ui/daily_rewards_window';
-import type { ArmorySkinRow } from '../src/ui/woc_store_view';
+import { formatNumber } from '../src/ui/i18n';
+import type { GeneralStoreCard, ShopCatalogProduct } from '../src/ui/woc_general_store_view';
 import type { IWorld } from '../src/world_api';
 
 function worldStub(): IWorld {
@@ -37,12 +51,50 @@ function rootStub(body: Record<string, unknown> | null = null): HTMLElement {
   };
   return {
     style: { display: 'block' },
+    classList: { toggle: vi.fn(), add: vi.fn(), remove: vi.fn() },
     querySelector(selector: string) {
       if (selector === '.dr-body') return body;
       if (selector === '[data-woc-store-loading]') return indicator;
       return null;
     },
+    querySelectorAll: () => [],
   } as unknown as HTMLElement;
+}
+
+function weaponSkinProduct(overrides: Partial<ShopCatalogProduct> = {}): ShopCatalogProduct {
+  return {
+    id: 1,
+    sku: 'armory_cinderbrand_sword',
+    name: 'Cinderbrand Sword',
+    slug: 'armory-cinderbrand-sword',
+    description: '',
+    categoryId: null,
+    priceClaudium: 200,
+    icon: null,
+    displayOrder: 0,
+    status: 'active',
+    featured: false,
+    grantKind: 'weapon_skin',
+    grantItemId: 'cinderbrand_sword',
+    grantQuantity: 1,
+    availability: 'unlimited',
+    ...overrides,
+  };
+}
+
+function weaponSkinCard(overrides: Partial<GeneralStoreCard> = {}): GeneralStoreCard {
+  return {
+    product: weaponSkinProduct(),
+    grantKind: 'weapon_skin',
+    weaponSkinId: 'cinderbrand_sword',
+    owned: false,
+    applied: false,
+    canApplyNow: false,
+    purchasable: true,
+    affordable: true,
+    shortfall: null,
+    ...overrides,
+  };
 }
 
 describe('DailyRewardsWindow store refresh behavior', () => {
@@ -68,7 +120,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     });
     Object.assign(window as unknown as Record<string, unknown>, {
       storeBalance: 750,
-      armorySections: [],
+      storeCards: [],
     });
 
     (window as unknown as { paintStore(body: HTMLElement): void }).paintStore(
@@ -138,7 +190,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     });
     Object.assign(window as unknown as Record<string, unknown>, {
       storeBalance: 750,
-      armorySections: [],
+      storeCards: [],
     });
 
     const paintStore = (
@@ -174,7 +226,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     });
     Object.assign(window as unknown as Record<string, unknown>, {
       storeBalance: 750,
-      armorySections: [],
+      storeCards: [],
     });
 
     const paintStore = (
@@ -185,7 +237,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     paintStore(body as unknown as HTMLElement);
 
     expect(writes).toBe(2);
-    expect(html).toContain('1,250');
+    expect(html).toContain(formatNumber(1_250, { maximumFractionDigits: 0 }));
   });
 
   it('restores unchanged store markup after the rewards tab occupied the shared body', () => {
@@ -211,7 +263,7 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     });
     Object.assign(window as unknown as Record<string, unknown>, {
       storeBalance: 750,
-      armorySections: [],
+      storeCards: [],
     });
 
     const paintStore = (
@@ -241,14 +293,19 @@ describe('DailyRewardsWindow store refresh behavior', () => {
       captureFocus: () => null,
       restoreFocus: () => undefined,
       storeEnabled: () => true,
-      storeSnapshot: async () => ({ available: false, balance: 100, items: [] }),
+      catalogSnapshot: async () => ({
+        available: false,
+        balance: 100,
+        categories: [],
+        products: [],
+      }),
     });
     Object.assign(window as unknown as Record<string, unknown>, {
       tab: 'store',
       storeReady: true,
       storeBalance: 750,
-      storeItems: [],
-      armorySections: [],
+      storeProducts: [],
+      storeCards: [],
     });
 
     await (window as unknown as { renderStore(focus: 'open' | null): Promise<void> }).renderStore(
@@ -260,16 +317,13 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(body.innerHTML).not.toContain('dr-error');
   });
 
-  it('opens the top-up dialog from an authoritative insufficient-balance response', async () => {
+  it('opens the need-more-Claudium dialog from an authoritative insufficient-balance response', async () => {
     const root = rootStub();
     const dialog: { body: string; onOk?: () => void } = { body: '' };
-    const order: string[] = [];
-    const openClaudium = vi.fn(() => order.push('claudium'));
-    const spendStoreItem = vi.fn(async () => ({
-      granted: false,
+    const purchase = vi.fn(async () => ({
+      ok: false,
       balance: 100,
-      costClaudium: 1_000,
-      reason: 'insufficient_balance',
+      reason: 'insufficient_claudium',
     }));
     const window = new DailyRewardsWindow({
       root: () => root,
@@ -277,75 +331,117 @@ describe('DailyRewardsWindow store refresh behavior', () => {
       closeOthers: () => undefined,
       captureFocus: () => null,
       restoreFocus: () => undefined,
-      spendStoreItem,
-      openClaudium,
+      purchase,
       confirmDialog: (_title, body, _ok, _cancel, onOk) => {
         dialog.body = body;
         dialog.onOk = onOk;
       },
     });
-    const row = {
-      skin: WEAPON_SKINS.cinderbrand_sword,
-      costClaudium: 200,
-    } as ArmorySkinRow;
-    Object.assign(window as unknown as Record<string, unknown>, {
-      armoryInspect: { close: () => order.push('inspect') },
-    });
+    const card = weaponSkinCard({ product: weaponSkinProduct({ id: 42, priceClaudium: 200 }) });
 
     await (
-      window as unknown as { purchaseArmorySkin(row: ArmorySkinRow): Promise<void> }
-    ).purchaseArmorySkin(row);
+      window as unknown as { purchaseProduct(card: GeneralStoreCard): Promise<void> }
+    ).purchaseProduct(card);
 
-    expect(spendStoreItem).toHaveBeenCalledWith('cinderbrand_sword', 'skin', 200);
+    expect(purchase).toHaveBeenCalledWith(42, 1);
     expect((window as unknown as { storeBalance: number | null }).storeBalance).toBe(100);
-    expect(dialog.body).toContain('900');
+    // shortfall = 200 - 100 = 100 Claudium.
+    expect(dialog.body).toContain(formatNumber(100, { maximumFractionDigits: 0 }));
     expect(dialog.body).toContain('Cinderbrand');
+    // No external CTA anymore (gold is earned in-world, never purchased): OK
+    // is purely dismissive and must not throw.
     expect(dialog.onOk).toBeTypeOf('function');
-    dialog.onOk?.();
-    expect(openClaudium).toHaveBeenCalledOnce();
-    expect(order).toEqual(['inspect', 'claudium']);
+    expect(() => dialog.onOk?.()).not.toThrow();
   });
 
-  it('refreshes and requires a new confirmation when the service price changed', async () => {
-    const confirmations: string[] = [];
-    const spendStoreItem = vi.fn(async () => ({
-      granted: false,
-      balance: 2_000,
-      costClaudium: 1_000,
-      reason: 'price_changed',
-    }));
-    const window = new DailyRewardsWindow({
-      root: () => rootStub(),
+  it('opens the package inspect panel when a Packages tab card is clicked', () => {
+    let capturedClick: (() => void) | undefined;
+    const button = {
+      dataset: { packageInspect: '5' },
+      addEventListener: (type: string, cb: () => void) => {
+        if (type === 'click') capturedClick = cb;
+      },
+    };
+    const body = {
+      dataset: {},
+      innerHTML: '',
+      querySelector: () => null,
+      querySelectorAll: (selector: string) =>
+        selector === '[data-package-inspect]' ? [button] : [],
+    };
+    const win = new DailyRewardsWindow({
+      root: () => rootStub(body),
       world: worldStub,
       closeOthers: () => undefined,
       captureFocus: () => null,
       restoreFocus: () => undefined,
-      spendStoreItem,
-      confirmDialog: (_title, body) => confirmations.push(body),
     });
-    const original = {
-      skin: WEAPON_SKINS.cinderbrand_sword,
-      costClaudium: 200,
-      purchasable: true,
-      owned: false,
-      affordable: true,
-    } as ArmorySkinRow;
-    const current = { ...original, costClaudium: 1_000 } as ArmorySkinRow;
-    Object.assign(window as unknown as Record<string, unknown>, {
-      armorySections: [],
-      renderStore: async () => {
-        Object.assign(window as unknown as Record<string, unknown>, {
-          armorySections: [{ rows: [current] }],
-        });
+    const pkg = {
+      id: 5,
+      name: 'Starter Pack',
+      claudiumAmount: 500,
+      bonusAmount: 0,
+      price: 499,
+      currency: 'USD',
+      imageUrl: null,
+      discountPercent: 0,
+      featured: false,
+    };
+    Object.assign(win as unknown as Record<string, unknown>, { packages: [pkg] });
+
+    (win as unknown as { paintPackages(body: HTMLElement): void }).paintPackages(
+      body as unknown as HTMLElement,
+    );
+
+    expect(capturedClick).toBeTypeOf('function');
+    capturedClick?.();
+    expect(packageInspectState.openedWith).toEqual(pkg);
+  });
+
+  it("wires the package inspect panel's Buy action to open the web storefront in a new tab", () => {
+    const button = {
+      dataset: { packageInspect: '5' },
+      addEventListener: (type: string, cb: () => void) => {
+        if (type === 'click') cb();
       },
+    };
+    const body = {
+      dataset: {},
+      innerHTML: '',
+      querySelector: () => null,
+      querySelectorAll: (selector: string) =>
+        selector === '[data-package-inspect]' ? [button] : [],
+    };
+    const win = new DailyRewardsWindow({
+      root: () => rootStub(body),
+      world: worldStub,
+      closeOthers: () => undefined,
+      captureFocus: () => null,
+      restoreFocus: () => undefined,
     });
+    const pkg = {
+      id: 5,
+      name: 'Starter Pack',
+      claudiumAmount: 500,
+      bonusAmount: 0,
+      price: 499,
+      currency: 'USD',
+      imageUrl: null,
+      discountPercent: 0,
+      featured: false,
+    };
+    Object.assign(win as unknown as Record<string, unknown>, { packages: [pkg] });
 
-    await (
-      window as unknown as { purchaseArmorySkin(row: ArmorySkinRow): Promise<void> }
-    ).purchaseArmorySkin(original);
+    (win as unknown as { paintPackages(body: HTMLElement): void }).paintPackages(
+      body as unknown as HTMLElement,
+    );
 
-    expect(spendStoreItem).toHaveBeenCalledWith('cinderbrand_sword', 'skin', 200);
-    expect(confirmations).toHaveLength(1);
-    expect(confirmations[0]).toContain('1,000');
+    // Plain Node test env (tests/CLAUDE.md): no real `window` global, so stub
+    // just the one property this handler touches.
+    const openMock = vi.fn();
+    vi.stubGlobal('window', { open: openMock });
+    packageInspectState.deps?.requestBuy(pkg);
+    expect(openMock).toHaveBeenCalledWith('/store/packages', '_blank', 'noopener,noreferrer');
+    vi.unstubAllGlobals();
   });
 });

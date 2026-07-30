@@ -165,6 +165,13 @@ import {
   resumeRoute,
   savePlayMarker,
 } from './net/resume_play';
+import {
+  buyProduct,
+  claudiumBalance,
+  listClaudiumPackages,
+  listShopCategories,
+  listShopProducts,
+} from './net/shop_client';
 import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
@@ -270,7 +277,7 @@ import { showEntryGuardBanner } from './ui/entry_guard_banner';
 import { FocusManager, type FocusTrapHandle } from './ui/focus_manager';
 import { attachGatherNodeHoverTooltip, gatherNodeToolGateFor } from './ui/gather_node_tooltip';
 import { gatherToolNoNodeKey } from './ui/gathering_view';
-import { type ClaudiumHooks, Hud } from './ui/hud';
+import { type ClaudiumHooks, Hud, type ShopHooks } from './ui/hud';
 import { resolveActionBarVisibility } from './ui/hud/action_bar/action_bar_visibility_core';
 import { autosizeChatInput } from './ui/hud/chat/chat_input_autosize';
 import { wireSkinPicker } from './ui/hud/cosmetics/skin_picker';
@@ -2668,8 +2675,29 @@ async function startGame(
         };
       },
     };
+    // In-game Shop: the general shop_products catalog + the internal
+    // Claudium ledger checkout, reusing the exact online-only closure pattern
+    // above. No external economy service involved: balance is the player's
+    // own DB-backed Claudium balance (server/claudium_ledger.ts), read via
+    // the ledger REST reads, not the player's live gold purse. characterId is
+    // only available on the concrete ClientWorld (not IWorld), which is why
+    // this closure lives in main.ts rather than in hud.ts.
+    const characterId = online.characterId;
+    const shopHooks: ShopHooks = {
+      catalogSnapshot: async (query, categoryId) => {
+        const [balance, categories, products] = await Promise.all([
+          claudiumBalance(),
+          listShopCategories(),
+          listShopProducts(query, categoryId ?? undefined),
+        ]);
+        return { available: true, balance, categories, products };
+      },
+      purchase: (productId, quantity) => buyProduct(productId, characterId, quantity),
+      packagesSnapshot: async () => ({ available: true, packages: await listClaudiumPackages() }),
+    };
     if (!NATIVE_APP) {
       hud.attachClaudium(claudiumHooks);
+      hud.attachShop(shopHooks);
       if (
         shouldShowStorePromo({
           nativeApp: NATIVE_APP,

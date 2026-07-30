@@ -188,6 +188,7 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': 'WOCストアを閉じる',
   'hudChrome.wocStore.tabsLabel': 'WOCストアのセクション',
   'hudChrome.wocStore.storeTab': 'ストア',
+  'hudChrome.wocStore.packagesTab': 'パッケージ',
   'hudChrome.wocStore.rewardsTab': 'デイリー報酬',
   'hudChrome.wocStore.loading': 'WOCストアを読み込み中…',
   'hudChrome.wocStore.error': 'WOCストアは現在利用できません。しばらくしてからお試しください。',
@@ -206,6 +207,19 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.armoryTitle': '武器庫',
   'hudChrome.wocStore.armoryBody':
     'シーズン1武器庫の限定武器スキン。アカウント共有の純粋な装飾で、周囲のプレイヤー全員に表示されます。',
+  'hudChrome.wocStore.generalBody':
+    'ここにある商品はすべてクラウディウムで価格が設定されており、購入後すぐに届きます。',
+  'hudChrome.wocStore.searchPlaceholder': 'ショップを検索',
+  'hudChrome.wocStore.categoryFilterLabel': 'カテゴリで絞り込む',
+  'hudChrome.wocStore.categoryFilterAll': 'すべてのカテゴリ',
+  'hudChrome.wocStore.uncategorized': '未分類',
+  'hudChrome.wocStore.noResults': '検索条件に一致する商品はありません。',
+  'hudChrome.wocStore.packagesBody': 'クラウディウムのパッケージをリアルマネーで購入できます。',
+  'hudChrome.wocStore.packagesEmpty': '現在利用できるクラウディウムパッケージはありません。',
+  'hudChrome.wocStore.packageBonus': '+{bonus} ボーナス',
+  'hudChrome.wocStore.packageDiscount': '{percent}% オフ',
+  'hudChrome.wocStore.packageFeatured': '注目',
+  'hudChrome.wocStore.packageBuy': '{price} {currency} で購入',
   'hudChrome.wocStore.wallet.title': 'Solanaウォレット',
   'hudChrome.wocStore.wallet.unlinked':
     'ウォレットアプリを接続し、一度署名して公開アドレスをWoCアカウントにリンクしてください。リカバリーフレーズや秘密鍵を受け取ることはありません。',

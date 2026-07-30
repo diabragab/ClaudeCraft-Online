@@ -1,32 +1,28 @@
-import { WEAPON_SKIN_LIST } from '../sim/content/weapon_skins';
+import { apiUrl } from '../client_origin';
+import { eligibleClassesForWeaponSkinType } from '../sim/content/weapon_skin_rules';
+import { WEAPON_SKIN_LIST, WEAPON_SKINS } from '../sim/content/weapon_skins';
 import type { PlayerClass, WeaponSkinType } from '../sim/types';
 import type { DailyRewardHistory, DailyRewardStatus, IWorld } from '../world_api';
 import { ArmoryInspect } from './armory_inspect';
-import {
-  badgeLabel,
-  localizeWeaponSkin,
-  rarityLabel,
-  weaponSkinCollectionLabel,
-  weaponTypeLabel,
-} from './armory_labels';
+import { localizeWeaponSkin } from './armory_labels';
 import {
   buildDailyRewardsView,
   type DailyRewardsView,
   dailyRewardTaskDescription,
 } from './daily_rewards_view';
 import { markDialogRoot } from './dialog_root';
-import { tEntity } from './entity_i18n';
 import { esc } from './esc';
 import { formatDateTime, formatNumber, t } from './i18n';
-import { hydratePortraits, portraitChipHtml } from './portrait_chip';
+import { iconDataUrl } from './icons';
+import { PackageInspect } from './package_inspect';
 import { rovingTarget } from './roving_index';
 import { svgIcon } from './ui_icons';
 import {
-  type ArmorySection,
-  type ArmorySkinRow,
-  buildArmorySections,
-  type WocStoreItemInput,
-} from './woc_store_view';
+  buildGeneralStoreCards,
+  type GeneralStoreCard,
+  type ShopCatalogProduct,
+} from './woc_general_store_view';
+import { type ArmorySkinRow, armorySkinArt } from './woc_store_view';
 
 function remainingBanText(expiresAt: string, nowMs: number): string {
   const totalMinutes = Math.max(0, Math.ceil((Date.parse(expiresAt) - nowMs) / 60_000));
@@ -84,6 +80,20 @@ export function dailyRewardReasonText(
   }
 }
 
+// Mirrors src/net/shop_client.ts's ClaudiumPackage wire shape (ui/ never
+// imports net/, src/CLAUDE.md's dependency direction).
+export interface ClaudiumPackageDisplay {
+  id: number;
+  name: string;
+  claudiumAmount: number;
+  bonusAmount: number;
+  price: number;
+  currency: string;
+  imageUrl: string | null;
+  discountPercent: number;
+  featured: boolean;
+}
+
 export interface DailyRewardsWindowDeps {
   root(): HTMLElement;
   world(): IWorld;
@@ -96,22 +106,26 @@ export interface DailyRewardsWindowDeps {
   onStatus?(status: DailyRewardStatus): void;
   onWalletConnect?(): void;
   storeEnabled?(): boolean;
-  storeSnapshot?(): Promise<{
+  /** The in-game Shop's general catalog: server-side search + category
+   *  filter. balance is the caller's own DB-backed Claudium balance
+   *  (server/claudium_ledger.ts), never the player's live gold. */
+  catalogSnapshot?(
+    query: string,
+    categoryId: number | null,
+  ): Promise<{
     available: boolean;
     balance: number | null;
-    items: WocStoreItemInput[];
+    categories: { id: number; name: string; slug: string }[];
+    products: ShopCatalogProduct[];
   }>;
-  spendStoreItem?(
-    itemId: string,
-    kind: 'cosmetic' | 'skin' | 'item',
-    expectedCostClaudium: number,
-  ): Promise<{
-    granted: boolean;
-    balance: number | null;
-    costClaudium: number | null;
-    reason: string | null;
-  }>;
-  openClaudium?(): void;
+  /** Buy one unit(s) of a product with the caller's own Claudium balance; delivery is immediate server-side. */
+  purchase?(
+    productId: number,
+    quantity: number,
+  ): Promise<{ ok: boolean; balance: number | null; reason: string | null }>;
+  /** The Packages tab: the enabled-only Claudium Packages catalog
+   *  (server/claudium_packages.ts). */
+  packagesSnapshot?(): Promise<{ available: boolean; packages: ClaudiumPackageDisplay[] }>;
   confirmDialog?(
     title: string,
     body: string,
@@ -128,17 +142,26 @@ export class DailyRewardsWindow {
   private renderSeq = 0;
   private lastHistory: DailyRewardHistory = { payouts: [] };
   private spinOverlay: HTMLElement | null = null;
-  private tab: 'store' | 'rewards' = 'store';
+  private tab: 'store' | 'packages' | 'rewards' = 'store';
   private storeBalance: number | null = null;
-  private storeItems: WocStoreItemInput[] = [];
-  private armorySections: ArmorySection[] = [];
+  private storeProducts: ShopCatalogProduct[] = [];
+  private storeCategories: { id: number; name: string; slug: string }[] = [];
+  private storeCards: GeneralStoreCard[] = [];
+  private storeSearchQuery = '';
+  private storeCategoryFilter: number | null = null;
+  private storeSearchTimer: number | null = null;
   private armoryInspect: ArmoryInspect | null = null;
   private storeLoading = false;
   private storeReady = false;
   private storeError = false;
-  private storePriceChanged = false;
   private paintedStoreBody: HTMLElement | null = null;
   private paintedStoreMarkup: string | null = null;
+  private packages: ClaudiumPackageDisplay[] = [];
+  private packagesLoading = false;
+  private packagesReady = false;
+  private packagesError = false;
+  private paintedPackagesMarkup: string | null = null;
+  private packageInspect: PackageInspect | null = null;
 
   private readonly wheelValues = [20, 30, 40, 50, 75, 100, 150, 250];
 
@@ -203,6 +226,7 @@ export class DailyRewardsWindow {
     root.style.display = 'none';
     this.closeSpinOverlay();
     this.armoryInspect?.close();
+    this.packageInspect?.close();
     this.deps.restoreFocus(this.openerFocus);
     this.openerFocus = null;
     this.deps.onVisibilityChange?.();
@@ -257,7 +281,7 @@ export class DailyRewardsWindow {
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-woc-store-tab]'));
     const select = (button: HTMLButtonElement, focus: boolean): void => {
       const tab = button.dataset.wocStoreTab;
-      if (tab !== 'store' && tab !== 'rewards') return;
+      if (tab !== 'store' && tab !== 'packages' && tab !== 'rewards') return;
       this.tab = tab;
       this.syncTabs();
       if (focus) button.focus();
@@ -291,6 +315,10 @@ export class DailyRewardsWindow {
       await this.renderStore(focus);
       return;
     }
+    if (this.tab === 'packages') {
+      await this.renderPackages(focus);
+      return;
+    }
     await this.render(focus);
   }
 
@@ -300,12 +328,17 @@ export class DailyRewardsWindow {
       this.deps.root().classList.remove('store-active');
       return;
     }
-    this.deps.root().classList.toggle('store-active', this.tab === 'store');
+    this.deps
+      .root()
+      .classList.toggle('store-active', this.tab === 'store' || this.tab === 'packages');
     const panel = this.deps.root().querySelector<HTMLElement>('.woc-store-body');
-    panel?.setAttribute(
-      'aria-labelledby',
-      this.tab === 'store' ? 'woc-store-tab-store' : 'woc-store-tab-rewards',
-    );
+    const labelledBy =
+      this.tab === 'store'
+        ? 'woc-store-tab-store'
+        : this.tab === 'packages'
+          ? 'woc-store-tab-packages'
+          : 'woc-store-tab-rewards';
+    panel?.setAttribute('aria-labelledby', labelledBy);
     this.deps
       .root()
       .querySelectorAll<HTMLButtonElement>('[data-woc-store-tab]')
@@ -327,18 +360,18 @@ export class DailyRewardsWindow {
     this.storeError = false;
     this.syncStoreLoading();
     try {
-      const snapshot = (await this.deps.storeSnapshot?.()) ?? {
-        available: false,
-        balance: null,
-        items: [],
-      };
+      const snapshot = (await this.deps.catalogSnapshot?.(
+        this.storeSearchQuery,
+        this.storeCategoryFilter,
+      )) ?? { available: false, balance: null, categories: [], products: [] };
       if (!this.isOpen || this.tab !== 'store') return;
       if (!snapshot.available || snapshot.balance === null) {
-        throw new Error('store snapshot unavailable');
+        throw new Error('catalog snapshot unavailable');
       }
       this.storeBalance = snapshot.balance;
-      this.storeItems = snapshot.items;
-      this.rebuildArmorySections();
+      this.storeCategories = snapshot.categories;
+      this.storeProducts = snapshot.products;
+      this.rebuildStoreCards();
       this.storeReady = true;
     } catch {
       this.storeError = !this.storeReady;
@@ -349,13 +382,123 @@ export class DailyRewardsWindow {
     if (this.isOpen && this.tab === 'store') this.paintStore(body);
   }
 
-  /** Re-project the Season 1 Armory sections from the last service snapshot plus
-   *  the live account cosmetics and equipped weapon (both change without a new
-   *  fetch: purchases, applies, and gear swaps all reflect immediately). */
-  private rebuildArmorySections(): void {
+  private async renderPackages(focus: 'open' | null): Promise<void> {
+    const root = this.deps.root();
+    const body = root.querySelector<HTMLElement>('.dr-body');
+    if (!body) return;
+    if (focus === 'open')
+      root.querySelector<HTMLButtonElement>('[data-woc-store-tab="packages"]')?.focus();
+    this.packagesLoading = true;
+    this.packagesError = false;
+    this.syncStoreLoading();
+    try {
+      const snapshot = (await this.deps.packagesSnapshot?.()) ?? {
+        available: false,
+        packages: [],
+      };
+      if (!this.isOpen || this.tab !== 'packages') return;
+      if (!snapshot.available) throw new Error('packages snapshot unavailable');
+      this.packages = snapshot.packages;
+      this.packagesReady = true;
+    } catch {
+      this.packagesError = !this.packagesReady;
+    } finally {
+      this.packagesLoading = false;
+      this.syncStoreLoading();
+    }
+    if (this.isOpen && this.tab === 'packages') this.paintPackages(body);
+  }
+
+  private paintPackages(body: HTMLElement): void {
+    if (this.packagesError) {
+      this.replacePackagesBody(
+        body,
+        `<div class="dr-empty dr-error" role="alert">${esc(t('hudChrome.wocStore.error'))}</div>`,
+      );
+      return;
+    }
+    const grid =
+      this.packages.length === 0
+        ? `<div class="dr-empty">${esc(t('hudChrome.wocStore.packagesEmpty'))}</div>`
+        : `<div class="armory-grid">${this.packages.map((pkg) => this.packageCardHtml(pkg)).join('')}</div>`;
+    const markup =
+      `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.packagesTab'))}</h2><p>${esc(t('hudChrome.wocStore.packagesBody'))}</p></div></div>` +
+      grid;
+    if (!this.replacePackagesBody(body, markup)) return;
+    body.querySelectorAll<HTMLButtonElement>('[data-package-inspect]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = Number(button.dataset.packageInspect);
+        const pkg = this.packages.find((p) => p.id === id);
+        if (pkg) this.openPackageInspect(pkg);
+      });
+    });
+  }
+
+  /** Opens the web storefront's Claudium Packages page in a new browser tab
+   *  (server/claudium_purchases_routes.ts's real-money Stripe Checkout), never
+   *  embedded in the 3D client: a full checkout redirect would otherwise drop
+   *  the live game WebSocket session. The player is already authenticated
+   *  there (src/store/api.ts reads the same woc_session localStorage key). */
+  private openPackageCheckout(): void {
+    window.open(apiUrl('/store/packages'), '_blank', 'noopener,noreferrer');
+  }
+
+  /** Mirrors openArmoryInspect's lazy-construct-then-open pattern: the same
+   *  click-to-inspect UX the Store tab's weapon skins already use (Season 1
+   *  Armory, src/ui/armory_inspect.ts), so a Claudium Package card opens a
+   *  detail panel instead of jumping straight to the external checkout tab. */
+  private openPackageInspect(pkg: ClaudiumPackageDisplay): void {
+    if (!this.packageInspect) {
+      this.packageInspect = new PackageInspect({
+        requestBuy: () => this.openPackageCheckout(),
+      });
+    }
+    this.packageInspect.open(pkg);
+  }
+
+  private packageCardHtml(pkg: ClaudiumPackageDisplay): string {
+    const total = formatNumber(pkg.claudiumAmount + pkg.bonusAmount, { maximumFractionDigits: 0 });
+    const art = pkg.imageUrl ?? '/claudium/icons/stack_04.webp';
+    const bonus =
+      pkg.bonusAmount > 0
+        ? `<span class="armory-badge">${esc(t('hudChrome.wocStore.packageBonus', { bonus: formatNumber(pkg.bonusAmount, { maximumFractionDigits: 0 }) }))}</span>`
+        : '';
+    const discount =
+      pkg.discountPercent > 0
+        ? `<span class="armory-badge armory-badge-discount">${esc(t('hudChrome.wocStore.packageDiscount', { percent: formatNumber(pkg.discountPercent, { maximumFractionDigits: 0 }) }))}</span>`
+        : '';
+    const featuredClass = pkg.featured ? ' featured' : '';
+    const featuredBadge = pkg.featured
+      ? `<span class="armory-badge armory-badge-featured">${esc(t('hudChrome.wocStore.packageFeatured'))}</span>`
+      : '';
+    return (
+      `<article class="armory-card cl-pack-card${featuredClass}">` +
+      `<button type="button" data-package-inspect="${pkg.id}" aria-label="${esc(t('hudChrome.wocStore.inspectAria', { item: pkg.name }))}">` +
+      `<span class="armory-card-art"><img src="${esc(art)}" alt="" loading="lazy"></span>` +
+      `<span class="armory-card-copy"><h4>${esc(pkg.name)}</h4>` +
+      `<span class="armory-badges">${featuredBadge}${discount}${bonus}</span>` +
+      `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${total}</strong></span>` +
+      `</span></button></article>`
+    );
+  }
+
+  /** Mirrors replaceStoreBody's same-markup skip, kept on its own field so a
+   *  Packages repaint never fights the Store tab's memoized markup. */
+  private replacePackagesBody(body: HTMLElement, markup: string): boolean {
+    if (this.paintedPackagesMarkup === markup && this.paintedStoreBody === body) return false;
+    body.innerHTML = markup;
+    this.paintedStoreBody = body;
+    this.paintedPackagesMarkup = markup;
+    return true;
+  }
+
+  /** Re-project the product grid from the last catalog snapshot plus the live
+   *  account cosmetics and equipped weapon (both change without a new fetch:
+   *  purchases, applies, and gear swaps all reflect immediately). */
+  private rebuildStoreCards(): void {
     const world = this.deps.world();
     const player = world.player;
-    this.armorySections = buildArmorySections(this.storeBalance, this.storeItems, {
+    this.storeCards = buildGeneralStoreCards(this.storeProducts, this.storeBalance, {
       cosmetics: world.accountCosmetics,
       cls: player.templateId,
       mainhandItemId: player.mainhandItemId,
@@ -363,26 +506,43 @@ export class DailyRewardsWindow {
   }
 
   /** Live account-cosmetics change (another session's grant/apply, or a server
-   *  correction of an optimistic apply): re-project the armory from the world's
+   *  correction of an optimistic apply): re-project the grid from the world's
    *  cosmetics and repaint the open store grid + inspect actions. */
   onCosmeticsChanged(): void {
     if (!this.isOpen || this.tab !== 'store' || !this.storeReady) return;
-    this.rebuildArmorySections();
+    this.rebuildStoreCards();
     const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
     if (body) this.paintStore(body);
     const open = this.armoryInspect?.openSkinId;
     if (open) {
-      const row = this.armoryRowById(open);
-      if (row) this.armoryInspect?.refresh(row);
+      const card = this.storeCardByWeaponSkinId(open);
+      if (card?.weaponSkinId) this.armoryInspect?.refresh(this.toArmorySkinRow(card));
     }
   }
 
-  private armoryRowById(skinId: string): ArmorySkinRow | null {
-    for (const section of this.armorySections) {
-      const row = section.rows.find((r) => r.skin.id === skinId);
-      if (row) return row;
-    }
-    return null;
+  private storeCardByWeaponSkinId(skinId: string): GeneralStoreCard | null {
+    return this.storeCards.find((c) => c.weaponSkinId === skinId) ?? null;
+  }
+
+  /** Adapts a generic product card back to ArmorySkinRow's shape, the one
+   *  spot the pre-existing ArmoryInspect apply/detach modal is still reused
+   *  from (weapon skins keep their existing inspect/apply/detach UX; buying
+   *  now goes through the general store grid instead of a bespoke flow). */
+  private toArmorySkinRow(card: GeneralStoreCard): ArmorySkinRow {
+    const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : undefined;
+    if (!skin) throw new Error('toArmorySkinRow: card has no resolved weapon skin');
+    return {
+      skin,
+      art: armorySkinArt(skin.id),
+      costClaudium: card.product.priceClaudium,
+      purchasable: card.purchasable,
+      owned: card.owned,
+      applied: card.applied,
+      canApplyNow: card.canApplyNow,
+      affordable: card.affordable,
+      shortfall: card.shortfall,
+      eligibleClasses: eligibleClassesForWeaponSkinType(skin.weaponType),
+    };
   }
 
   private paintStore(body: HTMLElement): void {
@@ -394,29 +554,116 @@ export class DailyRewardsWindow {
       return;
     }
     const balance = formatNumber(this.storeBalance, { maximumFractionDigits: 0 });
-    const armory = this.armorySections.map((section) => this.armorySectionHtml(section)).join('');
-    const notice = this.storePriceChanged
-      ? `<div class="woc-store-notice" role="status">${esc(t('hudChrome.wocStore.priceChanged'))}</div>`
-      : '';
     const markup =
-      `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.armoryTitle'))}</h2><p>${esc(t('hudChrome.wocStore.armoryBody'))}</p></div>` +
+      `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.title'))}</h2><p>${esc(t('hudChrome.wocStore.generalBody'))}</p></div>` +
       `<div class="woc-store-balance"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><span>${esc(t('hudChrome.wocStore.balance'))}</span><strong>${balance}</strong><button type="button" data-buy-claudium>${esc(t('hudChrome.wocStore.buyClaudium'))}</button></div></div>` +
-      notice +
-      armory;
+      this.storeControlsHtml() +
+      this.storeGridHtml();
     if (!this.replaceStoreBody(body, markup)) return;
-    // Dense armory compatibility chips defer their repeated portrait data URLs
-    // so this markup stays kilobytes rather than megabytes. Hydration assigns
-    // the already-cached nine class portraits by DOM property after mounting.
-    hydratePortraits(body);
     body.querySelector<HTMLButtonElement>('[data-buy-claudium]')?.addEventListener('click', () => {
-      this.openClaudiumFromStore();
+      this.openPackagesFromStore();
     });
-    body.querySelectorAll<HTMLButtonElement>('[data-armory-skin]').forEach((button) => {
+    body
+      .querySelector<HTMLInputElement>('[data-store-search]')
+      ?.addEventListener('input', (event) => {
+        this.storeSearchQuery = (event.currentTarget as HTMLInputElement).value;
+        if (this.storeSearchTimer !== null) window.clearTimeout(this.storeSearchTimer);
+        this.storeSearchTimer = window.setTimeout(() => void this.renderStore(null), 300);
+      });
+    body
+      .querySelector<HTMLSelectElement>('[data-store-category]')
+      ?.addEventListener('change', (event) => {
+        const value = (event.currentTarget as HTMLSelectElement).value;
+        this.storeCategoryFilter = value === '' ? null : Number(value);
+        void this.renderStore(null);
+      });
+    body.querySelectorAll<HTMLButtonElement>('[data-store-buy]').forEach((button) => {
       button.addEventListener('click', () => {
-        const row = this.armoryRowById(button.dataset.armorySkin ?? '');
-        if (row) this.openArmoryInspect(row);
+        const id = Number(button.dataset.storeBuy);
+        const card = this.storeCards.find((c) => c.product.id === id);
+        if (card) this.onStoreCardClick(card);
       });
     });
+  }
+
+  private storeControlsHtml(): string {
+    const options = this.storeCategories
+      .map(
+        (c) =>
+          `<option value="${c.id}"${this.storeCategoryFilter === c.id ? ' selected' : ''}>${esc(c.name)}</option>`,
+      )
+      .join('');
+    return (
+      `<div class="woc-store-controls">` +
+      `<input type="search" data-store-search value="${esc(this.storeSearchQuery)}" placeholder="${esc(t('hudChrome.wocStore.searchPlaceholder'))}" aria-label="${esc(t('hudChrome.wocStore.searchPlaceholder'))}">` +
+      `<select data-store-category aria-label="${esc(t('hudChrome.wocStore.categoryFilterLabel'))}">` +
+      `<option value="">${esc(t('hudChrome.wocStore.categoryFilterAll'))}</option>${options}</select>` +
+      `</div>`
+    );
+  }
+
+  private storeGridHtml(): string {
+    if (this.storeCards.length === 0) {
+      return `<div class="dr-empty">${esc(t('hudChrome.wocStore.noResults'))}</div>`;
+    }
+    const groups = new Map<number | null, GeneralStoreCard[]>();
+    for (const card of this.storeCards) {
+      const key = card.product.categoryId;
+      const group = groups.get(key);
+      if (group) group.push(card);
+      else groups.set(key, [card]);
+    }
+    return [...groups.entries()]
+      .map(([categoryId, cards]) => {
+        const name =
+          categoryId === null
+            ? t('hudChrome.wocStore.uncategorized')
+            : (this.storeCategories.find((c) => c.id === categoryId)?.name ?? '');
+        const cardsHtml = cards.map((card) => this.storeCardHtml(card)).join('');
+        return (
+          `<section class="armory-section"><header><div><h3>${esc(name)}</h3></div></header>` +
+          `<div class="armory-grid">${cardsHtml}</div></section>`
+        );
+      })
+      .join('');
+  }
+
+  private storeCardHtml(card: GeneralStoreCard): string {
+    const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : null;
+    const copy = skin ? localizeWeaponSkin(skin) : null;
+    const name = copy?.name ?? card.product.name;
+    // Weapon-skin grants use the curated Armory render; a plain item grant
+    // falls back to the same item-icon system bags/vendor/mailbox already
+    // use, so a shop_products row never renders with no art at all.
+    const art = skin
+      ? armorySkinArt(skin.id)
+      : card.grantKind === 'item' && card.product.grantItemId
+        ? iconDataUrl('item', card.product.grantItemId, 128)
+        : null;
+    const priceClaudium = card.product.priceClaudium;
+    const state = card.owned
+      ? card.applied
+        ? `<span class="armory-state applied">${esc(t('hudChrome.wocStore.applied'))}</span>`
+        : `<span class="armory-state">${esc(t('hudChrome.wocStore.owned'))}</span>`
+      : !card.purchasable || priceClaudium === null
+        ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
+        : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
+    const rarityClass = skin ? ` rarity-${esc(skin.rarity)}` : '';
+    return (
+      `<article class="armory-card${rarityClass}${card.owned ? ' owned' : ''}${card.applied ? ' applied' : ''}">` +
+      `<button type="button" data-store-buy="${card.product.id}" aria-label="${esc(t('hudChrome.wocStore.inspectAria', { item: name }))}">` +
+      `<span class="armory-card-art">${art ? `<img src="${esc(art)}" alt="" loading="lazy">` : ''}</span>` +
+      `<span class="armory-card-copy"><h4>${esc(name)}</h4>${state}</span>` +
+      `</button></article>`
+    );
+  }
+
+  private onStoreCardClick(card: GeneralStoreCard): void {
+    if (card.owned && card.weaponSkinId) {
+      this.openArmoryInspect(this.toArmorySkinRow(card));
+      return;
+    }
+    this.requestPurchase(card);
   }
 
   /** Keep background polling data-fresh without rebuilding an identical store
@@ -432,58 +679,9 @@ export class DailyRewardsWindow {
     return true;
   }
 
-  private armorySectionHtml(section: ArmorySection): string {
-    const servicePrice =
-      section.rows.find((row) => row.costClaudium !== null)?.costClaudium ?? null;
-    const price =
-      servicePrice === null
-        ? `<span class="armory-section-price unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
-        : `<span class="armory-section-price"><img src="/claudium/icons/claudium_coin_64.webp" alt="">${formatNumber(servicePrice, { maximumFractionDigits: 0 })}</span>`;
-    const cards = section.rows.map((row) => this.armoryCardHtml(row)).join('');
-    return (
-      `<section class="armory-section rarity-${esc(section.rarity)}">` +
-      `<header><div><span>${esc(rarityLabel(section.rarity))}</span><h3>${esc(t('hudChrome.wocStore.collectionLine', { collection: weaponSkinCollectionLabel(section.collection) }))}</h3></div>` +
-      `${price}</header>` +
-      `<div class="armory-grid">${cards}</div></section>`
-    );
-  }
-
-  private armoryCardHtml(row: ArmorySkinRow): string {
-    const copy = localizeWeaponSkin(row.skin);
-    const state = row.applied
-      ? `<span class="armory-state applied">${esc(t('hudChrome.wocStore.applied'))}</span>`
-      : row.owned
-        ? `<span class="armory-state">${esc(t('hudChrome.wocStore.owned'))}</span>`
-        : row.costClaudium === null
-          ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
-          : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(row.costClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
-    const badge = row.skin.badge
-      ? `<span class="armory-badge">${esc(badgeLabel(row.skin.badge))}</span>`
-      : '';
-    return (
-      `<article class="armory-card rarity-${esc(row.skin.rarity)}${row.owned ? ' owned' : ''}${row.applied ? ' applied' : ''}">` +
-      `<button type="button" data-armory-skin="${esc(row.skin.id)}" aria-label="${esc(t('hudChrome.wocStore.inspectAria', { item: copy.name }))}">` +
-      `<span class="armory-card-art"><img src="${esc(row.art)}" alt="" loading="lazy" decoding="async">${badge}${this.armoryClassChipsHtml(row)}</span>` +
-      `<span class="armory-card-copy"><span class="armory-card-type">${esc(weaponTypeLabel(row.skin.weaponType))}</span>` +
-      `<h4>${esc(copy.name)}</h4>${state}</span>` +
-      `</button></article>`
-    );
-  }
-
-  /** Top-right face chips: the classes that can ever apply this skin. Class
-   *  names come from the entity matcher (already localized in every locale).
-   *  The shared portrait chip shows the class crest while the character GLBs
-   *  are still preloading and upgrades itself via the global ready hook. */
-  private armoryClassChipsHtml(row: ArmorySkinRow): string {
-    const chips = row.eligibleClasses
-      .map((cls) => {
-        const name = tEntity({ kind: 'class', id: cls, field: 'name' });
-        return `<span class="armory-class-chip" title="${esc(name)}">${portraitChipHtml({ cls, name, badge: false, deferSource: true })}</span>`;
-      })
-      .join('');
-    return chips ? `<span class="armory-classes">${chips}</span>` : '';
-  }
-
+  /** Reused as-is for weapon-skin cards only (owned-skin apply/detach); buying
+   *  now goes through the general store grid (requestPurchase), never a
+   *  bespoke flow, so the inspect panel's own Buy action routes back into it. */
   private openArmoryInspect(row: ArmorySkinRow): void {
     this.ensureArmoryInspect().open(row);
   }
@@ -500,15 +698,18 @@ export class DailyRewardsWindow {
             mainhandItemId: player.mainhandItemId,
           };
         },
-        requestBuy: (target) => this.requestArmoryPurchase(target),
+        requestBuy: (target) => {
+          const card = this.storeCardByWeaponSkinId(target.skin.id);
+          if (card) this.requestPurchase(card);
+        },
         applySkin: (skinId) => {
           this.deps.world().changeWeaponSkin(skinId);
-          this.afterArmoryChange(skinId);
+          this.afterStoreChange(skinId);
         },
         detachSkin: (weaponType: WeaponSkinType) => {
           this.deps.world().changeWeaponSkin(null, weaponType);
           const open = this.armoryInspect?.openSkinId;
-          if (open) this.afterArmoryChange(open);
+          if (open) this.afterStoreChange(open);
         },
       });
     }
@@ -517,108 +718,92 @@ export class DailyRewardsWindow {
 
   /** Re-project + repaint after an optimistic apply/detach or a grant, keeping
    *  the open inspect panel's actions in step with the store grid. */
-  private afterArmoryChange(skinId: string): void {
-    this.rebuildArmorySections();
+  private afterStoreChange(skinId: string): void {
+    this.rebuildStoreCards();
     const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
     if (body && this.isOpen && this.tab === 'store') this.paintStore(body);
-    const row = this.armoryRowById(skinId);
-    if (row) this.armoryInspect?.refresh(row);
+    const card = this.storeCardByWeaponSkinId(skinId);
+    if (card) this.armoryInspect?.refresh(this.toArmorySkinRow(card));
   }
 
-  private requestArmoryPurchase(row: ArmorySkinRow): void {
-    if (row.owned || !row.purchasable || row.costClaudium === null) return;
-    const copy = localizeWeaponSkin(row.skin);
-    const cost = formatNumber(row.costClaudium, { maximumFractionDigits: 0 });
-    if (!row.affordable) {
-      this.openNeedMoreDialog(row, row.costClaudium, this.storeBalance);
+  private requestPurchase(card: GeneralStoreCard): void {
+    const cost = card.product.priceClaudium;
+    if (card.owned || !card.purchasable || cost === null) return;
+    if (!card.affordable) {
+      this.openNeedMoreDialog(card, cost, this.storeBalance);
       return;
     }
+    const name = card.weaponSkinId
+      ? localizeWeaponSkin(WEAPON_SKINS[card.weaponSkinId]).name
+      : card.product.name;
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.confirmTitle'),
-      t('hudChrome.wocStore.confirmBody', { item: copy.name, cost }),
+      t('hudChrome.wocStore.confirmBody', {
+        item: name,
+        cost: formatNumber(cost, { maximumFractionDigits: 0 }),
+      }),
       t('hudChrome.wocStore.confirmPurchase'),
       t('hudChrome.wocStore.cancel'),
-      () => void this.purchaseArmorySkin(row),
+      () => void this.purchaseProduct(card),
     );
   }
 
-  private async purchaseArmorySkin(row: ArmorySkinRow): Promise<void> {
-    const expectedCostClaudium = row.costClaudium;
-    if (expectedCostClaudium === null) return;
-    this.storePriceChanged = false;
-    const result = await this.deps.spendStoreItem?.(row.skin.id, 'skin', expectedCostClaudium);
-    if (result?.reason === 'price_changed') {
-      this.storePriceChanged = true;
-      if (result.balance !== null) this.storeBalance = result.balance;
-      await this.renderStore(null);
-      const current = this.armoryRowById(row.skin.id);
-      if (
-        current &&
-        current.costClaudium !== null &&
-        current.costClaudium !== expectedCostClaudium
-      ) {
-        this.requestArmoryPurchase(current);
-      }
-      return;
-    }
-    if (result?.reason === 'insufficient_balance') {
+  private async purchaseProduct(card: GeneralStoreCard): Promise<void> {
+    const productId = card.product.id;
+    const result = await this.deps.purchase?.(productId, 1);
+    if (result?.reason === 'insufficient_claudium') {
       if (result.balance !== null) {
         this.storeBalance = result.balance;
-        this.rebuildArmorySections();
+        this.rebuildStoreCards();
         const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
         if (body) this.paintStore(body);
       }
-      const authoritativeCost =
-        result.costClaudium !== null &&
-        Number.isFinite(result.costClaudium) &&
-        result.costClaudium > 0
-          ? result.costClaudium
-          : row.costClaudium;
-      if (authoritativeCost !== null) {
-        this.openNeedMoreDialog(row, authoritativeCost, result.balance);
-      }
+      this.openNeedMoreDialog(card, card.product.priceClaudium ?? 0, result.balance);
       return;
     }
-    if (!result?.granted) {
-      // Re-check before declaring an outage: a double-submit lands as the
-      // service's already_granted (not granted), yet the skin IS owned.
-      await this.renderStore(null);
-      const owned = this.armoryRowById(row.skin.id)?.owned ?? false;
-      if (!owned) {
-        this.storeError = true;
-        const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
-        if (body) this.paintStore(body);
-        return;
-      }
-    } else {
-      await this.renderStore(null);
+    if (!result?.ok) {
+      this.storeError = true;
+      const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
+      if (body) this.paintStore(body);
+      return;
     }
-    const fresh = this.armoryRowById(row.skin.id);
-    if (fresh) this.armoryInspect?.refresh(fresh);
+    await this.renderStore(null);
+    if (card.weaponSkinId) {
+      const fresh = this.storeCardByWeaponSkinId(card.weaponSkinId);
+      if (fresh) this.armoryInspect?.refresh(this.toArmorySkinRow(fresh));
+    }
   }
 
   private openNeedMoreDialog(
-    row: ArmorySkinRow,
+    card: GeneralStoreCard,
     costClaudium: number,
     balance: number | null,
   ): void {
     const knownBalance = balance ?? this.storeBalance;
-    const copy = localizeWeaponSkin(row.skin);
+    const name = card.weaponSkinId
+      ? localizeWeaponSkin(WEAPON_SKINS[card.weaponSkinId]).name
+      : card.product.name;
     const shortfall = formatNumber(Math.max(0, costClaudium - (knownBalance ?? 0)), {
       maximumFractionDigits: 0,
     });
     this.deps.confirmDialog?.(
       t('hudChrome.wocStore.needMoreTitle'),
-      t('hudChrome.wocStore.needMoreBody', { item: copy.name, shortfall }),
+      t('hudChrome.wocStore.needMoreBody', { item: name, shortfall }),
       t('hudChrome.wocStore.buyClaudium'),
       t('hudChrome.wocStore.cancel'),
-      () => this.openClaudiumFromStore(),
+      () => this.openPackagesFromStore(),
     );
   }
 
-  private openClaudiumFromStore(): void {
+  /** Switches to the Packages tab ("buy more Claudium" lands on the in-game
+   *  listing, where each package's own Buy button opens the real Stripe
+   *  checkout on the web storefront, per openPackageCheckout above). */
+  private openPackagesFromStore(): void {
+    if (!this.storeEnabled()) return;
     this.armoryInspect?.close();
-    this.deps.openClaudium?.();
+    this.tab = 'packages';
+    this.syncTabs();
+    void this.renderCurrent(null);
   }
 
   private paint(view: DailyRewardsView): void {
@@ -686,6 +871,7 @@ export class DailyRewardsWindow {
     return (
       `<div class="woc-store-tabs" role="tablist" aria-label="${esc(t('hudChrome.wocStore.tabsLabel'))}">` +
       `<button id="woc-store-tab-store" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="store">${esc(t('hudChrome.wocStore.storeTab'))}</button>` +
+      `<button id="woc-store-tab-packages" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="packages">${esc(t('hudChrome.wocStore.packagesTab'))}</button>` +
       `<button id="woc-store-tab-rewards" type="button" role="tab" aria-controls="woc-store-panel" data-woc-store-tab="rewards">${esc(t('hudChrome.wocStore.rewardsTab'))}</button>` +
       `<span class="woc-store-loading" data-woc-store-loading role="status" aria-live="polite" aria-label="${esc(t('hudChrome.wocStore.loading'))}" aria-busy="false"><i aria-hidden="true"></i></span></div>`
     );
@@ -711,12 +897,13 @@ export class DailyRewardsWindow {
   private syncStoreLoading(): void {
     const indicator = this.deps.root().querySelector<HTMLElement>('[data-woc-store-loading]');
     if (!indicator) return;
-    indicator.classList.toggle('active', this.storeLoading);
-    indicator.setAttribute('aria-busy', this.storeLoading ? 'true' : 'false');
+    const loading = this.tab === 'packages' ? this.packagesLoading : this.storeLoading;
+    indicator.classList.toggle('active', loading);
+    indicator.setAttribute('aria-busy', loading ? 'true' : 'false');
   }
 
   private storeEnabled(): boolean {
-    return this.deps.storeEnabled?.() ?? this.deps.storeSnapshot !== undefined;
+    return this.deps.storeEnabled?.() ?? this.deps.catalogSnapshot !== undefined;
   }
 
   private summaryHtml(view: Extract<DailyRewardsView, { kind: 'ready' }>): string {

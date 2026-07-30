@@ -188,6 +188,7 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.close': 'Закрыть магазин WOC',
   'hudChrome.wocStore.tabsLabel': 'Разделы магазина WOC',
   'hudChrome.wocStore.storeTab': 'Магазин',
+  'hudChrome.wocStore.packagesTab': 'Пакеты',
   'hudChrome.wocStore.rewardsTab': 'Ежедневные награды',
   'hudChrome.wocStore.loading': 'Загрузка магазина WOC…',
   'hudChrome.wocStore.error': 'Магазин WOC сейчас недоступен. Повторите попытку позже.',
@@ -206,6 +207,19 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.armoryTitle': 'Арсенал',
   'hudChrome.wocStore.armoryBody':
     'Ограниченные облики оружия из Арсенала 1-го сезона. Общие для всей учётной записи, чисто косметические и видимые всем вокруг.',
+  'hudChrome.wocStore.generalBody':
+    'Все товары здесь оцениваются в Клаудиуме и доставляются сразу после покупки.',
+  'hudChrome.wocStore.searchPlaceholder': 'Поиск по магазину',
+  'hudChrome.wocStore.categoryFilterLabel': 'Фильтр по категории',
+  'hudChrome.wocStore.categoryFilterAll': 'Все категории',
+  'hudChrome.wocStore.uncategorized': 'Без категории',
+  'hudChrome.wocStore.noResults': 'Нет товаров, соответствующих поиску.',
+  'hudChrome.wocStore.packagesBody': 'Наборы Клаудиума можно приобрести за реальные деньги.',
+  'hudChrome.wocStore.packagesEmpty': 'Сейчас нет доступных наборов Клаудиума.',
+  'hudChrome.wocStore.packageBonus': '+{bonus} бонус',
+  'hudChrome.wocStore.packageDiscount': 'Скидка {percent}%',
+  'hudChrome.wocStore.packageFeatured': 'Рекомендуем',
+  'hudChrome.wocStore.packageBuy': 'Купить за {price} {currency}',
   'hudChrome.wocStore.wallet.title': 'Кошелёк Solana',
   'hudChrome.wocStore.wallet.unlinked':
     'Подключите приложение кошелька, затем один раз подпишите сообщение, чтобы привязать его публичный адрес к учётной записи WoC. Мы никогда не получаем вашу фразу восстановления или закрытый ключ.',

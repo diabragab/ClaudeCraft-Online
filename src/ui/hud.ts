@@ -194,7 +194,7 @@ import {
 import { buildCraftingView, craftingReagentSig, craftLearnHints } from './crafting_view';
 import { renderCraftingWindow, stationNameText } from './crafting_window';
 import { shouldRefreshDailyRewardsLauncher } from './daily_rewards_launcher_core';
-import { DailyRewardsWindow } from './daily_rewards_window';
+import { type ClaudiumPackageDisplay, DailyRewardsWindow } from './daily_rewards_window';
 import { decorativeArtImg } from './decorative_art';
 import {
   deedBroadcastLine,
@@ -571,6 +571,7 @@ import {
 } from './wallet_balance';
 import { type WeaponProcEffectDesc, weaponProcLines } from './weapon_proc_view';
 import { weaponTypeLabelKey } from './weapon_type_label';
+import type { ShopCatalogProduct } from './woc_general_store_view';
 import {
   installWindowDrag,
   isWindowDragPreviewMutation,
@@ -667,6 +668,31 @@ export interface ClaudiumHooks {
     costClaudium: number | null;
     reason: string | null;
   }>;
+}
+
+/**
+ * Online-only glue that backs the in-game Shop's Store/Packages tabs
+ * (src/ui/daily_rewards_window.ts). Deliberately separate from ClaudiumHooks
+ * above: the Shop's own balance is the server's in-repo Claudium ledger
+ * (server/claudium_ledger.ts, src/net/shop_client.ts), never the wallet
+ * economy service ClaudiumHooks reads. main.ts wires this alongside
+ * attachClaudium, from the same online-only closure pattern.
+ */
+export interface ShopHooks {
+  catalogSnapshot(
+    query: string,
+    categoryId: number | null,
+  ): Promise<{
+    available: boolean;
+    balance: number | null;
+    categories: { id: number; name: string; slug: string }[];
+    products: ShopCatalogProduct[];
+  }>;
+  purchase(
+    productId: number,
+    quantity: number,
+  ): Promise<{ ok: boolean; balance: number | null; reason: string | null }>;
+  packagesSnapshot(): Promise<{ available: boolean; packages: ClaudiumPackageDisplay[] }>;
 }
 
 export interface HudFeatures {
@@ -4318,32 +4344,23 @@ export class Hud {
     onWalletConnect: () => {
       window.dispatchEvent(new CustomEvent('woc:wallet-verify'));
     },
-    storeEnabled: () => this.claudiumHooks !== null,
-    storeSnapshot: async () => {
-      const snapshot = await this.claudiumHooks?.storeSnapshot();
-      if (!snapshot) return { available: false, balance: null, items: [] };
-      this.claudiumBalance.set(snapshot.balance);
-      return {
-        available: snapshot.available,
-        balance: snapshot.balance,
-        items: [...snapshot.storeItems],
-      };
+    // The Shop's own DB-backed Claudium ledger balance (server/claudium_ledger.ts),
+    // read through shopHooks, an entirely different seam from claudiumBalance
+    // (the separate "Buy Claudium" launcher badge, still the external economy
+    // proxy): never cross-write one into the other.
+    storeEnabled: () => this.shopHooks !== null,
+    catalogSnapshot: async (query, categoryId) => {
+      const snapshot = await this.shopHooks?.catalogSnapshot(query, categoryId);
+      return snapshot ?? { available: false, balance: null, categories: [], products: [] };
     },
-    spendStoreItem: async (itemId, kind, expectedCostClaudium) => {
-      const result = await this.claudiumHooks?.spend(itemId, kind, expectedCostClaudium);
-      if (result?.balance !== null && result?.balance !== undefined) {
-        this.claudiumBalance.set(result.balance);
-      }
-      return (
-        result ?? {
-          granted: false,
-          balance: null,
-          costClaudium: null,
-          reason: 'unavailable',
-        }
-      );
+    purchase: async (productId, quantity) => {
+      const result = await this.shopHooks?.purchase(productId, quantity);
+      return result ?? { ok: false, balance: null, reason: 'unavailable' };
     },
-    openClaudium: () => this.toggleClaudium(),
+    packagesSnapshot: async () => {
+      const snapshot = await this.shopHooks?.packagesSnapshot();
+      return snapshot ?? { available: false, packages: [] };
+    },
     confirmDialog: (title, body, okText, cancelText, onOk) =>
       this.confirmDialog(title, body, okText, cancelText, onOk),
     ...this.windowFocus('#daily-rewards-window'),
@@ -4354,6 +4371,7 @@ export class Hud {
   // hooks are null and the window renders its clean disabled/empty state. The
   // window computes NOTHING; every number rides in through these hooks.
   private claudiumHooks: ClaudiumHooks | null = null;
+  private shopHooks: ShopHooks | null = null;
   // The launcher's Claudium balance and its throttled read live in their own
   // host-agnostic module (claudium_launcher_balance_core.ts). The HUD keeps only the
   // wiring: what a read is, and what converging the display means. onChanged fires
@@ -7333,7 +7351,7 @@ export class Hud {
   }
 
   private syncDailyRewardsSurfaceLabels(): void {
-    const storeEnabled = this.claudiumHooks !== null;
+    const storeEnabled = this.shopHooks !== null;
     const titleKey = storeEnabled ? 'hudChrome.wocStore.title' : 'hudChrome.dailyRewards.title';
     const labelKey = storeEnabled ? 'hudChrome.wocStore.storeTab' : 'hudChrome.dailyRewards.title';
     const title = t(titleKey);
@@ -13242,7 +13260,7 @@ export class Hud {
   /** Compile the online Armory's persistent WebGL context and all Season 1
    *  skin variants while the world loading screen is still opaque. */
   async prewarmArmoryPreview(): Promise<void> {
-    if (!this.claudiumHooks) return;
+    if (!this.shopHooks) return;
     await this.dailyRewardsWindow.prewarmArmoryPreview();
   }
 
@@ -13914,8 +13932,17 @@ export class Hud {
     this.claudiumBalance.refresh(true);
   }
 
+  /** Inject the online Shop hooks that back the Treasure Chest window's Store
+   *  and Packages tabs (main.ts, online only). Independent of attachClaudium
+   *  above: the Shop reads the server's own Claudium ledger, never the wallet
+   *  economy service. */
+  attachShop(hooks: ShopHooks): void {
+    this.shopHooks = hooks;
+    this.syncDailyRewardsSurfaceLabels();
+  }
+
   attachStorePromoCard(): void {
-    if (this.storePromoCard || !this.claudiumHooks) return;
+    if (this.storePromoCard || !this.shopHooks) return;
     const host = document.getElementById('chatlog-wrap');
     if (!host) return;
     this.storePromoCard = mountStorePromoCard(host, {

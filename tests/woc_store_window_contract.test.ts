@@ -20,41 +20,43 @@ const mobileCss = readFileSync(new URL('../src/styles/hud.mobile.css', import.me
 
 describe('WOC Store window contract', () => {
   it('opens on the Store tab and keeps Daily Rewards as a sub-tab', () => {
-    expect(storeWindow).toContain("private tab: 'store' | 'rewards' = 'store'");
+    expect(storeWindow).toContain("private tab: 'store' | 'packages' | 'rewards' = 'store'");
     expect(storeWindow).toContain('data-woc-store-tab="store"');
+    expect(storeWindow).toContain('data-woc-store-tab="packages"');
     expect(storeWindow).toContain('data-woc-store-tab="rewards"');
   });
 
-  it('offers a Claudium top-up when the selected skin is unaffordable', () => {
-    const purchase = storeWindow.slice(storeWindow.indexOf('private requestArmoryPurchase'));
-    expect(purchase).toContain('if (!row.affordable)');
+  it('shows an informational need-more-Claudium dialog when the selected product is unaffordable', () => {
+    const purchase = storeWindow.slice(storeWindow.indexOf('private requestPurchase'));
+    expect(purchase).toContain('if (!card.affordable)');
     expect(purchase).toContain("t('hudChrome.wocStore.needMoreTitle')");
-    expect(purchase).toContain('this.openClaudiumFromStore()');
+    // No external economy service: "buy more Claudium" routes to the
+    // in-game read-only Packages tab, never an external checkout.
+    expect(storeWindow).toContain('openPackagesFromStore');
+    expect(storeWindow).not.toContain('openClaudiumFromStore');
   });
 
-  it('uses the authoritative insufficient-balance response for the top-up flow', () => {
-    const purchase = storeWindow.slice(storeWindow.indexOf('private async purchaseArmorySkin'));
-    expect(purchase).toContain("result?.reason === 'insufficient_balance'");
-    expect(purchase).toContain('result.costClaudium');
+  it('uses the authoritative insufficient-balance response for the need-more-Claudium flow', () => {
+    const purchase = storeWindow.slice(storeWindow.indexOf('private async purchaseProduct'));
+    expect(purchase).toContain("result?.reason === 'insufficient_claudium'");
     expect(purchase).toContain('result.balance');
     expect(purchase).toContain('this.openNeedMoreDialog');
-    expect(purchase.indexOf("result?.reason === 'insufficient_balance'")).toBeLessThan(
+    expect(purchase.indexOf("result?.reason === 'insufficient_claudium'")).toBeLessThan(
       purchase.indexOf('this.storeError = true'),
     );
-    expect(main).toContain('costClaudium: result.costClaudium');
-    expect(main).toContain('reason: result.reason');
+    expect(main).toContain('purchase: (productId, quantity) =>');
+    expect(main).toContain('buyProduct(productId, characterId, quantity)');
   });
 
-  it('marks owned skins and prevents another purchase attempt', () => {
+  it('marks owned products and prevents another purchase attempt', () => {
     expect(storeWindow).toContain('armory-state');
-    expect(storeWindow).toContain(
-      'if (row.owned || !row.purchasable || row.costClaudium === null) return;',
-    );
+    expect(storeWindow).toContain('if (card.owned || !card.purchasable || cost === null) return;');
   });
 
-  it('sells only the Season 1 Armory (no legacy cosmetics grid)', () => {
-    expect(storeWindow).not.toContain('woc-store-grid');
-    expect(storeWindow).not.toContain('storeCardHtml');
+  it('sells the general Shop System catalog, not a bespoke armory-only grid', () => {
+    expect(storeWindow).toContain('storeCardHtml');
+    expect(storeWindow).toContain('storeGridHtml');
+    expect(storeWindow).toContain('buildGeneralStoreCards');
     expect(storeWindow).not.toContain('buildWocStoreRows');
   });
 
@@ -78,7 +80,7 @@ describe('WOC Store window contract', () => {
     expect(storeWindow).toContain("rovingTarget(ke.key, i, tabs.length, 'horizontal')");
     expect(storeWindow).toContain('aria-controls="woc-store-panel"');
     expect(storeWindow).toContain('role="tabpanel"');
-    expect(storeWindow).toContain("panel?.setAttribute(\n      'aria-labelledby'");
+    expect(storeWindow).toContain("panel?.setAttribute('aria-labelledby', labelledBy);");
   });
 
   it('keeps Escape scoped to the top Armory inspector and exposes toggle state', () => {
@@ -96,12 +98,6 @@ describe('WOC Store window contract', () => {
     expect(panelMarkup).toMatch(
       /armory-lore[^`]*<\/div>` \+\s*`<\/div>` \+\s*`<div class="armory-inspect-actions"/,
     );
-  });
-
-  it('hydrates repeated class portraits without embedding their data URLs in store markup', () => {
-    expect(storeWindow).toContain('deferSource: true');
-    expect(storeWindow).toContain('hydratePortraits(body)');
-    expect(storeWindow).toContain('decoding="async"');
   });
 
   it('keeps the Claudium window focused on currency purchases', () => {
@@ -228,9 +224,7 @@ describe('WOC Store window contract', () => {
 
   it('keeps storefront content mounted while a background refresh is loading', () => {
     expect(storeWindow).toContain('data-woc-store-loading');
-    expect(storeWindow).toContain(
-      "setAttribute('aria-busy', this.storeLoading ? 'true' : 'false')",
-    );
+    expect(storeWindow).toContain("setAttribute('aria-busy', loading ? 'true' : 'false')");
     expect(storeWindow).not.toContain('if (this.storeLoading) {\n      body.innerHTML');
     expect(storeWindow).toContain('if (!snapshot.available || snapshot.balance === null)');
     expect(storeWindow).toContain('this.storeError = !this.storeReady;');
@@ -252,7 +246,7 @@ describe('WOC Store window contract', () => {
     );
     expect(economyWiring).toContain('hud.attachStorePromoCard();');
     expect(hud).toContain("returnFocusTo: () => document.getElementById('daily-rewards-button')");
-    expect(hud).toContain('storeEnabled: () => this.claudiumHooks !== null');
+    expect(hud).toContain('storeEnabled: () => this.shopHooks !== null');
     expect(hud).toContain(
       'private dailyRewardsEnabled(): boolean {\n    return this.features.dailyRewardsEnabled;',
     );
@@ -270,17 +264,17 @@ describe('WOC Store window contract', () => {
   });
 
   it('refreshes only store balance and catalog while the WOC Store is open', () => {
-    const storeWiring = hud.slice(hud.indexOf('storeSnapshot: async () =>'));
-    expect(storeWiring.slice(0, storeWiring.indexOf('spendStoreItem:'))).toContain(
-      'this.claudiumHooks?.storeSnapshot()',
+    const storeWiring = hud.slice(hud.indexOf('catalogSnapshot: async (query, categoryId) =>'));
+    expect(storeWiring.slice(0, storeWiring.indexOf('purchase:'))).toContain(
+      'this.shopHooks?.catalogSnapshot(query, categoryId)',
     );
 
-    const hook = main.slice(main.indexOf('storeSnapshot: async () =>'));
-    const storeSnapshot = hook.slice(0, hook.indexOf('snapshot: async () =>'));
-    expect(storeSnapshot).toContain('economy.storeSnapshot()');
-    expect(storeSnapshot).not.toContain('economy.skus()');
-    expect(storeSnapshot).not.toContain("economy.price('woc')");
-    expect(storeSnapshot).not.toContain('economy.nativePrice(');
+    const hook = main.slice(main.indexOf('catalogSnapshot: async (query, categoryId) =>'));
+    const catalogSnapshot = hook.slice(0, hook.indexOf('purchase:'));
+    expect(catalogSnapshot).toContain('listShopCategories()');
+    expect(catalogSnapshot).toContain('listShopProducts(query, categoryId ?? undefined)');
+    // The Shop's own Claudium ledger balance, not the external economy proxy.
+    expect(catalogSnapshot).toContain('claudiumBalance()');
   });
 
   it('distinguishes a complete Claudium pack refresh from typed economy fallbacks', () => {
