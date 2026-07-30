@@ -12,6 +12,25 @@ vi.mock('../src/ui/armory_inspect', () => ({
   weaponTypeLabel: () => '',
 }));
 vi.mock('../src/ui/portrait_chip', () => ({ portraitChipHtml: () => '' }));
+// PackageInspect touches `document` (a real DOM); this suite runs in the
+// plain Node env like the ArmoryInspect mock above, so it is stubbed rather
+// than exercised for real. The stub captures its constructor deps and the
+// package passed to open() so the tests below can assert on both.
+const packageInspectState = vi.hoisted(() => ({
+  deps: null as null | { requestBuy(pkg: unknown): void },
+  openedWith: null as unknown,
+}));
+vi.mock('../src/ui/package_inspect', () => ({
+  PackageInspect: class {
+    constructor(deps: { requestBuy(pkg: unknown): void }) {
+      packageInspectState.deps = deps;
+    }
+    open(pkg: unknown): void {
+      packageInspectState.openedWith = pkg;
+    }
+    close(): void {}
+  },
+}));
 
 import { DailyRewardsWindow } from '../src/ui/daily_rewards_window';
 import { formatNumber } from '../src/ui/i18n';
@@ -335,9 +354,10 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(() => dialog.onOk?.()).not.toThrow();
   });
 
-  it('wires the Packages tab Buy button to open the web storefront in a new tab', () => {
+  it('opens the package inspect panel when a Packages tab card is clicked', () => {
     let capturedClick: (() => void) | undefined;
     const button = {
+      dataset: { packageInspect: '5' },
       addEventListener: (type: string, cb: () => void) => {
         if (type === 'click') capturedClick = cb;
       },
@@ -346,7 +366,8 @@ describe('DailyRewardsWindow store refresh behavior', () => {
       dataset: {},
       innerHTML: '',
       querySelector: () => null,
-      querySelectorAll: (selector: string) => (selector === '[data-buy-package]' ? [button] : []),
+      querySelectorAll: (selector: string) =>
+        selector === '[data-package-inspect]' ? [button] : [],
     };
     const win = new DailyRewardsWindow({
       root: () => rootStub(body),
@@ -355,32 +376,71 @@ describe('DailyRewardsWindow store refresh behavior', () => {
       captureFocus: () => null,
       restoreFocus: () => undefined,
     });
-    Object.assign(win as unknown as Record<string, unknown>, {
-      packages: [
-        {
-          id: 5,
-          name: 'Starter Pack',
-          claudiumAmount: 500,
-          bonusAmount: 0,
-          price: 499,
-          currency: 'USD',
-          imageUrl: null,
-          discountPercent: 0,
-          featured: false,
-        },
-      ],
-    });
+    const pkg = {
+      id: 5,
+      name: 'Starter Pack',
+      claudiumAmount: 500,
+      bonusAmount: 0,
+      price: 499,
+      currency: 'USD',
+      imageUrl: null,
+      discountPercent: 0,
+      featured: false,
+    };
+    Object.assign(win as unknown as Record<string, unknown>, { packages: [pkg] });
 
     (win as unknown as { paintPackages(body: HTMLElement): void }).paintPackages(
       body as unknown as HTMLElement,
     );
 
     expect(capturedClick).toBeTypeOf('function');
+    capturedClick?.();
+    expect(packageInspectState.openedWith).toEqual(pkg);
+  });
+
+  it("wires the package inspect panel's Buy action to open the web storefront in a new tab", () => {
+    const button = {
+      dataset: { packageInspect: '5' },
+      addEventListener: (type: string, cb: () => void) => {
+        if (type === 'click') cb();
+      },
+    };
+    const body = {
+      dataset: {},
+      innerHTML: '',
+      querySelector: () => null,
+      querySelectorAll: (selector: string) =>
+        selector === '[data-package-inspect]' ? [button] : [],
+    };
+    const win = new DailyRewardsWindow({
+      root: () => rootStub(body),
+      world: worldStub,
+      closeOthers: () => undefined,
+      captureFocus: () => null,
+      restoreFocus: () => undefined,
+    });
+    const pkg = {
+      id: 5,
+      name: 'Starter Pack',
+      claudiumAmount: 500,
+      bonusAmount: 0,
+      price: 499,
+      currency: 'USD',
+      imageUrl: null,
+      discountPercent: 0,
+      featured: false,
+    };
+    Object.assign(win as unknown as Record<string, unknown>, { packages: [pkg] });
+
+    (win as unknown as { paintPackages(body: HTMLElement): void }).paintPackages(
+      body as unknown as HTMLElement,
+    );
+
     // Plain Node test env (tests/CLAUDE.md): no real `window` global, so stub
     // just the one property this handler touches.
     const openMock = vi.fn();
     vi.stubGlobal('window', { open: openMock });
-    capturedClick?.();
+    packageInspectState.deps?.requestBuy(pkg);
     expect(openMock).toHaveBeenCalledWith('/store/packages', '_blank', 'noopener,noreferrer');
     vi.unstubAllGlobals();
   });

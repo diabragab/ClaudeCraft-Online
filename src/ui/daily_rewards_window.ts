@@ -14,6 +14,7 @@ import { markDialogRoot } from './dialog_root';
 import { esc } from './esc';
 import { formatDateTime, formatNumber, t } from './i18n';
 import { iconDataUrl } from './icons';
+import { PackageInspect } from './package_inspect';
 import { rovingTarget } from './roving_index';
 import { svgIcon } from './ui_icons';
 import {
@@ -160,6 +161,7 @@ export class DailyRewardsWindow {
   private packagesReady = false;
   private packagesError = false;
   private paintedPackagesMarkup: string | null = null;
+  private packageInspect: PackageInspect | null = null;
 
   private readonly wheelValues = [20, 30, 40, 50, 75, 100, 150, 250];
 
@@ -218,6 +220,7 @@ export class DailyRewardsWindow {
     root.style.display = 'none';
     this.closeSpinOverlay();
     this.armoryInspect?.close();
+    this.packageInspect?.close();
     this.deps.restoreFocus(this.openerFocus);
     this.openerFocus = null;
     this.deps.onVisibilityChange?.();
@@ -416,8 +419,12 @@ export class DailyRewardsWindow {
       `<div class="woc-store-hero"><div><span>${esc(t('hudChrome.wocStore.armoryEyebrow'))}</span><h2>${esc(t('hudChrome.wocStore.packagesTab'))}</h2><p>${esc(t('hudChrome.wocStore.packagesBody'))}</p></div></div>` +
       grid;
     if (!this.replacePackagesBody(body, markup)) return;
-    body.querySelectorAll<HTMLButtonElement>('[data-buy-package]').forEach((button) => {
-      button.addEventListener('click', () => this.openPackageCheckout());
+    body.querySelectorAll<HTMLButtonElement>('[data-package-inspect]').forEach((button) => {
+      button.addEventListener('click', () => {
+        const id = Number(button.dataset.packageInspect);
+        const pkg = this.packages.find((p) => p.id === id);
+        if (pkg) this.openPackageInspect(pkg);
+      });
     });
   }
 
@@ -430,12 +437,21 @@ export class DailyRewardsWindow {
     window.open(apiUrl('/store/packages'), '_blank', 'noopener,noreferrer');
   }
 
+  /** Mirrors openArmoryInspect's lazy-construct-then-open pattern: the same
+   *  click-to-inspect UX the Store tab's weapon skins already use (Season 1
+   *  Armory, src/ui/armory_inspect.ts), so a Claudium Package card opens a
+   *  detail panel instead of jumping straight to the external checkout tab. */
+  private openPackageInspect(pkg: ClaudiumPackageDisplay): void {
+    if (!this.packageInspect) {
+      this.packageInspect = new PackageInspect({
+        requestBuy: () => this.openPackageCheckout(),
+      });
+    }
+    this.packageInspect.open(pkg);
+  }
+
   private packageCardHtml(pkg: ClaudiumPackageDisplay): string {
     const total = formatNumber(pkg.claudiumAmount + pkg.bonusAmount, { maximumFractionDigits: 0 });
-    const price = formatNumber(pkg.price / 100, {
-      maximumFractionDigits: 2,
-      minimumFractionDigits: 2,
-    });
     const art = pkg.imageUrl ?? '/claudium/icons/stack_04.webp';
     const bonus =
       pkg.bonusAmount > 0
@@ -451,13 +467,12 @@ export class DailyRewardsWindow {
       : '';
     return (
       `<article class="armory-card cl-pack-card${featuredClass}">` +
+      `<button type="button" data-package-inspect="${pkg.id}" aria-label="${esc(t('hudChrome.wocStore.inspectAria', { item: pkg.name }))}">` +
       `<span class="armory-card-art"><img src="${esc(art)}" alt="" loading="lazy"></span>` +
       `<span class="armory-card-copy"><h4>${esc(pkg.name)}</h4>` +
       `<span class="armory-badges">${featuredBadge}${discount}${bonus}</span>` +
       `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${total}</strong></span>` +
-      `<button type="button" class="woc-store-balance-button" data-buy-package="${pkg.id}">` +
-      `${esc(t('hudChrome.wocStore.packageBuy', { price, currency: pkg.currency }))}</button>` +
-      `</span></article>`
+      `</span></button></article>`
     );
   }
 

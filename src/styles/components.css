@@ -2108,6 +2108,13 @@
     --rarity: #ff8000;
     --rarity-soft: rgb(255 128 0 / 0.2);
   }
+  /* Claudium Package inspect (src/ui/package_inspect.ts): no rarity tier, so
+     it takes the arcane cyan accent from the Claudium coin's own visual
+     identity (public/claudium/CLAUDIUM_VISUAL_ID.md) instead of a rarity color. */
+  .armory-inspect.pack-inspect {
+    --rarity: #35e0d6;
+    --rarity-soft: rgb(53 224 214 / 0.16);
+  }
   .armory-inspect-close {
     position: absolute;
     top: 8px;
@@ -2123,6 +2130,17 @@
     display: block;
     width: 100%;
     height: 100%;
+  }
+  /* Claudium Package inspect (src/ui/package_inspect.ts): a static image
+     stage in place of the weapon-skin 3D canvas, so the coin/pack art gets
+     breathing room instead of filling the frame edge to edge. */
+  .armory-inspect-stage img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    padding: 28px;
+    box-sizing: border-box;
+    object-fit: contain;
   }
   .armory-inspect-controls {
     position: absolute;
