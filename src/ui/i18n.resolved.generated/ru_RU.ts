@@ -470,6 +470,13 @@ export const ru_RU: EnTranslations = {
       "confirmBody": "Купить {item} за {cost} Claudium?",
       "confirmPurchase": "Купить",
       "priceChanged": "Цена изменилась до завершения покупки. Проверьте обновлённую цену и подтвердите покупку ещё раз.",
+      "purchaseResult": {
+        "successTitle": "Покупка завершена!",
+        "successBody": "{item} добавлен в ваш аккаунт.",
+        "failureTitle": "Не удалось выполнить покупку",
+        "failureBody": "Не удалось завершить покупку {item}. Попробуйте снова.",
+        "dismiss": "Закрыть"
+      },
       "armoryEyebrow": "Сезон 1",
       "armoryTitle": "Арсенал",
       "armoryBody": "Ограниченные облики оружия из Арсенала 1-го сезона. Общие для всей учётной записи, чисто косметические и видимые всем вокруг.",

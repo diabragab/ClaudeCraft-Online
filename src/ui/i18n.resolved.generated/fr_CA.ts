@@ -470,6 +470,13 @@ export const fr_CA: EnTranslations = {
       "confirmBody": "Acheter {item} pour {cost} Claudium ?",
       "confirmPurchase": "Acheter",
       "priceChanged": "Le prix a changé avant la fin de l’achat. Vérifiez le nouveau prix, puis confirmez à nouveau.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Saison 1",
       "armoryTitle": "L’Armurerie",
       "armoryBody": "Des apparences d’armes à durée limitée provenant de l’Armurerie de la saison 1. Elles sont valables pour tout le compte, purement cosmétiques et visibles par tous les joueurs autour de vous.",

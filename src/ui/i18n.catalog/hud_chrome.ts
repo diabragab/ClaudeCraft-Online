@@ -196,6 +196,17 @@ export const hudChromeStrings = {
     confirmPurchase: 'Purchase',
     priceChanged:
       'The price changed before the purchase completed. Review the refreshed price and confirm again.',
+    // The premium purchase-result popup (Phase 2C): replaces the old silent
+    // repaint after a Claudium checkout attempt with a proper success/failure
+    // moment, shown for every general-catalog buy except the
+    // insufficient-Claudium case (that keeps its own needMore confirm dialog).
+    purchaseResult: {
+      successTitle: 'Purchase Complete!',
+      successBody: '{item} has been added to your account.',
+      failureTitle: 'Purchase Failed',
+      failureBody: 'Something went wrong completing your purchase of {item}. Please try again.',
+      dismiss: 'Close',
+    },
     // Season 1 Armory (weapon skins). English copy comes from the dedicated
     // Armory i18n catalog; the sim registry remains mechanical and locale-free.
     armoryEyebrow: 'Season 1',

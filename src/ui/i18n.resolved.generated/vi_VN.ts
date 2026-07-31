@@ -470,6 +470,13 @@ export const vi_VN: EnTranslations = {
       "confirmBody": "Mua {item} với giá {cost} Claudium?",
       "confirmPurchase": "Mua",
       "priceChanged": "Giá đã thay đổi trước khi việc mua hàng hoàn tất. Xem lại giá đã làm mới và xác nhận lại.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Mùa 1",
       "armoryTitle": "Kho Vũ Khí",
       "armoryBody": "Ngoại hình vũ khí giới hạn từ Kho Vũ Khí Mùa 1. Dùng chung toàn tài khoản, hoàn toàn mang tính thẩm mỹ và hiển thị với mọi người xung quanh bạn.",

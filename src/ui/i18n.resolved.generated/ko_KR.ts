@@ -470,6 +470,13 @@ export const ko_KR: EnTranslations = {
       "confirmBody": "{item}을(를) {cost} Claudium으로 구매할까요?",
       "confirmPurchase": "구매",
       "priceChanged": "구매가 완료되기 전에 가격이 변경되었습니다. 갱신된 가격을 확인한 후 다시 승인해 주세요.",
+      "purchaseResult": {
+        "successTitle": "구매 완료!",
+        "successBody": "{item}이(가) 계정에 추가되었습니다.",
+        "failureTitle": "구매 실패",
+        "failureBody": "{item} 구매를 완료하는 중 문제가 발생했습니다. 다시 시도해 주세요.",
+        "dismiss": "닫기"
+      },
       "armoryEyebrow": "시즌 1",
       "armoryTitle": "무기고",
       "armoryBody": "시즌 1 무기고의 한정 무기 스킨입니다. 계정 전체에 적용되는 순수 장식이며 주변 모든 플레이어에게 보입니다.",

@@ -16,7 +16,11 @@ import { formatDateTime, formatNumber, t } from './i18n';
 import { iconDataUrl } from './icons';
 import { PackageInspect } from './package_inspect';
 import { rovingTarget } from './roving_index';
-import { shopRarityPresentation } from './shop_rarity_view';
+import type {
+  ShopPurchaseResultInput,
+  ShopPurchaseResultProduct,
+} from './shop_purchase_result_view';
+import { type ShopRarity, shopRarityPresentation } from './shop_rarity_view';
 import { svgIcon } from './ui_icons';
 import {
   buildGeneralStoreCards,
@@ -134,6 +138,10 @@ export interface DailyRewardsWindowDeps {
     cancelText: string,
     onOk: () => void,
   ): void;
+  /** The premium purchase success/failure popup (Phase 2C); shown after every
+   *  general-catalog buy attempt except insufficient_claudium, which keeps
+   *  its own needMore confirm dialog. */
+  showPurchaseResult?(result: ShopPurchaseResultInput): void;
 }
 
 export class DailyRewardsWindow {
@@ -629,18 +637,40 @@ export class DailyRewardsWindow {
       .join('');
   }
 
-  private storeCardHtml(card: GeneralStoreCard): string {
+  /** Weapon-skin grants localize their name from the Armory catalog; every
+   *  other grant kind uses the product's own name as-is. Shared by the store
+   *  card and the purchase-result popup so the two can never show a different
+   *  name for the same product. */
+  private cardName(card: GeneralStoreCard): string {
     const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : null;
-    const copy = skin ? localizeWeaponSkin(skin) : null;
-    const name = copy?.name ?? card.product.name;
-    // Weapon-skin grants use the curated Armory render; a plain item grant
-    // falls back to the same item-icon system bags/vendor/mailbox already
-    // use, so a shop_products row never renders with no art at all.
-    const art = skin
+    return skin ? localizeWeaponSkin(skin).name : card.product.name;
+  }
+
+  /** Weapon-skin grants use the curated Armory render; a plain item grant
+   *  falls back to the same item-icon system bags/vendor/mailbox already
+   *  use, so a shop_products row never renders with no art at all. */
+  private cardArt(card: GeneralStoreCard): string | null {
+    const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : null;
+    return skin
       ? armorySkinArt(skin.id)
       : card.grantKind === 'item' && card.product.grantItemId
         ? iconDataUrl('item', card.product.grantItemId, 128)
         : null;
+  }
+
+  /** The Premium Shop's own merchandising rarity (shop_products.rarity) is
+   *  authoritative once an operator sets it; a weapon-skin grant predating
+   *  that field (every row migrated in Phase 5) still falls back to the
+   *  skin's own WeaponSkinRarity, so existing Armory cards keep their look. */
+  private cardRarity(card: GeneralStoreCard): ShopRarity {
+    if (card.product.rarity !== 'common') return card.product.rarity;
+    const skin = card.weaponSkinId ? WEAPON_SKINS[card.weaponSkinId] : null;
+    return skin?.rarity ?? 'common';
+  }
+
+  private storeCardHtml(card: GeneralStoreCard): string {
+    const name = this.cardName(card);
+    const art = this.cardArt(card);
     const priceClaudium = card.product.priceClaudium;
     const state = card.owned
       ? card.applied
@@ -649,13 +679,10 @@ export class DailyRewardsWindow {
       : !card.purchasable || priceClaudium === null
         ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
         : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
-    // The Premium Shop's own merchandising rarity (shop_products.rarity) is
-    // authoritative once an operator sets it; a weapon-skin grant predating
-    // that field (every row migrated in Phase 5) still falls back to the
-    // skin's own WeaponSkinRarity, so existing Armory cards keep their look.
-    const shopRarity =
-      card.product.rarity !== 'common' ? card.product.rarity : (skin?.rarity ?? 'common');
-    const presentation = shopRarityPresentation({ rarity: shopRarity, badges: card.product.badges });
+    const presentation = shopRarityPresentation({
+      rarity: this.cardRarity(card),
+      badges: card.product.badges,
+    });
     const rarityClass = presentation.cardRarityClass ? ` ${presentation.cardRarityClass}` : '';
     const badgeChips = presentation.badges.length
       ? `<span class="shop-badge-row">${presentation.badges
@@ -775,16 +802,24 @@ export class DailyRewardsWindow {
       return;
     }
     if (!result?.ok) {
-      this.storeError = true;
-      const body = this.deps.root().querySelector<HTMLElement>('.dr-body');
-      if (body) this.paintStore(body);
+      this.deps.showPurchaseResult?.({ kind: 'failure', product: this.resultProductFor(card) });
       return;
     }
+    this.deps.showPurchaseResult?.({ kind: 'success', product: this.resultProductFor(card) });
     await this.renderStore(null);
     if (card.weaponSkinId) {
       const fresh = this.storeCardByWeaponSkinId(card.weaponSkinId);
       if (fresh) this.armoryInspect?.refresh(this.toArmorySkinRow(fresh));
     }
+  }
+
+  private resultProductFor(card: GeneralStoreCard): ShopPurchaseResultProduct {
+    return {
+      name: this.cardName(card),
+      rarity: this.cardRarity(card),
+      badges: card.product.badges,
+      art: this.cardArt(card),
+    };
   }
 
   private openNeedMoreDialog(
@@ -793,9 +828,7 @@ export class DailyRewardsWindow {
     balance: number | null,
   ): void {
     const knownBalance = balance ?? this.storeBalance;
-    const name = card.weaponSkinId
-      ? localizeWeaponSkin(WEAPON_SKINS[card.weaponSkinId]).name
-      : card.product.name;
+    const name = this.cardName(card);
     const shortfall = formatNumber(Math.max(0, costClaudium - (knownBalance ?? 0)), {
       maximumFractionDigits: 0,
     });

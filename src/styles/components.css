@@ -2586,6 +2586,136 @@
     color: #ff3b3b;
     font-weight: 700;
   }
+  /* ---------- Premium Shop: purchase result popup ---------- */
+  /* src/ui/shop_purchase_result_window.ts's success/failure popup (Phase 2C),
+     opened after a Claudium checkout attempt in place of the old silent
+     inline repaint. Self-contained overlay in the .armory-inspect-overlay
+     family: above the window-manager band (50-89), below the confirm dialog
+     (95), since the needMore confirm from a DIFFERENT purchase-attempt branch
+     can still be reachable through the same flow. */
+  .shop-result-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 92;
+    display: grid;
+    place-items: center;
+    padding: 18px;
+    background: rgb(4 8 12 / 0.78);
+  }
+  .shop-result-card {
+    --rarity: #8fa3ad;
+    --rarity-soft: rgb(143 163 173 / 0.16);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    width: min(360px, 100%);
+    padding: 30px 22px 22px;
+    text-align: center;
+    color: var(--color-text-light);
+    border: 1px solid var(--rarity);
+    background: #0a1119;
+    box-shadow: 0 0 40px var(--rarity-soft);
+    animation: shop-result-in 0.22s ease-out;
+  }
+  .shop-result-card.rarity-uncommon {
+    --rarity: #1eff00;
+    --rarity-soft: rgb(30 255 0 / 0.12);
+  }
+  .shop-result-card.rarity-rare {
+    --rarity: #2f8dff;
+    --rarity-soft: rgb(47 141 255 / 0.14);
+  }
+  .shop-result-card.rarity-epic {
+    --rarity: #a335ee;
+    --rarity-soft: rgb(163 53 238 / 0.16);
+  }
+  .shop-result-card.rarity-legendary {
+    --rarity: #ff8000;
+    --rarity-soft: rgb(255 128 0 / 0.2);
+  }
+  .shop-result-card.rarity-mythic {
+    --rarity: #ff2d6b;
+    --rarity-soft: rgb(255 45 107 / 0.24);
+  }
+  /* A failed purchase always reads as a warning, regardless of the product's
+     own merchandising rarity (a failed mythic buy is not still "mythic red"). */
+  .shop-result-card.shop-result-failure {
+    --rarity: #ff4d4d;
+    --rarity-soft: rgb(255 77 77 / 0.16);
+  }
+  .shop-result-card.shop-result-celebratory {
+    animation:
+      shop-result-in 0.22s ease-out,
+      shop-result-pulse 1.6s ease-in-out 0.22s infinite;
+  }
+  .shop-result-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+  .shop-result-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: var(--rarity);
+    background: var(--rarity-soft);
+  }
+  .shop-result-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .shop-result-art {
+    width: 72px;
+    height: 72px;
+    object-fit: contain;
+  }
+  .shop-result-badges {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 4px;
+  }
+  .shop-result-card h3 {
+    margin: 0;
+    font-size: 16px;
+  }
+  .shop-result-card p {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 12px;
+  }
+  .shop-result-ok {
+    margin-top: 4px;
+  }
+  @keyframes shop-result-in {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes shop-result-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 40px var(--rarity-soft);
+    }
+    50% {
+      box-shadow: 0 0 64px var(--rarity-soft);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .shop-result-card {
+      animation: none;
+    }
+  }
   /* Title subtitle ("Lifetime XP, realm"): the muted-gold token + 11px the painter
      used to set with an inline style (keeps the literals out of TS). */
   .lb-subtitle {

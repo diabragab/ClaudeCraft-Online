@@ -470,6 +470,13 @@ export const pl_PL: EnTranslations = {
       "confirmBody": "Kupić {item} za {cost} Claudium?",
       "confirmPurchase": "Kup",
       "priceChanged": "Cena uległa zmianie przed sfinalizowaniem zakupu. Przejrzyj odświeżoną cenę i potwierdź ponownie.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Sezon 1",
       "armoryTitle": "Zbrojownia",
       "armoryBody": "Limitowane skórki broni ze Zbrojowni Sezonu 1. Dotyczy całego konta, ma wyłącznie charakter kosmetyczny i jest pokazywany wszystkim wokół Ciebie.",

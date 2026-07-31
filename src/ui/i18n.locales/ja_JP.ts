@@ -203,6 +203,12 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.confirmPurchase': '購入',
   'hudChrome.wocStore.priceChanged':
     '購入が完了する前に価格が変更されました。更新後の価格を確認し、もう一度確定してください。',
+  'hudChrome.wocStore.purchaseResult.successTitle': '購入完了！',
+  'hudChrome.wocStore.purchaseResult.successBody': '{item}がアカウントに追加されました。',
+  'hudChrome.wocStore.purchaseResult.failureTitle': '購入に失敗しました',
+  'hudChrome.wocStore.purchaseResult.failureBody':
+    '{item}の購入中に問題が発生しました。もう一度お試しください。',
+  'hudChrome.wocStore.purchaseResult.dismiss': '閉じる',
   'hudChrome.wocStore.armoryEyebrow': 'シーズン1',
   'hudChrome.wocStore.armoryTitle': '武器庫',
   'hudChrome.wocStore.armoryBody':
@@ -10737,9 +10743,11 @@ export const ja_JP: Partial<Record<TranslationKey, string>> = {
   'store.packages.checkoutFailed': 'チェックアウトを開始できませんでした。もう一度お試しください。',
   'store.packages.subtitle':
     'クレジットカードまたはデビットカードでクラウディウムを購入できます。決済は Stripe が安全に処理します。',
-  'store.packages.signInRequiredBody': 'クラウディウムを購入するにはホームページでサインインしてください。',
+  'store.packages.signInRequiredBody':
+    'クラウディウムを購入するにはホームページでサインインしてください。',
   'store.packageConfirmation.paidTitle': 'ご購入ありがとうございます',
-  'store.packageConfirmation.paidBody': '{package}から{amount} クラウディウムがアカウントに追加されました。',
+  'store.packageConfirmation.paidBody':
+    '{package}から{amount} クラウディウムがアカウントに追加されました。',
   'store.packageConfirmation.pendingTitle': 'お支払いを確認しています',
   'store.packageConfirmation.pendingBody': '少々お待ちください。このページを閉じないでください。',
   'store.packageConfirmation.failedTitle': 'お支払いが完了しませんでした',

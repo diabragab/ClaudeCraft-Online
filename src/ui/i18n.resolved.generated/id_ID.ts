@@ -470,6 +470,13 @@ export const id_ID: EnTranslations = {
       "confirmBody": "Beli {item} untuk {cost} Claudium?",
       "confirmPurchase": "Beli",
       "priceChanged": "Harga berubah sebelum pembelian selesai. Tinjau harga baru dan konfirmasi lagi.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Musim 1",
       "armoryTitle": "Gudang Senjata",
       "armoryBody": "Tampilan senjata edisi terbatas dari Gudang Senjata Musim 1. Berlaku untuk seluruh akun, murni kosmetik, dan terlihat oleh semua pemain di sekitar Anda.",

@@ -470,6 +470,13 @@ export const nl_NL: EnTranslations = {
       "confirmBody": "{item} voor {cost} Claudium kopen?",
       "confirmPurchase": "Kopen",
       "priceChanged": "De prijs veranderde voordat de aankoop voltooid was. Bekijk de vernieuwde prijs en bevestig opnieuw.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Seizoen 1",
       "armoryTitle": "Het Arsenaal",
       "armoryBody": "Gelimiteerde wapenskins uit de Wapenkamer van seizoen 1. Ze gelden voor je hele account, zijn puur cosmetisch en zijn zichtbaar voor iedereen om je heen.",

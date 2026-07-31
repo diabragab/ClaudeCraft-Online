@@ -470,6 +470,13 @@ export const en: EnTranslations = {
       "confirmBody": "Purchase {item} for {cost} Claudium?",
       "confirmPurchase": "Purchase",
       "priceChanged": "The price changed before the purchase completed. Review the refreshed price and confirm again.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Season 1",
       "armoryTitle": "The Armory",
       "armoryBody": "Limited weapon skins from the Season 1 Armory. Account-wide, purely cosmetic, and shown to everyone around you.",

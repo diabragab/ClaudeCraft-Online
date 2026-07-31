@@ -470,6 +470,13 @@ export const cs_CZ: EnTranslations = {
       "confirmBody": "Koupit {item} za {cost} Claudium?",
       "confirmPurchase": "Koupit",
       "priceChanged": "Cena se před dokončením nákupu změnila. Zkontroluj novou cenu a nákup znovu potvrď.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "1. sezóna",
       "armoryTitle": "Zbrojnice",
       "armoryBody": "Omezené vzhledy zbraní ze Zbrojnice 1. sezóny. Platí pro celý účet, jsou čistě kosmetické a uvidí je všichni kolem tebe.",

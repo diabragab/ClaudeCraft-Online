@@ -470,6 +470,13 @@ export const de_DE: EnTranslations = {
       "confirmBody": "{item} für {cost} Claudium kaufen?",
       "confirmPurchase": "Kaufen",
       "priceChanged": "Der Preis hat sich vor Abschluss des Kaufs geändert. Prüfe den aktualisierten Preis und bestätige den Kauf erneut.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Saison 1",
       "armoryTitle": "Die Waffenkammer",
       "armoryBody": "Limitierte Waffenskins aus der Waffenkammer von Saison 1. Accountweit, rein kosmetisch und für alle in deiner Umgebung sichtbar.",

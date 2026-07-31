@@ -470,6 +470,13 @@ export const pt_BR: EnTranslations = {
       "confirmBody": "Comprar {item} por {cost} Claudium?",
       "confirmPurchase": "Comprar",
       "priceChanged": "O preço mudou antes da compra ser concluída. Revise o preço atualizado e confirme novamente.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Temporada 1",
       "armoryTitle": "O Arsenal",
       "armoryBody": "Visuais de arma em edição limitada do Arsenal da Temporada 1. Válidos para toda a conta, puramente cosméticos e visíveis a todos ao seu redor.",

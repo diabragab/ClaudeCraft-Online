@@ -203,6 +203,11 @@ export const ru_RU: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.confirmPurchase': 'Купить',
   'hudChrome.wocStore.priceChanged':
     'Цена изменилась до завершения покупки. Проверьте обновлённую цену и подтвердите покупку ещё раз.',
+  'hudChrome.wocStore.purchaseResult.successTitle': 'Покупка завершена!',
+  'hudChrome.wocStore.purchaseResult.successBody': '{item} добавлен в ваш аккаунт.',
+  'hudChrome.wocStore.purchaseResult.failureTitle': 'Не удалось выполнить покупку',
+  'hudChrome.wocStore.purchaseResult.failureBody': 'Не удалось завершить покупку {item}. Попробуйте снова.',
+  'hudChrome.wocStore.purchaseResult.dismiss': 'Закрыть',
   'hudChrome.wocStore.armoryEyebrow': 'Сезон 1',
   'hudChrome.wocStore.armoryTitle': 'Арсенал',
   'hudChrome.wocStore.armoryBody':

@@ -470,6 +470,13 @@ export const tr_TR: EnTranslations = {
       "confirmBody": "{cost} Claudium için {item} satın alınsın mı?",
       "confirmPurchase": "Satın Al",
       "priceChanged": "Satın alma işlemi tamamlanmadan önce fiyat değişti. Yenilenen fiyatı inceleyin ve tekrar onaylayın.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "1. Sezon",
       "armoryTitle": "Cephanelik",
       "armoryBody": "1. Sezon Cephaneliğinden sınırlı silah görünümleri. Hesap çapında, tamamen kozmetik ve etrafınızdaki herkese gösterilir.",

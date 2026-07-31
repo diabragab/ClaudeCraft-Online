@@ -208,6 +208,12 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.wocStore.confirmPurchase': '구매',
   'hudChrome.wocStore.priceChanged':
     '구매가 완료되기 전에 가격이 변경되었습니다. 갱신된 가격을 확인한 후 다시 승인해 주세요.',
+  'hudChrome.wocStore.purchaseResult.successTitle': '구매 완료!',
+  'hudChrome.wocStore.purchaseResult.successBody': '{item}이(가) 계정에 추가되었습니다.',
+  'hudChrome.wocStore.purchaseResult.failureTitle': '구매 실패',
+  'hudChrome.wocStore.purchaseResult.failureBody':
+    '{item} 구매를 완료하는 중 문제가 발생했습니다. 다시 시도해 주세요.',
+  'hudChrome.wocStore.purchaseResult.dismiss': '닫기',
   'hudChrome.wocStore.armoryEyebrow': '시즌 1',
   'hudChrome.wocStore.armoryTitle': '무기고',
   'hudChrome.wocStore.armoryBody':
@@ -10730,7 +10736,8 @@ export const ko_KR: Partial<Record<TranslationKey, string>> = {
     '신용카드 또는 체크카드로 클라우디움을 구매할 수 있습니다. 결제는 Stripe가 안전하게 처리합니다.',
   'store.packages.signInRequiredBody': '클라우디움을 구매하려면 홈페이지에서 로그인해주세요.',
   'store.packageConfirmation.paidTitle': '구매해 주셔서 감사합니다',
-  'store.packageConfirmation.paidBody': '{package}에서 {amount} 클라우디움이 계정에 추가되었습니다.',
+  'store.packageConfirmation.paidBody':
+    '{package}에서 {amount} 클라우디움이 계정에 추가되었습니다.',
   'store.packageConfirmation.pendingTitle': '결제를 확인하는 중입니다',
   'store.packageConfirmation.pendingBody': '잠시만 기다려 주세요. 이 페이지를 닫지 마세요.',
   'store.packageConfirmation.failedTitle': '결제가 완료되지 않았습니다',

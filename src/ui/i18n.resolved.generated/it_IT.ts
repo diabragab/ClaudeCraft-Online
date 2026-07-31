@@ -470,6 +470,13 @@ export const it_IT: EnTranslations = {
       "confirmBody": "Acquistare {item} per {cost} Claudium?",
       "confirmPurchase": "Acquista",
       "priceChanged": "Il prezzo è cambiato prima del completamento dell'acquisto. Controlla il prezzo aggiornato e conferma di nuovo.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Stagione 1",
       "armoryTitle": "L'Armeria",
       "armoryBody": "Aspetti per armi in edizione limitata dall'Armeria della Stagione 1. Disponibili per tutto l'account, puramente cosmetici e visibili a chiunque ti circondi.",

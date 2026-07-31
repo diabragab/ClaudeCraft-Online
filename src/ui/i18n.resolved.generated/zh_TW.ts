@@ -470,6 +470,13 @@ export const zh_TW: EnTranslations = {
       "confirmBody": "要用 {cost} Claudium 購買 {item} 嗎？",
       "confirmPurchase": "購買",
       "priceChanged": "購買完成前價格已變更。請查看刷新後的價格並再次確認。",
+      "purchaseResult": {
+        "successTitle": "購買成功！",
+        "successBody": "{item} 已加入您的帳戶。",
+        "failureTitle": "購買失敗",
+        "failureBody": "完成 {item} 的購買時發生問題，請再試一次。",
+        "dismiss": "關閉"
+      },
       "armoryEyebrow": "第一賽季",
       "armoryTitle": "兵器庫",
       "armoryBody": "第一賽季兵器庫限定武器外觀。全帳號通用，純裝飾性，周圍所有玩家都能看到。",

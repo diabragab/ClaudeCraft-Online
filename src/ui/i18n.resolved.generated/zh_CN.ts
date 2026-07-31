@@ -470,6 +470,13 @@ export const zh_CN: EnTranslations = {
       "confirmBody": "要用 {cost} Claudium 购买 {item} 吗？",
       "confirmPurchase": "购买",
       "priceChanged": "购买完成前价格已发生变化。请查看刷新后的价格并再次确认。",
+      "purchaseResult": {
+        "successTitle": "购买成功！",
+        "successBody": "{item} 已添加到您的账户。",
+        "failureTitle": "购买失败",
+        "failureBody": "完成 {item} 的购买时出现问题，请重试。",
+        "dismiss": "关闭"
+      },
       "armoryEyebrow": "第一赛季",
       "armoryTitle": "兵器库",
       "armoryBody": "第一赛季兵器库限定武器外观。全账号通用，纯装饰性，周围所有玩家都能看到。",

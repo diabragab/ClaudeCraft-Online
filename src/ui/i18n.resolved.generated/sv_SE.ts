@@ -470,6 +470,13 @@ export const sv_SE: EnTranslations = {
       "confirmBody": "Köpa {item} för {cost} Claudium?",
       "confirmPurchase": "Köp",
       "priceChanged": "Priset ändrades innan köpet slutfördes. Granska det uppdaterade priset och bekräfta igen.",
+      "purchaseResult": {
+        "successTitle": "Purchase Complete!",
+        "successBody": "{item} has been added to your account.",
+        "failureTitle": "Purchase Failed",
+        "failureBody": "Something went wrong completing your purchase of {item}. Please try again.",
+        "dismiss": "Close"
+      },
       "armoryEyebrow": "Säsong 1",
       "armoryTitle": "Vapenhuset",
       "armoryBody": "Begränsade vapenskins från säsong 1-vapenhuset. De gäller för hela kontot, är helt kosmetiska och visas för alla i din omgivning.",

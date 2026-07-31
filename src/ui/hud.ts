@@ -506,6 +506,7 @@ import { type RaidLockoutI18n, raidLockoutPanelHtml } from './raid_lockout_view'
 import { restView } from './rest_indicator';
 import { isTalentRowUnlockLevel } from './row_unlock_toast';
 import { localizeServerText } from './server_i18n';
+import { ShopPurchaseResultWindow } from './shop_purchase_result_window';
 import { localizeSimText } from './sim_i18n';
 import { openSimpleMenu } from './simple_context_menu';
 import { SocialWindow } from './social_window';
@@ -571,7 +572,6 @@ import {
 } from './wallet_balance';
 import { type WeaponProcEffectDesc, weaponProcLines } from './weapon_proc_view';
 import { weaponTypeLabelKey } from './weapon_type_label';
-import type { ShopCatalogProduct } from './woc_general_store_view';
 import {
   installWindowDrag,
   isWindowDragPreviewMutation,
@@ -580,6 +580,7 @@ import {
 import { makeWindowFocus } from './window_focus';
 import { installWindowResize, markResizableWindow } from './window_resize';
 import { stackedWindowsVisible } from './window_stack_state_core';
+import type { ShopCatalogProduct } from './woc_general_store_view';
 import { installWorldDropTarget } from './world_drop_target';
 import { formatXp, xpBarView } from './xp_bar';
 import { XpBarPainter } from './xp_bar_painter';
@@ -4327,6 +4328,13 @@ export class Hud {
   });
   // Daily rewards window painter. It owns the async rewards reads, spin action,
   // focus opener, and a low-rate refresh while open. All closures are lazy.
+  // The premium purchase success/failure popup (Phase 2C): a transient,
+  // dynamically created overlay (like confirmDialog's #confirm-dialog), not a
+  // persistent `.window.panel`, so it drives the shared FocusManager directly
+  // rather than going through windowFocus()/closeManagedWindow().
+  private readonly shopPurchaseResultWindow = new ShopPurchaseResultWindow({
+    focusManager: this.focusManager,
+  });
   private readonly dailyRewardsWindow = new DailyRewardsWindow({
     root: () => $('#daily-rewards-window'),
     world: () => this.sim,
@@ -4363,6 +4371,7 @@ export class Hud {
     },
     confirmDialog: (title, body, okText, cancelText, onOk) =>
       this.confirmDialog(title, body, okText, cancelText, onOk),
+    showPurchaseResult: (result) => this.shopPurchaseResultWindow.open(result),
     ...this.windowFocus('#daily-rewards-window'),
     onVisibilityChange: () => this.syncAnyWindowOpenState(),
   });

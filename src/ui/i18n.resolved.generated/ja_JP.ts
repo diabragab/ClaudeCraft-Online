@@ -470,6 +470,13 @@ export const ja_JP: EnTranslations = {
       "confirmBody": "{item}を{cost} Claudiumで購入しますか？",
       "confirmPurchase": "購入",
       "priceChanged": "購入が完了する前に価格が変更されました。更新後の価格を確認し、もう一度確定してください。",
+      "purchaseResult": {
+        "successTitle": "購入完了！",
+        "successBody": "{item}がアカウントに追加されました。",
+        "failureTitle": "購入に失敗しました",
+        "failureBody": "{item}の購入中に問題が発生しました。もう一度お試しください。",
+        "dismiss": "閉じる"
+      },
       "armoryEyebrow": "シーズン1",
       "armoryTitle": "武器庫",
       "armoryBody": "シーズン1武器庫の限定武器スキン。アカウント共有の純粋な装飾で、周囲のプレイヤー全員に表示されます。",
