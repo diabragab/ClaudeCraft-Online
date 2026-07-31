@@ -162,19 +162,42 @@ export function resetShopAnnouncementRuntimeForTests(): void {
 
 const DISCORD_WEBHOOK_TIMEOUT_MS = 5000;
 
-/** Fire-and-forget, bounded-timeout POST; every failure is swallowed here so
- *  a broken or rate-limited webhook can never surface to the buyer. */
-async function postDiscordWebhook(url: string, content: string): Promise<void> {
+export interface DiscordWebhookPostResult {
+  ok: boolean;
+  status: number | null;
+  error: string | null;
+}
+
+/** Bounded-timeout POST that reports its outcome, used both by the
+ *  fire-and-forget purchase announcement below and by the admin panel's
+ *  "send test message" action (server/shop_announcement_config_routes.ts),
+ *  which needs the real result to show the operator. */
+export async function postDiscordWebhookForTest(
+  url: string,
+  content: string,
+): Promise<DiscordWebhookPostResult> {
   try {
-    await fetch(url, {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ content }),
       signal: AbortSignal.timeout(DISCORD_WEBHOOK_TIMEOUT_MS),
     });
+    return { ok: res.ok, status: res.status, error: res.ok ? null : `HTTP ${res.status}` };
   } catch (err) {
-    console.error('shop announcement discord webhook failed:', err);
+    return {
+      ok: false,
+      status: null,
+      error: err instanceof Error ? err.message : 'request failed',
+    };
   }
+}
+
+/** Fire-and-forget: every failure is swallowed here so a broken or
+ *  rate-limited webhook can never surface to the buyer. */
+async function postDiscordWebhook(url: string, content: string): Promise<void> {
+  const result = await postDiscordWebhookForTest(url, content);
+  if (!result.ok) console.error('shop announcement discord webhook failed:', result.error);
 }
 
 export class ShopAnnouncementService {

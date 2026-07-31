@@ -2487,6 +2487,17 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: null,
   },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/shop/announcement-config/test-discord',
+    handler:
+      'server/shop_announcement_config_routes.ts testDiscordHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
 
   // -------------------------------------------------------------------------
   // oauth handleOAuth (/oauth/*)

@@ -236,12 +236,81 @@ describe('shop announcement config routes: save', () => {
   });
 });
 
+describe('shop announcement config routes: test-discord', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('posts to an explicitly given URL and reports the real HTTP outcome', async () => {
+    authedAs(['admin']);
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    const route = routeFor('POST', '/admin/api/shop/announcement-config/test-discord');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/announcement-config/test-discord',
+      headers: { authorization: BEARER },
+      body: { url: 'https://discord.com/api/webhooks/9/abc' },
+    });
+    await runRoute(route, ctx);
+    const { status, body } = captured(ctx);
+    expect(status).toBe(200);
+    expect(body).toEqual({
+      success: true,
+      data: { ok: true, status: 204, error: null },
+      error: null,
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://discord.com/api/webhooks/9/abc',
+      expect.any(Object),
+    );
+    expect(dbMocks.loadShopAnnouncementConfig).not.toHaveBeenCalled();
+  });
+
+  it('falls back to the saved webhook URL when none is given', async () => {
+    authedAs(['admin']);
+    dbMocks.loadShopAnnouncementConfig.mockResolvedValue({
+      data: { discordWebhookUrl: 'https://discord.com/api/webhooks/saved/token' },
+      updatedAt: null,
+    });
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    const route = routeFor('POST', '/admin/api/shop/announcement-config/test-discord');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/announcement-config/test-discord',
+      headers: { authorization: BEARER },
+      body: {},
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://discord.com/api/webhooks/saved/token',
+      expect.any(Object),
+    );
+  });
+
+  it('400s when no URL is given and none is saved', async () => {
+    authedAs(['admin']);
+    const route = routeFor('POST', '/admin/api/shop/announcement-config/test-discord');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/announcement-config/test-discord',
+      headers: { authorization: BEARER },
+      body: {},
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(400);
+  });
+});
+
 describe('shop announcement config routes: table shape', () => {
-  it('registers exactly the three admin routes', () => {
+  it('registers exactly the four admin routes', () => {
     expect(routes.map((r) => `${r.method} ${r.path}`)).toEqual([
       'GET /admin/api/shop/announcement-config',
       'POST /admin/api/shop/announcement-config',
       'GET /admin/api/shop/announcement-config/history',
+      'POST /admin/api/shop/announcement-config/test-discord',
     ]);
     expect(routes.every((r) => r.surface === 'admin')).toBe(true);
   });

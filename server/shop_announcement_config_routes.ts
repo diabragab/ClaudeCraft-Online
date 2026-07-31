@@ -6,6 +6,7 @@
 
 import { requireAdmin } from './admin';
 import { adminOk } from './http/admin_envelope';
+import { HttpError } from './http/errors';
 import { withBody } from './http/middleware/body';
 import { ADMIN_META, adminIdentityOf } from './http/middleware/require_admin';
 import { bool, enum_, type Infer, object, optional, str } from './http/schema';
@@ -13,6 +14,7 @@ import type { Ctx, RouteDef } from './http/types';
 import {
   DEFAULT_SHOP_ANNOUNCEMENT_CONFIG,
   parseShopAnnouncementConfig,
+  postDiscordWebhookForTest,
   type ShopAnnouncementConfig,
 } from './shop_announcement';
 import {
@@ -24,6 +26,15 @@ import { RARITY_TIERS } from './shop_products';
 
 const NOTE_MAX = 300;
 const rarityEnum = enum_(RARITY_TIERS);
+
+const TEST_MESSAGE_URL_MAX = 300;
+const testDiscordBodySchema = object({
+  url: optional(str({ maxLength: TEST_MESSAGE_URL_MAX })),
+});
+
+// A generic placeholder trio so the operator sees the SAME formatting a real
+// purchase would produce, without needing a live sale to test the webhook.
+const TEST_MESSAGE = 'This is a test announcement from the World of ClaudeCraft admin panel.';
 
 const saveConfigBodySchema = object({
   enabled: optional(bool(), DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.enabled),
@@ -71,6 +82,22 @@ async function saveHandler(ctx: Ctx): Promise<void> {
   adminOk(ctx.res, configJson(parseShopAnnouncementConfig(fields), saved.updatedAt));
 }
 
+/** POST /admin/api/shop/announcement-config/test-discord: fires one test
+ *  message at either the given URL or, when omitted, the currently saved
+ *  webhook URL, and reports the real HTTP outcome (unlike the fire-and-forget
+ *  production path, an operator needs to see whether it actually worked). */
+async function testDiscordHandler(ctx: Ctx): Promise<void> {
+  const decoded = testDiscordBodySchema.decode(ctx.body ?? {});
+  if (!decoded.ok) throw decoded;
+  let url = decoded.value.url?.trim();
+  if (!url) {
+    const stored = await loadShopAnnouncementConfig();
+    url = parseShopAnnouncementConfig(stored.data).discordWebhookUrl.trim();
+  }
+  if (!url) throw new HttpError(400, 'shop.invalid_input');
+  adminOk(ctx.res, await postDiscordWebhookForTest(url, TEST_MESSAGE));
+}
+
 export const routes: RouteDef[] = [
   {
     method: 'GET',
@@ -95,5 +122,13 @@ export const routes: RouteDef[] = [
     middleware: [requireAdmin],
     meta: ADMIN_META,
     handler: historyHandler,
+  },
+  {
+    method: 'POST',
+    path: '/admin/api/shop/announcement-config/test-discord',
+    surface: 'admin',
+    middleware: [requireAdmin, withBody()],
+    meta: ADMIN_META,
+    handler: testDiscordHandler,
   },
 ];

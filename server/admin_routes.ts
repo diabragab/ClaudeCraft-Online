@@ -306,6 +306,11 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
     pattern: '/admin/api/shop/announcement-config/history',
     permission: 'shop.read',
   },
+  {
+    method: 'POST',
+    pattern: '/admin/api/shop/announcement-config/test-discord',
+    permission: 'shop.manage',
+  },
 ];
 
 function matches(pattern: string | RegExp, path: string): boolean {

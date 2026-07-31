@@ -43,6 +43,7 @@
   import ShopOrderDetail from './pages/ShopOrderDetail.svelte';
   import ClaudiumPackages from './pages/ClaudiumPackages.svelte';
   import ClaudiumPurchases from './pages/ClaudiumPurchases.svelte';
+  import ShopAnnouncementSettings from './pages/ShopAnnouncementSettings.svelte';
 
   // Root of the admin SPA. Shows the login overlay until authed, then the shared
   // navigation shell and the routed page. The {#key session.locale} wrapper
@@ -73,6 +74,7 @@
     'shop-orders': ShopOrders,
     'shop-packages': ClaudiumPackages,
     'claudium-purchases': ClaudiumPurchases,
+    'shop-announcements': ShopAnnouncementSettings,
   } satisfies Record<AdminPage, Component>;
   // Permission route guard (presentation only; the server re-checks every
   // call): a route the operator cannot open renders their first visible page

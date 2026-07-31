@@ -1,10 +1,14 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import type {
-    ShopCategoryRow,
-    ShopProductRow,
-    ShopProductStatus,
-    ShopProductsData,
+  import {
+    RARITY_TIERS,
+    SHOP_BADGES,
+    type ShopBadge,
+    type ShopCategoryRow,
+    type ShopProductRow,
+    type ShopProductStatus,
+    type ShopProductsData,
+    type ShopRarity,
   } from '../types';
   import { apiGet, apiPost } from '../api';
   import { auth } from '../state/auth.svelte';
@@ -86,6 +90,27 @@
     return categories.find((c) => c.id === id)?.name ?? `#${id}`;
   }
 
+  const RARITY_LABEL_KEY: Record<ShopRarity, string> = {
+    common: 'shopProducts.rarityCommon',
+    uncommon: 'shopProducts.rarityUncommon',
+    rare: 'shopProducts.rarityRare',
+    epic: 'shopProducts.rarityEpic',
+    legendary: 'shopProducts.rarityLegendary',
+    mythic: 'shopProducts.rarityMythic',
+  };
+
+  const BADGE_LABEL_KEY: Record<ShopBadge, string> = {
+    new: 'shopProducts.badgeNew',
+    hot: 'shopProducts.badgeHot',
+    featured: 'shopProducts.badgeFeatured',
+    best_value: 'shopProducts.badgeBestValue',
+    limited: 'shopProducts.badgeLimited',
+    sale: 'shopProducts.badgeSale',
+    event: 'shopProducts.badgeEvent',
+    exclusive: 'shopProducts.badgeExclusive',
+    popular: 'shopProducts.badgePopular',
+  };
+
   function priceSummary(row: ShopProductRow): string {
     const parts: string[] = [];
     if (row.priceGoldCopper !== null) parts.push(fmtCopper(row.priceGoldCopper));
@@ -113,6 +138,14 @@
     grantKind: 'none' | 'weapon_skin' | 'item';
     grantItemId: string;
     grantQuantity: string;
+    rarity: ShopRarity;
+    badges: ShopBadge[];
+    isEvent: boolean;
+    isLimited: boolean;
+    discountPercent: string;
+    bannerImage: string;
+    previewImage: string;
+    announcementTemplate: string;
   }
 
   function emptyForm(): ProductForm {
@@ -135,6 +168,14 @@
       grantKind: 'none',
       grantItemId: '',
       grantQuantity: '',
+      rarity: 'common',
+      badges: [],
+      isEvent: false,
+      isLimited: false,
+      discountPercent: '',
+      bannerImage: '',
+      previewImage: '',
+      announcementTemplate: '',
     };
   }
 
@@ -158,7 +199,19 @@
       grantKind: form.grantKind,
       grantItemId: form.grantItemId.trim(),
       grantQuantity: form.grantQuantity.trim(),
+      rarity: form.rarity,
+      badges: form.badges,
+      isEvent: form.isEvent,
+      isLimited: form.isLimited,
+      discountPercent: form.discountPercent.trim(),
+      bannerImage: form.bannerImage.trim(),
+      previewImage: form.previewImage.trim(),
+      announcementTemplate: form.announcementTemplate.trim(),
     };
+  }
+
+  function toggleBadge(form: ProductForm, badge: ShopBadge, checked: boolean): void {
+    form.badges = checked ? [...form.badges, badge] : form.badges.filter((b) => b !== badge);
   }
 
   // ---- Create ----
@@ -206,6 +259,14 @@
       grantKind: row.grantKind,
       grantItemId: row.grantItemId ?? '',
       grantQuantity: String(row.grantQuantity),
+      rarity: row.rarity,
+      badges: [...row.badges],
+      isEvent: row.isEvent,
+      isLimited: row.isLimited,
+      discountPercent: row.discountPercent === null ? '' : String(row.discountPercent),
+      bannerImage: row.bannerImage ?? '',
+      previewImage: row.previewImage ?? '',
+      announcementTemplate: row.announcementTemplate ?? '',
     };
   }
 
@@ -311,6 +372,45 @@
     <input inputmode="numeric" pattern="[0-9]*" placeholder="1" bind:value={form.grantQuantity} disabled={form.grantKind !== 'item'} />
   </label>
   <div class="shop-field-wide shop-hint">{t('shopProducts.grantHint')}</div>
+
+  <label>{t('shopProducts.rarityLabel')}
+    <select bind:value={form.rarity}>
+      {#each RARITY_TIERS as rarity (rarity)}
+        <option value={rarity}>{t(RARITY_LABEL_KEY[rarity])}</option>
+      {/each}
+    </select>
+  </label>
+  <label class="shop-checkbox"><input type="checkbox" bind:checked={form.isEvent} /> {t('shopProducts.isEventLabel')}</label>
+  <label class="shop-checkbox"><input type="checkbox" bind:checked={form.isLimited} /> {t('shopProducts.isLimitedLabel')}</label>
+  <label>{t('shopProducts.discountPercentLabel')}
+    <input inputmode="numeric" pattern="[0-9]*" bind:value={form.discountPercent} />
+  </label>
+  <div class="shop-field-wide shop-hint">{t('shopProducts.discountPercentHint')}</div>
+  <div class="shop-field-wide">
+    <span class="shop-badges-label">{t('shopProducts.badgesLabel')}</span>
+    <div class="shop-badges-grid">
+      {#each SHOP_BADGES as badge (badge)}
+        <label class="shop-checkbox">
+          <input
+            type="checkbox"
+            checked={form.badges.includes(badge)}
+            onchange={(e) => toggleBadge(form, badge, (e.currentTarget as HTMLInputElement).checked)}
+          />
+          {t(BADGE_LABEL_KEY[badge])}
+        </label>
+      {/each}
+    </div>
+  </div>
+  <label>{t('shopProducts.bannerImageLabel')}
+    <input placeholder={t('shopProducts.iconPlaceholder')} maxlength="300" bind:value={form.bannerImage} />
+  </label>
+  <label>{t('shopProducts.previewImageLabel')}
+    <input placeholder={t('shopProducts.iconPlaceholder')} maxlength="300" bind:value={form.previewImage} />
+  </label>
+  <label class="shop-field-wide">{t('shopProducts.announcementTemplateLabel')}
+    <input placeholder={t('shopProducts.announcementTemplatePlaceholder')} maxlength="300" bind:value={form.announcementTemplate} />
+  </label>
+  <div class="shop-field-wide shop-hint">{t('shopProducts.merchandisingHint')}</div>
 {/snippet}
 
 <PageHeader title={t('nav.shopProducts')} />
@@ -372,6 +472,7 @@
           <th>{t('shopProducts.colPrice')}</th>
           <th>{t('shopProducts.colStatus')}</th>
           <th>{t('shopProducts.colFeatured')}</th>
+          <th>{t('shopProducts.colRarity')}</th>
           <th class="num">{t('shopProducts.colDisplayOrder')}</th>
           <th>{t('shopProducts.colGrant')}</th>
           {#if canManage}<th>{t('shopCommon.colActions')}</th>{/if}
@@ -391,6 +492,7 @@
               {:else}{t('shopProducts.statusArchived')}{/if}
             </td>
             <td>{row.featured ? t('shopCommon.yes') : t('shopCommon.no')}</td>
+            <td>{t(RARITY_LABEL_KEY[row.rarity])}</td>
             <td class="num">{row.displayOrder}</td>
             <td>
               {#if row.grantKind === 'weapon_skin'}{t('shopProducts.grantKindWeaponSkin')}
@@ -461,6 +563,19 @@
 
   .shop-field-wide {
     grid-column: 1 / -1;
+  }
+
+  .shop-badges-label {
+    display: block;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 4px;
+  }
+
+  .shop-badges-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px 14px;
   }
 
   .shop-hint {

@@ -658,18 +658,21 @@ export type ShopCategoriesData = Paginated<ShopCategoryRow>;
 
 export type ShopProductStatus = 'draft' | 'active' | 'archived';
 
-export type ShopRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+export const RARITY_TIERS = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'mythic'] as const;
+export type ShopRarity = (typeof RARITY_TIERS)[number];
 
-export type ShopBadge =
-  | 'new'
-  | 'hot'
-  | 'featured'
-  | 'best_value'
-  | 'limited'
-  | 'sale'
-  | 'event'
-  | 'exclusive'
-  | 'popular';
+export const SHOP_BADGES = [
+  'new',
+  'hot',
+  'featured',
+  'best_value',
+  'limited',
+  'sale',
+  'event',
+  'exclusive',
+  'popular',
+] as const;
+export type ShopBadge = (typeof SHOP_BADGES)[number];
 
 export interface ShopProductRow {
   id: number;
@@ -706,6 +709,39 @@ export interface ShopProductRow {
 }
 
 export type ShopProductsData = Paginated<ShopProductRow>;
+
+export interface ShopAnnouncementConfig {
+  enabled: boolean;
+  minRarity: ShopRarity;
+  messageTemplate: string;
+  discordWebhookEnabled: boolean;
+  discordWebhookUrl: string;
+}
+
+export interface ShopAnnouncementConfigData {
+  config: ShopAnnouncementConfig;
+  updatedAt: string | null;
+}
+
+export interface ShopAnnouncementConfigHistoryEntry {
+  id: number;
+  beforeData: Partial<ShopAnnouncementConfig>;
+  afterData: Partial<ShopAnnouncementConfig>;
+  note: string;
+  createdAt: string;
+  adminAccountId: number | null;
+  adminUsername: string | null;
+}
+
+export interface ShopAnnouncementConfigHistory {
+  entries: ShopAnnouncementConfigHistoryEntry[];
+}
+
+export interface DiscordWebhookTestResult {
+  ok: boolean;
+  status: number | null;
+  error: string | null;
+}
 
 // Claudium Packages (Phase 7): the admin-managed catalog of Claudium purchase
 // tiers. Field shapes mirror server/claudium_packages.ts's ClaudiumPackageRecord.

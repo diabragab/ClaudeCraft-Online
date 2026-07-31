@@ -27,7 +27,8 @@ export type AdminPage =
   | 'shop-inventory'
   | 'shop-orders'
   | 'shop-packages'
-  | 'claudium-purchases';
+  | 'claudium-purchases'
+  | 'shop-announcements';
 
 export interface AdminNavItem {
   id: AdminPage;
@@ -79,6 +80,11 @@ export const NAV_SECTIONS: readonly AdminNavSection[] = [
       {
         id: 'claudium-purchases',
         labelKey: 'nav.claudiumPurchases',
+        permission: 'shop.read',
+      },
+      {
+        id: 'shop-announcements',
+        labelKey: 'nav.shopAnnouncements',
         permission: 'shop.read',
       },
     ],
