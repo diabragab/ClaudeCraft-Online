@@ -24,7 +24,13 @@
 
   const navigation = getAdminNavigation();
   let sidebar: HTMLElement;
-  let activePage = $derived<AdminPage>(route.page === 'ip' ? 'shared-ips' : route.page);
+  let activePage = $derived<AdminPage>(
+    route.page === 'ip'
+      ? 'shared-ips'
+      : route.page === 'shop-order-detail'
+        ? 'shop-orders'
+        : route.page,
+  );
   // Presentation only: the server enforces the same route->permission mapping.
   let sections = $derived(visibleNavSections((permission) => auth.can(permission)));
 

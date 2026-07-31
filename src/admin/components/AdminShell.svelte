@@ -14,7 +14,13 @@
   let navToggle: HTMLButtonElement;
   let accountModalId = $state<number | null>(null);
   let accountModalChanged = $state<(() => void) | null>(null);
-  let page = $derived<AdminPage>(route.page === 'ip' ? 'shared-ips' : route.page);
+  let page = $derived<AdminPage>(
+    route.page === 'ip'
+      ? 'shared-ips'
+      : route.page === 'shop-order-detail'
+        ? 'shop-orders'
+        : route.page,
+  );
   let pageTitle = $derived(t(itemForPage(page).labelKey));
 
   function closeNav(returnFocus = false): void {
