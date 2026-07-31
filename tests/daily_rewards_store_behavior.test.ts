@@ -78,6 +78,13 @@ function weaponSkinProduct(overrides: Partial<ShopCatalogProduct> = {}): ShopCat
     grantItemId: 'cinderbrand_sword',
     grantQuantity: 1,
     availability: 'unlimited',
+    rarity: 'common',
+    badges: [],
+    isEvent: false,
+    isLimited: false,
+    discountPercent: null,
+    bannerImage: null,
+    previewImage: null,
     ...overrides,
   };
 }

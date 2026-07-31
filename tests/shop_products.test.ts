@@ -119,6 +119,14 @@ const BASE_CREATE: ShopProductCreateInput = {
   grantQuantity: '',
   icon: '',
   displayOrder: 0,
+  rarity: 'common',
+  badges: [],
+  isEvent: false,
+  isLimited: false,
+  discountPercent: '',
+  bannerImage: '',
+  previewImage: '',
+  announcementTemplate: '',
 };
 
 describe('ShopProductsService', () => {
@@ -184,6 +192,93 @@ describe('ShopProductsService', () => {
   it('rejects an invalid slug format', async () => {
     const result = await ctx.svc.createProduct({ ...BASE_CREATE, slug: 'Not Valid' });
     expect(result).toEqual({ ok: false, error: 'invalid_slug' });
+  });
+
+  it('defaults rarity to common and badges to empty when not set', async () => {
+    const result = await ctx.svc.createProduct(BASE_CREATE);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.product.rarity).toBe('common');
+      expect(result.product.badges).toEqual([]);
+      expect(result.product.isEvent).toBe(false);
+      expect(result.product.isLimited).toBe(false);
+      expect(result.product.discountPercent).toBeNull();
+      expect(result.product.bannerImage).toBeNull();
+      expect(result.product.previewImage).toBeNull();
+      expect(result.product.announcementTemplate).toBeNull();
+    }
+  });
+
+  it('creates a mythic, multi-badged, discounted event product', async () => {
+    const result = await ctx.svc.createProduct({
+      ...BASE_CREATE,
+      rarity: 'mythic',
+      badges: ['event', 'exclusive'],
+      isEvent: true,
+      isLimited: true,
+      discountPercent: '25',
+      bannerImage: 'https://example.com/banner.png',
+      previewImage: 'https://example.com/preview.png',
+      announcementTemplate: '{player} claimed the mythic {item}!',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.product.rarity).toBe('mythic');
+      expect(result.product.badges).toEqual(['event', 'exclusive']);
+      expect(result.product.isEvent).toBe(true);
+      expect(result.product.isLimited).toBe(true);
+      expect(result.product.discountPercent).toBe(25);
+      expect(result.product.bannerImage).toBe('https://example.com/banner.png');
+      expect(result.product.previewImage).toBe('https://example.com/preview.png');
+      expect(result.product.announcementTemplate).toBe('{player} claimed the mythic {item}!');
+    }
+  });
+
+  it('rejects a malformed discount percent', async () => {
+    const result = await ctx.svc.createProduct({ ...BASE_CREATE, discountPercent: '0' });
+    expect(result).toEqual({ ok: false, error: 'invalid_discount' });
+  });
+
+  it('rejects a discount percent over 99', async () => {
+    const result = await ctx.svc.createProduct({ ...BASE_CREATE, discountPercent: '100' });
+    expect(result).toEqual({ ok: false, error: 'invalid_discount' });
+  });
+
+  it('updates rarity and badges while leaving the rest untouched', async () => {
+    const created = await ctx.svc.createProduct(BASE_CREATE);
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const updated = await ctx.svc.updateProduct(created.product.id, {
+      rarity: 'legendary',
+      badges: ['hot', 'popular'],
+    });
+    expect(updated.ok).toBe(true);
+    if (updated.ok) {
+      expect(updated.product.rarity).toBe('legendary');
+      expect(updated.product.badges).toEqual(['hot', 'popular']);
+      expect(updated.product.priceGoldCopper).toBe(1000); // untouched
+    }
+  });
+
+  it('clears the discount and banner image via update', async () => {
+    const created = await ctx.svc.createProduct({
+      ...BASE_CREATE,
+      discountPercent: '10',
+      bannerImage: 'https://example.com/banner.png',
+    });
+    expect(created.ok).toBe(true);
+    if (!created.ok) return;
+
+    const cleared = await ctx.svc.updateProduct(created.product.id, {
+      discountPercent: '',
+      bannerImage: '',
+    });
+    expect(cleared.ok).toBe(true);
+    if (cleared.ok) {
+      expect(cleared.product.discountPercent).toBeNull();
+      expect(cleared.product.bannerImage).toBeNull();
+    }
   });
 
   it('updates a product, clearing one price while keeping another', async () => {

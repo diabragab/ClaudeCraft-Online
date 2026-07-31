@@ -33,6 +33,39 @@ export type ShopProductSort = 'name' | 'createdAt' | 'updatedAt' | 'displayOrder
 // character. See server/shop_delivery.ts for the delivery path.
 export type ShopProductGrantKind = 'none' | 'weapon_skin' | 'item';
 
+// Premium Shop: a product's own merchandising rarity, independent of any
+// in-game item quality (src/ui/icons.ts QUALITY_COLOR) or weapon-skin rarity
+// (src/sim/content/weapon_skins.ts WeaponSkinRarity) the grant target might
+// carry — not every product grants an item with a quality (a Claudium
+// package or a pure-cosmetic product has none), so this is its own closed
+// vocabulary. 'common' (the bottom tier) is the correct default for every
+// product predating this column.
+export const RARITY_TIERS = [
+  'common',
+  'uncommon',
+  'rare',
+  'epic',
+  'legendary',
+  'mythic',
+] as const;
+export type ShopRarity = (typeof RARITY_TIERS)[number];
+
+// The closed badge vocabulary an operator may pin to a product (Products
+// admin page). Purely a merchandising signal, like `featured` above; a
+// product may carry any subset, including none.
+export const SHOP_BADGES = [
+  'new',
+  'hot',
+  'featured',
+  'best_value',
+  'limited',
+  'sale',
+  'event',
+  'exclusive',
+  'popular',
+] as const;
+export type ShopBadge = (typeof SHOP_BADGES)[number];
+
 export interface ShopProductRecord {
   id: number;
   sku: string;
@@ -58,6 +91,22 @@ export interface ShopProductRecord {
   icon: string | null;
   /** Admin-controlled sort key for storefront/admin ordering (Enable/Disable, Feature, Reorder). */
   displayOrder: number;
+  /** Premium Shop merchandising rarity; drives the card border/glow/animation tier. */
+  rarity: ShopRarity;
+  /** Zero or more badges from the closed SHOP_BADGES vocabulary. */
+  badges: ShopBadge[];
+  /** Event-catalog flag; pairs with (but is independent of) the 'event' badge. */
+  isEvent: boolean;
+  /** Limited-time-offer flag, independent of physical stock (see shop_inventory). */
+  isLimited: boolean;
+  /** 1-99, or null for no discount. Drives the SALE badge + a strikethrough price display. */
+  discountPercent: number | null;
+  /** A promotional banner image URL for the featured carousel, or null. */
+  bannerImage: string | null;
+  /** A larger promotional preview image URL (distinct from `icon`), or null. */
+  previewImage: string | null;
+  /** Per-product override of the global announcement message template, or null to use the default. */
+  announcementTemplate: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -71,6 +120,8 @@ export interface ShopProductListParams {
   status?: ShopProductStatus;
   /** Storefront (Phase 4): filter to featured=true only when set. */
   featured?: boolean;
+  /** Admin/storefront: filter to an exact rarity tier when set. */
+  rarity?: ShopRarity;
   sort: ShopProductSort;
   dir: ShopSortDirection;
 }
@@ -98,6 +149,18 @@ export interface ShopProductCreateInput {
   /** '' means no icon (stored as SQL NULL), same convention as the price fields. */
   icon: string;
   displayOrder: number;
+  rarity: ShopRarity;
+  badges: ShopBadge[];
+  isEvent: boolean;
+  isLimited: boolean;
+  /** Wire string, same convention as the price fields; '' means no discount. */
+  discountPercent: string;
+  /** '' means no banner (stored as SQL NULL), same convention as `icon`. */
+  bannerImage: string;
+  /** '' means no preview image (stored as SQL NULL), same convention as `icon`. */
+  previewImage: string;
+  /** '' means no override (stored as SQL NULL), same convention as `icon`. */
+  announcementTemplate: string;
 }
 
 /** The already-shape-validated update body; an absent field means unchanged. */
@@ -120,6 +183,14 @@ export interface ShopProductUpdateInput {
   grantQuantity?: string;
   icon?: string;
   displayOrder?: number;
+  rarity?: ShopRarity;
+  badges?: ShopBadge[];
+  isEvent?: boolean;
+  isLimited?: boolean;
+  discountPercent?: string;
+  bannerImage?: string;
+  previewImage?: string;
+  announcementTemplate?: string;
 }
 
 /** The insert/update shape the db layer persists: prices resolved to number|null. */
@@ -142,6 +213,14 @@ export interface ShopProductWriteRow {
   grantQuantity: number;
   icon: string | null;
   displayOrder: number;
+  rarity: ShopRarity;
+  badges: ShopBadge[];
+  isEvent: boolean;
+  isLimited: boolean;
+  discountPercent: number | null;
+  bannerImage: string | null;
+  previewImage: string | null;
+  announcementTemplate: string | null;
 }
 
 export type ShopProductErrorCode =
@@ -151,6 +230,7 @@ export type ShopProductErrorCode =
   | 'rails_need_usd_price'
   | 'category_not_found'
   | 'invalid_grant'
+  | 'invalid_discount'
   | 'not_found';
 
 export type ShopProductResult =
@@ -195,6 +275,15 @@ function parsePriceField(raw: string): number | null | 'invalid' {
 }
 
 const GRANT_KINDS: readonly ShopProductGrantKind[] = ['none', 'weapon_skin', 'item'];
+
+/** Parse an optional wire discount-percent string: '' means no discount, else 1-99. */
+function parseDiscountField(raw: string): number | null | 'invalid' {
+  const trimmed = raw.trim();
+  if (trimmed === '') return null;
+  if (!/^\d+$/.test(trimmed)) return 'invalid';
+  const value = Number(trimmed);
+  return Number.isSafeInteger(value) && value >= 1 && value <= 99 ? value : 'invalid';
+}
 
 /** Parse the wire grantQuantity string: '' means the default of 1, else a positive integer. */
 function parseGrantQuantityField(raw: string): number | 'invalid' {
@@ -274,6 +363,27 @@ export class ShopProductsService {
     const icon = iconRaw === '' ? null : iconRaw;
     const displayOrder = input.displayOrder ?? existing?.displayOrder ?? 0;
 
+    const rarity = input.rarity ?? existing?.rarity ?? 'common';
+    if (!RARITY_TIERS.includes(rarity)) return { ok: false, error: 'invalid_grant' };
+    const badges = input.badges ?? existing?.badges ?? [];
+    if (badges.some((b) => !SHOP_BADGES.includes(b))) return { ok: false, error: 'invalid_grant' };
+    const isEvent = input.isEvent ?? existing?.isEvent ?? false;
+    const isLimited = input.isLimited ?? existing?.isLimited ?? false;
+    const discountPercent = parseDiscountField(
+      input.discountPercent ?? String(existing?.discountPercent ?? ''),
+    );
+    if (discountPercent === 'invalid') return { ok: false, error: 'invalid_discount' };
+    const bannerImageRaw = (input.bannerImage ?? existing?.bannerImage ?? '').trim();
+    const bannerImage = bannerImageRaw === '' ? null : bannerImageRaw;
+    const previewImageRaw = (input.previewImage ?? existing?.previewImage ?? '').trim();
+    const previewImage = previewImageRaw === '' ? null : previewImageRaw;
+    const announcementTemplateRaw = (
+      input.announcementTemplate ??
+      existing?.announcementTemplate ??
+      ''
+    ).trim();
+    const announcementTemplate = announcementTemplateRaw === '' ? null : announcementTemplateRaw;
+
     return {
       ok: true,
       row: {
@@ -295,6 +405,14 @@ export class ShopProductsService {
         grantQuantity,
         icon,
         displayOrder,
+        rarity,
+        badges,
+        isEvent,
+        isLimited,
+        discountPercent,
+        bannerImage,
+        previewImage,
+        announcementTemplate,
       },
     };
   }
@@ -353,6 +471,16 @@ export class ShopProductsService {
     }
     if (input.icon !== undefined) patch.icon = resolved.row.icon;
     if (input.displayOrder !== undefined) patch.displayOrder = resolved.row.displayOrder;
+    if (input.rarity !== undefined) patch.rarity = resolved.row.rarity;
+    if (input.badges !== undefined) patch.badges = resolved.row.badges;
+    if (input.isEvent !== undefined) patch.isEvent = resolved.row.isEvent;
+    if (input.isLimited !== undefined) patch.isLimited = resolved.row.isLimited;
+    if (input.discountPercent !== undefined) patch.discountPercent = resolved.row.discountPercent;
+    if (input.bannerImage !== undefined) patch.bannerImage = resolved.row.bannerImage;
+    if (input.previewImage !== undefined) patch.previewImage = resolved.row.previewImage;
+    if (input.announcementTemplate !== undefined) {
+      patch.announcementTemplate = resolved.row.announcementTemplate;
+    }
     const product = await this.db.updateProduct(id, patch);
     if (!product) return { ok: false, error: 'not_found' };
     return { ok: true, product };

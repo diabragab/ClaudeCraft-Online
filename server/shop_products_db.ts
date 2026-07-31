@@ -62,6 +62,28 @@ ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS grant_quantity INT NOT NULL D
 -- name/createdAt/updatedAt.
 ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS icon TEXT;
 ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS display_order INT NOT NULL DEFAULT 0;
+-- Premium Shop (Phase 2): merchandising rarity/badges plus the fields the
+-- Admin Panel's Products page and the rarity-gated announcement feature read.
+-- 'common' is the correct default for every product predating this column: it
+-- is the bottom tier, so a product nobody has curated yet renders with no
+-- special visual treatment. badges is a closed vocabulary (server/
+-- shop_products.ts SHOP_BADGES), validated at the route layer, not by a CHECK
+-- (matching how grant_kind's closed vocabulary is enforced service-side).
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS rarity TEXT NOT NULL DEFAULT 'common';
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS badges TEXT[] NOT NULL DEFAULT '{}';
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS is_event BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS is_limited BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS discount_percent SMALLINT;
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS banner_image TEXT;
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS preview_image TEXT;
+-- Per-product override of the global announcement message template (server/
+-- shop_announcement.ts); NULL falls back to the admin-configured global
+-- default.
+ALTER TABLE shop_products ADD COLUMN IF NOT EXISTS announcement_template TEXT;
+ALTER TABLE shop_products DROP CONSTRAINT IF EXISTS shop_products_discount_percent_range;
+ALTER TABLE shop_products ADD CONSTRAINT shop_products_discount_percent_range CHECK (
+  discount_percent IS NULL OR (discount_percent >= 1 AND discount_percent <= 99)
+);
 -- Postgres does not auto-index the referencing side of an FK (see
 -- server/maps_db.ts / server/shop_categories_db.ts for the same lesson).
 CREATE INDEX IF NOT EXISTS shop_products_category ON shop_products(category_id);
@@ -71,12 +93,19 @@ CREATE INDEX IF NOT EXISTS shop_products_status_updated ON shop_products(status,
 -- index, since only a handful of products are ever featured at once.
 CREATE INDEX IF NOT EXISTS shop_products_featured ON shop_products(status, created_at DESC)
   WHERE featured = true;
+-- Serves a "browse by rarity" filter (Phase 2 Premium Shop): rare+ tiers are a
+-- small minority of the catalog, same partial-index shape as the featured one
+-- above.
+CREATE INDEX IF NOT EXISTS shop_products_rarity ON shop_products(status, rarity, created_at DESC)
+  WHERE rarity <> 'common';
 `;
 
 const PRODUCT_COLS = `id, sku, name, slug, description, category_id,
   price_gold_copper, price_claudium, price_usd_cents,
   rail_sol, rail_usdc, rail_woc, status, featured,
-  grant_kind, grant_item_id, grant_quantity, icon, display_order, created_at, updated_at`;
+  grant_kind, grant_item_id, grant_quantity, icon, display_order,
+  rarity, badges, is_event, is_limited, discount_percent, banner_image,
+  preview_image, announcement_template, created_at, updated_at`;
 
 function isoString(value: unknown): string {
   return value instanceof Date ? value.toISOString() : String(value ?? '');
@@ -102,6 +131,14 @@ interface ProductDbRow {
   grant_quantity: number;
   icon: string | null;
   display_order: number;
+  rarity: string;
+  badges: string[];
+  is_event: boolean;
+  is_limited: boolean;
+  discount_percent: number | null;
+  banner_image: string | null;
+  preview_image: string | null;
+  announcement_template: string | null;
   created_at: Date | string;
   updated_at: Date | string;
 }
@@ -135,6 +172,14 @@ function toRecord(row: ProductDbRow): ShopProductRecord {
     grantQuantity: row.grant_quantity,
     icon: row.icon ?? null,
     displayOrder: row.display_order,
+    rarity: row.rarity as ShopProductRecord['rarity'],
+    badges: (row.badges ?? []) as ShopProductRecord['badges'],
+    isEvent: row.is_event,
+    isLimited: row.is_limited,
+    discountPercent: row.discount_percent ?? null,
+    bannerImage: row.banner_image ?? null,
+    previewImage: row.preview_image ?? null,
+    announcementTemplate: row.announcement_template ?? null,
     createdAt: isoString(row.created_at),
     updatedAt: isoString(row.updated_at),
   };
@@ -156,8 +201,11 @@ export class PgShopProductsDb implements ShopProductsDb {
          (sku, name, slug, description, category_id,
           price_gold_copper, price_claudium, price_usd_cents,
           rail_sol, rail_usdc, rail_woc, status, featured,
-          grant_kind, grant_item_id, grant_quantity, icon, display_order)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          grant_kind, grant_item_id, grant_quantity, icon, display_order,
+          rarity, badges, is_event, is_limited, discount_percent, banner_image,
+          preview_image, announcement_template)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18,
+               $19, $20, $21, $22, $23, $24, $25, $26)
        RETURNING ${PRODUCT_COLS}`,
       [
         row.sku,
@@ -178,6 +226,14 @@ export class PgShopProductsDb implements ShopProductsDb {
         row.grantQuantity,
         row.icon,
         row.displayOrder,
+        row.rarity,
+        row.badges,
+        row.isEvent,
+        row.isLimited,
+        row.discountPercent,
+        row.bannerImage,
+        row.previewImage,
+        row.announcementTemplate,
       ],
     );
     return toRecord(res.rows[0]);
@@ -221,6 +277,10 @@ export class PgShopProductsDb implements ShopProductsDb {
     if (params.featured !== undefined) {
       values.push(params.featured);
       conditions.push(`featured = $${values.length}`);
+    }
+    if (params.rarity !== undefined) {
+      values.push(params.rarity);
+      conditions.push(`rarity = $${values.length}`);
     }
     const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
     const orderCol = SORT_COLUMN[params.sort];
@@ -268,6 +328,14 @@ export class PgShopProductsDb implements ShopProductsDb {
       ['grantQuantity', 'grant_quantity'],
       ['icon', 'icon'],
       ['displayOrder', 'display_order'],
+      ['rarity', 'rarity'],
+      ['badges', 'badges'],
+      ['isEvent', 'is_event'],
+      ['isLimited', 'is_limited'],
+      ['discountPercent', 'discount_percent'],
+      ['bannerImage', 'banner_image'],
+      ['previewImage', 'preview_image'],
+      ['announcementTemplate', 'announcement_template'],
     ];
     for (const [key, column] of columnFor) {
       if (patch[key] === undefined) continue;

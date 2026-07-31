@@ -56,6 +56,14 @@ function productRecord(overrides: Partial<ShopProductRecord> = {}): ShopProductR
     grantQuantity: 1,
     icon: null,
     displayOrder: 0,
+    rarity: 'common',
+    badges: [],
+    isEvent: false,
+    isLimited: false,
+    discountPercent: null,
+    bannerImage: null,
+    previewImage: null,
+    announcementTemplate: null,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     ...overrides,
@@ -159,6 +167,84 @@ describe('shop products routes: create', () => {
       error: null,
       data: { ...productRecord(), enabled: false },
     });
+  });
+
+  it('decodes rarity, badges, and the merchandising fields through to the service', async () => {
+    authedAs(['admin']);
+    const createProduct = vi.fn(async () => ({ ok: true as const, product: productRecord() }));
+    fakeService({ createProduct });
+    const route = routeFor('POST', '/admin/api/shop/products');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/products',
+      headers: { authorization: BEARER },
+      body: {
+        sku: 'sword-01',
+        name: 'Iron Sword',
+        slug: 'iron-sword',
+        priceGoldCopper: '1000',
+        rarity: 'mythic',
+        badges: ['event', 'exclusive'],
+        isEvent: true,
+        isLimited: true,
+        discountPercent: '25',
+        bannerImage: 'https://example.com/banner.png',
+        previewImage: 'https://example.com/preview.png',
+        announcementTemplate: '{player} claimed {item}!',
+      },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(200);
+    expect(createProduct).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rarity: 'mythic',
+        badges: ['event', 'exclusive'],
+        isEvent: true,
+        isLimited: true,
+        discountPercent: '25',
+        bannerImage: 'https://example.com/banner.png',
+        previewImage: 'https://example.com/preview.png',
+        announcementTemplate: '{player} claimed {item}!',
+      }),
+    );
+  });
+
+  it('422s an unknown rarity tier', async () => {
+    authedAs(['admin']);
+    const route = routeFor('POST', '/admin/api/shop/products');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/products',
+      headers: { authorization: BEARER },
+      body: {
+        sku: 'sword-01',
+        name: 'Iron Sword',
+        slug: 'iron-sword',
+        priceGoldCopper: '1000',
+        rarity: 'godlike',
+      },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(422);
+  });
+
+  it('422s an unknown badge value', async () => {
+    authedAs(['admin']);
+    const route = routeFor('POST', '/admin/api/shop/products');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/products',
+      headers: { authorization: BEARER },
+      body: {
+        sku: 'sword-01',
+        name: 'Iron Sword',
+        slug: 'iron-sword',
+        priceGoldCopper: '1000',
+        badges: ['not_a_real_badge'],
+      },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(422);
   });
 
   it('404s a rejected unknown category as shop.not_found', async () => {

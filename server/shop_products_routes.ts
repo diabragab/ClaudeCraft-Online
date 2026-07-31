@@ -16,10 +16,16 @@ import {
   adminTargetMeta,
   requireAdminTarget,
 } from './http/middleware/require_admin';
-import { bool, enum_, type Infer, num, object, optional, str } from './http/schema';
+import { array, bool, enum_, type Infer, num, object, optional, str } from './http/schema';
 import type { Ctx, RouteDef } from './http/types';
 import { PgShopCategoriesDb } from './shop_categories_db';
-import { type ShopProductErrorCode, ShopProductsService, shopProductJson } from './shop_products';
+import {
+  RARITY_TIERS,
+  SHOP_BADGES,
+  type ShopProductErrorCode,
+  ShopProductsService,
+  shopProductJson,
+} from './shop_products';
 import { PgShopProductsDb } from './shop_products_db';
 
 // ---------------------------------------------------------------------------
@@ -59,6 +65,9 @@ const productStatusEnum = enum_(['draft', 'active', 'archived']);
 const productSortEnum = enum_(['name', 'createdAt', 'updatedAt', 'displayOrder']);
 const sortDirEnum = enum_(['asc', 'desc']);
 const productGrantKindEnum = enum_(['none', 'weapon_skin', 'item']);
+const productRarityEnum = enum_(RARITY_TIERS);
+const productBadgesSchema = array(enum_(SHOP_BADGES), { maxLength: SHOP_BADGES.length });
+const DISCOUNT_MAX_LEN = 2;
 
 const listProductsQuerySchema = object({
   page: optional(num({ int: true, min: 1 }), 1),
@@ -67,6 +76,7 @@ const listProductsQuerySchema = object({
   categoryId: optional(num({ int: true, min: 0 })),
   status: optional(productStatusEnum),
   featured: optional(bool()),
+  rarity: optional(productRarityEnum),
   sort: optional(productSortEnum, 'updatedAt'),
   dir: optional(sortDirEnum, 'desc'),
 });
@@ -90,6 +100,14 @@ const createProductBodySchema = object({
   grantQuantity: optional(str({ maxLength: 10 }), ''),
   icon: optional(str({ maxLength: 300 }), ''),
   displayOrder: optional(num({ int: true, min: 0 }), 0),
+  rarity: optional(productRarityEnum, 'common'),
+  badges: optional(productBadgesSchema, []),
+  isEvent: optional(bool(), false),
+  isLimited: optional(bool(), false),
+  discountPercent: optional(str({ maxLength: DISCOUNT_MAX_LEN }), ''),
+  bannerImage: optional(str({ maxLength: 300 }), ''),
+  previewImage: optional(str({ maxLength: 300 }), ''),
+  announcementTemplate: optional(str({ maxLength: 300 }), ''),
 });
 
 const updateProductBodySchema = object({
@@ -111,6 +129,14 @@ const updateProductBodySchema = object({
   grantQuantity: optional(str({ maxLength: 10 })),
   icon: optional(str({ maxLength: 300 })),
   displayOrder: optional(num({ int: true, min: 0 })),
+  rarity: optional(productRarityEnum),
+  badges: optional(productBadgesSchema),
+  isEvent: optional(bool()),
+  isLimited: optional(bool()),
+  discountPercent: optional(str({ maxLength: DISCOUNT_MAX_LEN })),
+  bannerImage: optional(str({ maxLength: 300 })),
+  previewImage: optional(str({ maxLength: 300 })),
+  announcementTemplate: optional(str({ maxLength: 300 })),
 });
 
 export type ListProductsQuery = Infer<typeof listProductsQuerySchema>;

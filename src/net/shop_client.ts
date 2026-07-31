@@ -15,6 +15,19 @@ import { apiUrl } from './online';
 
 export type ShopProductGrantKind = 'none' | 'weapon_skin' | 'item';
 
+export type ShopRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+
+export type ShopBadge =
+  | 'new'
+  | 'hot'
+  | 'featured'
+  | 'best_value'
+  | 'limited'
+  | 'sale'
+  | 'event'
+  | 'exclusive'
+  | 'popular';
+
 export interface ShopCatalogCategory {
   id: number;
   name: string;
@@ -38,6 +51,13 @@ export interface ShopCatalogProduct {
   grantItemId: string | null;
   grantQuantity: number;
   availability: 'unlimited' | 'in_stock' | 'low_stock' | 'out_of_stock' | 'unavailable';
+  rarity: ShopRarity;
+  badges: ShopBadge[];
+  isEvent: boolean;
+  isLimited: boolean;
+  discountPercent: number | null;
+  bannerImage: string | null;
+  previewImage: string | null;
 }
 
 export interface ClaudiumPackage {

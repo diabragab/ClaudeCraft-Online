@@ -658,6 +658,19 @@ export type ShopCategoriesData = Paginated<ShopCategoryRow>;
 
 export type ShopProductStatus = 'draft' | 'active' | 'archived';
 
+export type ShopRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+
+export type ShopBadge =
+  | 'new'
+  | 'hot'
+  | 'featured'
+  | 'best_value'
+  | 'limited'
+  | 'sale'
+  | 'event'
+  | 'exclusive'
+  | 'popular';
+
 export interface ShopProductRow {
   id: number;
   sku: string;
@@ -680,6 +693,14 @@ export interface ShopProductRow {
   grantKind: 'none' | 'weapon_skin' | 'item';
   grantItemId: string | null;
   grantQuantity: number;
+  rarity: ShopRarity;
+  badges: ShopBadge[];
+  isEvent: boolean;
+  isLimited: boolean;
+  discountPercent: number | null;
+  bannerImage: string | null;
+  previewImage: string | null;
+  announcementTemplate: string | null;
   createdAt: string;
   updatedAt: string;
 }

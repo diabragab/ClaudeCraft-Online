@@ -26,6 +26,19 @@ export type StorefrontAvailability =
 
 export type StoreProductStatus = 'draft' | 'active' | 'archived';
 
+export type StoreRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary' | 'mythic';
+
+export type StoreBadge =
+  | 'new'
+  | 'hot'
+  | 'featured'
+  | 'best_value'
+  | 'limited'
+  | 'sale'
+  | 'event'
+  | 'exclusive'
+  | 'popular';
+
 export interface StoreProduct {
   id: number;
   sku: string;
@@ -44,6 +57,13 @@ export interface StoreProduct {
   createdAt: string;
   updatedAt: string;
   availability: StorefrontAvailability;
+  rarity: StoreRarity;
+  badges: StoreBadge[];
+  isEvent: boolean;
+  isLimited: boolean;
+  discountPercent: number | null;
+  bannerImage: string | null;
+  previewImage: string | null;
 }
 
 export interface StoreProductDetail extends StoreProduct {
