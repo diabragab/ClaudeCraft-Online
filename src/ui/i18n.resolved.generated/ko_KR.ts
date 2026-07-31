@@ -4976,6 +4976,25 @@ export const ko_KR: EnTranslations = {
       "failedTitle": "결제가 완료되지 않았습니다",
       "failedBody": "이 구매는 완료되지 않았습니다. 청구되거나 지급된 클라우디움이 없습니다.",
       "missingSession": "이 확인 링크에 결제 세션 정보가 없습니다."
+    },
+    "rarity": {
+      "common": "일반",
+      "uncommon": "고급",
+      "rare": "희귀",
+      "epic": "영웅",
+      "legendary": "전설",
+      "mythic": "신화"
+    },
+    "badge": {
+      "new": "신규",
+      "hot": "인기 급상승",
+      "featured": "추천",
+      "bestValue": "알뜰",
+      "limited": "한정",
+      "sale": "할인",
+      "event": "이벤트",
+      "exclusive": "독점",
+      "popular": "인기"
     }
   },
   "skinEvent": {

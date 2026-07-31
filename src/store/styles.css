@@ -199,6 +199,117 @@ main#store-main {
   color: var(--color-danger);
 }
 
+/* Premium Shop rarity + badges (src/ui/shop_rarity_view.ts is the shared
+   class-name helper; the in-game HUD's equivalent rules live in
+   src/styles/components.css, this SPA's own self-contained bundle per its
+   header comment). --rarity/--rarity-soft mirror the same six-tier palette
+   the HUD's .armory-card uses, so a product looks the same tier on both
+   surfaces even though the two never share a stylesheet. */
+.store-card {
+  position: relative;
+  --rarity: var(--border);
+  --rarity-soft: transparent;
+}
+.store-card.rarity-uncommon {
+  --rarity: #1eff00;
+  --rarity-soft: rgb(30 255 0 / 0.16);
+}
+.store-card.rarity-rare {
+  --rarity: #2f8dff;
+  --rarity-soft: rgb(47 141 255 / 0.18);
+}
+.store-card.rarity-epic {
+  --rarity: #a335ee;
+  --rarity-soft: rgb(163 53 238 / 0.2);
+}
+.store-card.rarity-legendary,
+.store-card.rarity-mythic {
+  border-width: 2px;
+}
+.store-card.rarity-legendary {
+  --rarity: #ff8000;
+  --rarity-soft: rgb(255 128 0 / 0.22);
+}
+.store-card.rarity-mythic {
+  --rarity: #ff2d6b;
+  --rarity-soft: rgb(255 45 107 / 0.24);
+}
+.store-card.rarity-uncommon,
+.store-card.rarity-rare,
+.store-card.rarity-epic,
+.store-card.rarity-legendary,
+.store-card.rarity-mythic {
+  border-color: var(--rarity);
+  box-shadow: 0 0 0 rgb(0 0 0 / 0);
+  transition: box-shadow 0.15s;
+}
+.store-card.rarity-uncommon:hover,
+.store-card.rarity-rare:hover,
+.store-card.rarity-epic:hover,
+.store-card.rarity-legendary:hover,
+.store-card.rarity-mythic:hover {
+  border-color: var(--rarity);
+  box-shadow: 0 0 12px var(--rarity-soft);
+}
+.shop-badge-row {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  max-width: calc(100% - 20px);
+  justify-content: flex-end;
+}
+.shop-badge {
+  padding: 2px 6px;
+  border-radius: 2px;
+  background: var(--shop-badge-color, var(--gold-dim));
+  color: #14100a;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.shop-badge-new {
+  --shop-badge-color: #20c5c5;
+}
+.shop-badge-hot {
+  --shop-badge-color: #ff4d4d;
+}
+.shop-badge-featured {
+  --shop-badge-color: var(--gold);
+}
+.shop-badge-best-value {
+  --shop-badge-color: #4dff88;
+}
+.shop-badge-limited {
+  --shop-badge-color: #ff6b35;
+}
+.shop-badge-sale {
+  --shop-badge-color: #ff3b3b;
+}
+.shop-badge-event {
+  --shop-badge-color: #a335ee;
+}
+.shop-badge-exclusive {
+  --shop-badge-color: #ff2d6b;
+}
+.shop-badge-popular {
+  --shop-badge-color: #2f8dff;
+}
+.store-price-original {
+  color: var(--text-dim);
+  font-size: 12px;
+  font-weight: 400;
+  text-decoration: line-through;
+}
+.store-price-discounted {
+  color: #ff6b5e;
+}
+
 .store-category-tiles {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

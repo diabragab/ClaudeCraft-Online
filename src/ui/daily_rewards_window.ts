@@ -16,6 +16,7 @@ import { formatDateTime, formatNumber, t } from './i18n';
 import { iconDataUrl } from './icons';
 import { PackageInspect } from './package_inspect';
 import { rovingTarget } from './roving_index';
+import { shopRarityPresentation } from './shop_rarity_view';
 import { svgIcon } from './ui_icons';
 import {
   buildGeneralStoreCards,
@@ -648,11 +649,23 @@ export class DailyRewardsWindow {
       : !card.purchasable || priceClaudium === null
         ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
         : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
-    const rarityClass = skin ? ` rarity-${esc(skin.rarity)}` : '';
+    // The Premium Shop's own merchandising rarity (shop_products.rarity) is
+    // authoritative once an operator sets it; a weapon-skin grant predating
+    // that field (every row migrated in Phase 5) still falls back to the
+    // skin's own WeaponSkinRarity, so existing Armory cards keep their look.
+    const shopRarity =
+      card.product.rarity !== 'common' ? card.product.rarity : (skin?.rarity ?? 'common');
+    const presentation = shopRarityPresentation({ rarity: shopRarity, badges: card.product.badges });
+    const rarityClass = presentation.cardRarityClass ? ` ${presentation.cardRarityClass}` : '';
+    const badgeChips = presentation.badges.length
+      ? `<span class="shop-badge-row">${presentation.badges
+          .map((badge) => `<span class="${badge.class}">${esc(t(badge.labelKey))}</span>`)
+          .join('')}</span>`
+      : '';
     return (
       `<article class="armory-card${rarityClass}${card.owned ? ' owned' : ''}${card.applied ? ' applied' : ''}">` +
       `<button type="button" data-store-buy="${card.product.id}" aria-label="${esc(t('hudChrome.wocStore.inspectAria', { item: name }))}">` +
-      `<span class="armory-card-art">${art ? `<img src="${esc(art)}" alt="" loading="lazy">` : ''}</span>` +
+      `<span class="armory-card-art">${art ? `<img src="${esc(art)}" alt="" loading="lazy">` : ''}${badgeChips}</span>` +
       `<span class="armory-card-copy"><h4>${esc(name)}</h4>${state}</span>` +
       `</button></article>`
     );

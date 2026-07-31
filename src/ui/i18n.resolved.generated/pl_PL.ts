@@ -4976,6 +4976,25 @@ export const pl_PL: EnTranslations = {
       "failedTitle": "Payment not completed",
       "failedBody": "This purchase was not completed, so no Claudium was charged or credited.",
       "missingSession": "This confirmation link is missing its checkout session."
+    },
+    "rarity": {
+      "common": "Common",
+      "uncommon": "Uncommon",
+      "rare": "Rare",
+      "epic": "Epic",
+      "legendary": "Legendary",
+      "mythic": "Mythic"
+    },
+    "badge": {
+      "new": "New",
+      "hot": "Hot",
+      "featured": "Featured",
+      "bestValue": "Best Value",
+      "limited": "Limited",
+      "sale": "Sale",
+      "event": "Event",
+      "exclusive": "Exclusive",
+      "popular": "Popular"
     }
   },
   "skinEvent": {

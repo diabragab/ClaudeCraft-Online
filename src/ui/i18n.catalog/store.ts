@@ -184,4 +184,28 @@ export const storeStrings = {
     failedBody: 'This purchase was not completed, so no Claudium was charged or credited.',
     missingSession: 'This confirmation link is missing its checkout session.',
   },
+
+  // Premium Shop (Phase 2): the product rarity tier and merchandising badge
+  // labels, shared by the in-game Store tab and this storefront so a tier or
+  // badge name never has to be translated twice.
+  rarity: {
+    common: 'Common',
+    uncommon: 'Uncommon',
+    rare: 'Rare',
+    epic: 'Epic',
+    legendary: 'Legendary',
+    mythic: 'Mythic',
+  },
+
+  badge: {
+    new: 'New',
+    hot: 'Hot',
+    featured: 'Featured',
+    bestValue: 'Best Value',
+    limited: 'Limited',
+    sale: 'Sale',
+    event: 'Event',
+    exclusive: 'Exclusive',
+    popular: 'Popular',
+  },
 };

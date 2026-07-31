@@ -4976,6 +4976,25 @@ export const zh_CN: EnTranslations = {
       "failedTitle": "付款未完成",
       "failedBody": "此次购买未完成，因此未扣款也未发放克劳迪币。",
       "missingSession": "此确认链接缺少结账会话信息。"
+    },
+    "rarity": {
+      "common": "普通",
+      "uncommon": "优秀",
+      "rare": "精良",
+      "epic": "史诗",
+      "legendary": "传说",
+      "mythic": "神话"
+    },
+    "badge": {
+      "new": "新品",
+      "hot": "热门",
+      "featured": "精选",
+      "bestValue": "超值",
+      "limited": "限量",
+      "sale": "特惠",
+      "event": "活动",
+      "exclusive": "限定",
+      "popular": "人气"
     }
   },
   "skinEvent": {

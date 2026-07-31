@@ -49,6 +49,13 @@ const PRODUCT = {
   createdAt: '2026-01-01T00:00:00.000Z',
   updatedAt: '2026-01-01T00:00:00.000Z',
   availability: 'in_stock' as const,
+  rarity: 'common' as const,
+  badges: [] as const,
+  isEvent: false,
+  isLimited: false,
+  discountPercent: null,
+  bannerImage: null,
+  previewImage: null,
   category: null,
 };
 

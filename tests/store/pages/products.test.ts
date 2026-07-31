@@ -35,6 +35,13 @@ function product(overrides: Record<string, unknown> = {}) {
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
     availability: 'in_stock',
+    rarity: 'common',
+    badges: [],
+    isEvent: false,
+    isLimited: false,
+    discountPercent: null,
+    bannerImage: null,
+    previewImage: null,
     ...overrides,
   };
 }

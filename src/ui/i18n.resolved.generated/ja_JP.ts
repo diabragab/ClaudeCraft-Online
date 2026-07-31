@@ -4976,6 +4976,25 @@ export const ja_JP: EnTranslations = {
       "failedTitle": "お支払いが完了しませんでした",
       "failedBody": "この購入は完了しませんでした。請求も付与も行われていません。",
       "missingSession": "この確認リンクには決済セッション情報がありません。"
+    },
+    "rarity": {
+      "common": "コモン",
+      "uncommon": "アンコモン",
+      "rare": "レア",
+      "epic": "エピック",
+      "legendary": "レジェンダリー",
+      "mythic": "ミシック"
+    },
+    "badge": {
+      "new": "新着",
+      "hot": "人気急上昇",
+      "featured": "おすすめ",
+      "bestValue": "お得",
+      "limited": "期間限定",
+      "sale": "セール",
+      "event": "イベント",
+      "exclusive": "限定",
+      "popular": "人気"
     }
   },
   "skinEvent": {

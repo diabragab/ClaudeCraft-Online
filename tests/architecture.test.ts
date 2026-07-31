@@ -184,6 +184,7 @@ const UI_PURE_CORES = [
   'src/ui/claudium_view.ts',
   'src/ui/woc_store_view.ts',
   'src/ui/woc_general_store_view.ts',
+  'src/ui/shop_rarity_view.ts',
   'src/ui/wallet_connection_view.ts',
   'src/ui/hud/loot/loot_roll_status_view.ts',
   'src/ui/hud/loot/loot_settings_view.ts',

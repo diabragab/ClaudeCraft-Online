@@ -2052,6 +2052,13 @@
     --rarity: #ff8000;
     --rarity-soft: rgb(255 128 0 / 0.18);
   }
+  /* Premium Shop mythic tier: a step above legendary, so it gets a shifting
+     prismatic sheen (three hues cycling) rather than legendary's single-hue
+     one, the same write-free animated-border-gradient technique. */
+  .armory-section.rarity-mythic {
+    --rarity: #ff2d6b;
+    --rarity-soft: rgb(255 45 107 / 0.2);
+  }
   .armory-section > header {
     display: flex;
     align-items: end;
@@ -2107,7 +2114,35 @@
   .armory-card:focus-within {
     box-shadow: 0 0 14px var(--rarity-soft);
   }
-  .armory-section.rarity-legendary .armory-card {
+  /* Self-scoped rarity tiers: a card carries its OWN rarity (a shop_products
+     row's merchandising rarity, or a weapon skin's WeaponSkinRarity), which
+     can differ from its siblings inside one category .armory-section, so the
+     custom properties are set directly on the card rather than relying on an
+     ancestor .armory-section.rarity-* class (that variant still exists for
+     the single-item Armory inspect overlay, where one rarity applies to the
+     whole modal). */
+  .armory-card.rarity-uncommon {
+    --rarity: #1eff00;
+    --rarity-soft: rgb(30 255 0 / 0.12);
+  }
+  .armory-card.rarity-rare {
+    --rarity: #2f8dff;
+    --rarity-soft: rgb(47 141 255 / 0.14);
+  }
+  .armory-card.rarity-epic {
+    --rarity: #a335ee;
+    --rarity-soft: rgb(163 53 238 / 0.16);
+  }
+  .armory-card.rarity-legendary {
+    --rarity: #ff8000;
+    --rarity-soft: rgb(255 128 0 / 0.18);
+  }
+  .armory-card.rarity-mythic {
+    --rarity: #ff2d6b;
+    --rarity-soft: rgb(255 45 107 / 0.2);
+  }
+  .armory-section.rarity-legendary .armory-card,
+  .armory-card.rarity-legendary {
     border-width: 2px;
     background:
       linear-gradient(#0d1620, #0d1620) padding-box,
@@ -2125,8 +2160,30 @@
         300% 0;
     }
   }
+  .armory-section.rarity-mythic .armory-card,
+  .armory-card.rarity-mythic {
+    border-width: 2px;
+    background:
+      linear-gradient(#0d1620, #0d1620) padding-box,
+      linear-gradient(120deg, #ff2d6b, #ffd27a, #7b5cff, #ff2d6b) border-box;
+    border-color: transparent;
+    animation: armory-mythic-sheen 3s linear infinite;
+    background-size:
+      auto,
+      400% 100%;
+  }
+  @keyframes armory-mythic-sheen {
+    to {
+      background-position:
+        0 0,
+        400% 0;
+    }
+  }
   @media (prefers-reduced-motion: reduce) {
-    .armory-section.rarity-legendary .armory-card {
+    .armory-section.rarity-legendary .armory-card,
+    .armory-section.rarity-mythic .armory-card,
+    .armory-card.rarity-legendary,
+    .armory-card.rarity-mythic {
       animation: none;
     }
   }
@@ -2272,6 +2329,10 @@
   .armory-inspect.rarity-legendary {
     --rarity: #ff8000;
     --rarity-soft: rgb(255 128 0 / 0.2);
+  }
+  .armory-inspect.rarity-mythic {
+    --rarity: #ff2d6b;
+    --rarity-soft: rgb(255 45 107 / 0.24);
   }
   .armory-inspect-close {
     position: absolute;
@@ -2453,6 +2514,77 @@
   .armory-equip-hint {
     color: var(--color-text-muted);
     font-size: 11.5px;
+  }
+  /* ---------- Premium Shop: badge chips + discount price ---------- */
+  /* Merchandising badge chips (server/shop_products.ts SHOP_BADGES): a small
+     row of pills an operator pins to a product, rendered by the shared
+     src/ui/shop_rarity_view.ts helper on the in-game Store cards
+     (.armory-card, reused generically since Phase 5). The standalone
+     storefront SPA ships its OWN self-contained stylesheet
+     (src/store/styles.css, see its header comment) and does not import this
+     one, so it carries its own equivalent .store-badge-* rules consuming the
+     same shop_rarity_view.ts class-name helper. One color per badge kind via
+     a custom property, so every chip shares one shape/type rule. */
+  .shop-badge-row {
+    position: absolute;
+    right: 6px;
+    bottom: 6px;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    max-width: calc(100% - 12px);
+    justify-content: flex-end;
+  }
+  .shop-badge {
+    padding: 2px 6px;
+    border-radius: 2px;
+    background: var(--shop-badge-color, #8fa3ad);
+    color: #06111a;
+    font-size: 9px;
+    font-weight: 700;
+    line-height: 1.4;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .shop-badge-new {
+    --shop-badge-color: #20c5c5;
+  }
+  .shop-badge-hot {
+    --shop-badge-color: #ff4d4d;
+  }
+  .shop-badge-featured {
+    --shop-badge-color: #ffd27a;
+  }
+  .shop-badge-best-value {
+    --shop-badge-color: #4dff88;
+  }
+  .shop-badge-limited {
+    --shop-badge-color: #ff6b35;
+  }
+  .shop-badge-sale {
+    --shop-badge-color: #ff3b3b;
+  }
+  .shop-badge-event {
+    --shop-badge-color: #a335ee;
+  }
+  .shop-badge-exclusive {
+    --shop-badge-color: #ff2d6b;
+  }
+  .shop-badge-popular {
+    --shop-badge-color: #2f8dff;
+  }
+  /* Discounted price: the original price strikes through, the discounted
+     amount takes the sale badge's color so the two read as one unit. */
+  .shop-price-original {
+    color: var(--color-text-muted);
+    font-size: 11px;
+    text-decoration: line-through;
+  }
+  .shop-price-discounted {
+    color: #ff3b3b;
+    font-weight: 700;
   }
   /* Title subtitle ("Lifetime XP, realm"): the muted-gold token + 11px the painter
      used to set with an inline style (keeps the literals out of TS). */
