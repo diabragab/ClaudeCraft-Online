@@ -19,6 +19,7 @@ interface FakeProduct {
   priceGoldCopper: number | null;
   priceClaudium: number | null;
   priceUsdCents: number | null;
+  discountPercent?: number | null;
   sku: string;
   name: string;
 }
@@ -81,10 +82,15 @@ class FakeShopOrdersDb implements ShopOrdersDb {
           productId: item.productId,
         };
       }
-      const unitPrice = this.priceFor(product, input.currency);
-      if (unitPrice === null) {
+      const rawUnitPrice = this.priceFor(product, input.currency);
+      if (rawUnitPrice === null) {
         return { ok: false as const, error: 'price_not_set' as const, productId: item.productId };
       }
+      const discountPercent = product.discountPercent ?? null;
+      const unitPrice =
+        discountPercent === null
+          ? rawUnitPrice
+          : Math.round((rawUnitPrice * (100 - discountPercent)) / 100);
       const inv = this.inventory.get(item.productId);
       if (!inv)
         return { ok: false as const, error: 'not_tracked' as const, productId: item.productId };
@@ -258,6 +264,31 @@ describe('ShopOrdersService.createOrder', () => {
     expect(result.order.createdByAdminId).toBe(9);
     expect(ctx.db.inventory.get(1)?.reserved).toBe(2);
     expect(ctx.db.inventory.get(1)?.onHand).toBe(10); // on-hand untouched at creation
+  });
+
+  it('prices a discounted product at the discounted total, not the sticker price', async () => {
+    ctx.db.products.set(2, {
+      id: 2,
+      status: 'active',
+      priceGoldCopper: 100,
+      priceClaudium: null,
+      priceUsdCents: null,
+      discountPercent: 30,
+      sku: 'shield-01',
+      name: 'Iron Shield',
+    });
+    ctx.db.inventory.set(2, { onHand: 10, reserved: 0, unlimited: false });
+
+    const result = await ctx.svc.createOrder(
+      { ...BASE_CREATE, items: [{ productId: 2, quantity: 2 }] },
+      9,
+    );
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    // 100 gold at 30% off is 70/unit, 140 for two, never the undiscounted 200.
+    expect(result.order.items[0].unitPrice).toBe(70);
+    expect(result.order.totalAmount).toBe(140);
   });
 
   it('merges duplicate productIds into one line item, summing quantity', async () => {

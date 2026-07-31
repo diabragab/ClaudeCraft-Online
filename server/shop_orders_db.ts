@@ -184,8 +184,19 @@ interface ProductPricingRow {
   price_gold_copper: string | number | null;
   price_claudium: number | null;
   price_usd_cents: number | null;
+  discount_percent: number | null;
   sku: string;
   name: string;
+}
+
+/** The `amount * (100 - discountPercent) / 100` rounded discounted price, in
+ *  the same raw unit as amount. Byte-identical formula to the storefront's
+ *  own display-side discountedAmount() (src/store/dom.ts): the server is the
+ *  one place that actually charges it, so a product's advertised discount
+ *  and its charged price can never drift apart. */
+export function discountedAmount(amount: number, discountPercent: number | null): number {
+  if (discountPercent === null) return amount;
+  return Math.round((amount * (100 - discountPercent)) / 100);
 }
 
 interface InventoryRow {
@@ -292,7 +303,7 @@ export class PgShopOrdersDb implements ShopOrdersDb {
       const resolved: ResolvedOrderItem[] = [];
       for (const item of input.items) {
         const productRes = await client.query<ProductPricingRow>(
-          `SELECT status, price_gold_copper, price_claudium, price_usd_cents, sku, name
+          `SELECT status, price_gold_copper, price_claudium, price_usd_cents, discount_percent, sku, name
              FROM shop_products WHERE id = $1 FOR UPDATE`,
           [item.productId],
         );
@@ -305,11 +316,12 @@ export class PgShopOrdersDb implements ShopOrdersDb {
           await client.query('ROLLBACK');
           return { ok: false, error: 'product_not_active', productId: item.productId };
         }
-        const unitPrice = priceForCurrency(product, input.currency);
-        if (unitPrice === null) {
+        const rawUnitPrice = priceForCurrency(product, input.currency);
+        if (rawUnitPrice === null) {
           await client.query('ROLLBACK');
           return { ok: false, error: 'price_not_set', productId: item.productId };
         }
+        const unitPrice = discountedAmount(rawUnitPrice, product.discount_percent);
         const inventoryRes = await client.query<InventoryRow>(
           `SELECT quantity_on_hand, quantity_reserved, unlimited FROM shop_inventory
             WHERE product_id = $1 FOR UPDATE`,

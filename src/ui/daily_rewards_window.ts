@@ -29,6 +29,14 @@ import {
 } from './woc_general_store_view';
 import { type ArmorySkinRow, armorySkinArt } from './woc_store_view';
 
+/** The `amount * (100 - discountPercent) / 100` rounded discounted price.
+ *  Byte-identical formula to the server's own charging-side discountedAmount
+ *  (server/shop_orders_db.ts) and the storefront's display-side one
+ *  (src/store/dom.ts): the display and the debit must always agree. */
+function discountedClaudiumPrice(amount: number, discountPercent: number): number {
+  return Math.round((amount * (100 - discountPercent)) / 100);
+}
+
 function remainingBanText(expiresAt: string, nowMs: number): string {
   const totalMinutes = Math.max(0, Math.ceil((Date.parse(expiresAt) - nowMs) / 60_000));
   const days = Math.floor(totalMinutes / 1_440);
@@ -672,13 +680,21 @@ export class DailyRewardsWindow {
     const name = this.cardName(card);
     const art = this.cardArt(card);
     const priceClaudium = card.product.priceClaudium;
+    const discountPercent = card.product.discountPercent;
+    const priceAmountHtml =
+      priceClaudium === null
+        ? ''
+        : discountPercent === null
+          ? `<strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong>`
+          : `<span class="shop-price-original">${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</span> ` +
+            `<strong class="shop-price-discounted">${formatNumber(discountedClaudiumPrice(priceClaudium, discountPercent), { maximumFractionDigits: 0 })}</strong>`;
     const state = card.owned
       ? card.applied
         ? `<span class="armory-state applied">${esc(t('hudChrome.wocStore.applied'))}</span>`
         : `<span class="armory-state">${esc(t('hudChrome.wocStore.owned'))}</span>`
       : !card.purchasable || priceClaudium === null
         ? `<span class="armory-state unavailable">${esc(t('hudChrome.wocStore.unavailable'))}</span>`
-        : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt=""><strong>${formatNumber(priceClaudium, { maximumFractionDigits: 0 })}</strong></span>`;
+        : `<span class="armory-cost"><img src="/claudium/icons/claudium_coin_64.webp" alt="">${priceAmountHtml}</span>`;
     const presentation = shopRarityPresentation({
       rarity: this.cardRarity(card),
       badges: card.product.badges,

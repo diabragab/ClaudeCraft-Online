@@ -22,6 +22,7 @@ import {
   listShopAnnouncementConfigHistory,
   loadShopAnnouncementConfig,
   PgShopAnnouncementConfigDb,
+  resetShopAnnouncementConfigCacheForTests,
   saveShopAnnouncementConfigChange,
 } from '../../server/shop_announcement_config_db';
 
@@ -37,6 +38,10 @@ function fakeClient(
 beforeEach(() => {
   mocks.connect.mockReset();
   mocks.poolQuery.mockReset();
+  // PgShopAnnouncementConfigDb.loadConfig() reads through a module-level
+  // cache (server/CLAUDE.md's Hot paths seam); reset it so one test's
+  // installed value can never leak into another's assertions.
+  resetShopAnnouncementConfigCacheForTests();
 });
 
 describe('loadShopAnnouncementConfig', () => {
@@ -150,5 +155,39 @@ describe('PgShopAnnouncementConfigDb', () => {
     const reader = new PgShopAnnouncementConfigDb();
     const { data } = await reader.loadConfig();
     expect(data).toEqual({ enabled: false });
+  });
+
+  it('serves a second read from cache without hitting the pool again (the per-checkout hot path)', async () => {
+    mocks.poolQuery.mockResolvedValue({ rows: [{ data: { enabled: true }, updated_at: null }] });
+    const reader = new PgShopAnnouncementConfigDb();
+
+    await reader.loadConfig();
+    await reader.loadConfig();
+
+    expect(mocks.poolQuery).toHaveBeenCalledTimes(1);
+  });
+
+  it('serves fresh data immediately after a save busts the cache', async () => {
+    mocks.poolQuery.mockResolvedValue({ rows: [{ data: { enabled: true }, updated_at: null }] });
+    const reader = new PgShopAnnouncementConfigDb();
+    await reader.loadConfig();
+    expect(mocks.poolQuery).toHaveBeenCalledTimes(1);
+
+    fakeClient(async (sql) => {
+      if (sql.includes('SELECT data')) {
+        return { rows: [{ data: { enabled: true }, updated_at: null, unchanged: false }] };
+      }
+      if (sql.startsWith('INSERT INTO shop_announcement_config (')) {
+        return { rows: [{ updated_at: '2026-02-01T00:00:00.000Z' }] };
+      }
+      return { rows: [] };
+    });
+    await saveShopAnnouncementConfigChange({ enabled: false }, 7, 'flip it off');
+
+    mocks.poolQuery.mockResolvedValue({ rows: [{ data: { enabled: false }, updated_at: null }] });
+    const { data } = await reader.loadConfig();
+
+    expect(data).toEqual({ enabled: false });
+    expect(mocks.poolQuery).toHaveBeenCalledTimes(2);
   });
 });

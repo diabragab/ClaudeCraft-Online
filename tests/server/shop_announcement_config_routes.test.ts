@@ -26,6 +26,7 @@ import { resetAdminDbForTests, setAdminDbForTests } from '../../server/admin';
 import { compose } from '../../server/http/compose';
 import { withErrors } from '../../server/http/middleware/with_errors';
 import type { Ctx, Middleware } from '../../server/http/types';
+import type { ShopAnnouncementConfig } from '../../server/shop_announcement';
 import { routes } from '../../server/shop_announcement_config_routes';
 import { fakeCtx } from './helpers';
 
@@ -217,7 +218,7 @@ describe('shop announcement config routes: save', () => {
     expect(dbMocks.saveShopAnnouncementConfigChange).not.toHaveBeenCalled();
   });
 
-  it('defaults every field when the body is empty', async () => {
+  it('falls back to the catalog defaults for every field when nothing was ever saved and the body is empty', async () => {
     authedAs(['admin']);
     const route = routeFor('POST', '/admin/api/shop/announcement-config');
     const ctx = fakeCtx({
@@ -233,6 +234,87 @@ describe('shop announcement config routes: save', () => {
       1,
       '',
     );
+  });
+
+  it('MERGES a partial save onto the existing document, never resetting an untouched field', async () => {
+    authedAs(['admin']);
+    dbMocks.loadShopAnnouncementConfig.mockResolvedValue({
+      data: {
+        enabled: true,
+        minRarity: 'legendary',
+        messageTemplate: '{player} snagged {item}!',
+        discordWebhookEnabled: true,
+        discordWebhookUrl: 'https://discord.com/api/webhooks/1/token',
+      },
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    const route = routeFor('POST', '/admin/api/shop/announcement-config');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/announcement-config',
+      headers: { authorization: BEARER },
+      // Only enabled changes; every other field (including the webhook URL)
+      // must survive untouched, not collapse back to the catalog defaults.
+      body: { enabled: false },
+    });
+    await runRoute(route, ctx);
+    const { status, body } = captured(ctx);
+    expect(status).toBe(200);
+    expect(dbMocks.saveShopAnnouncementConfigChange).toHaveBeenCalledWith(
+      {
+        enabled: false,
+        minRarity: 'legendary',
+        messageTemplate: '{player} snagged {item}!',
+        discordWebhookEnabled: true,
+        discordWebhookUrl: 'https://discord.com/api/webhooks/1/token',
+      },
+      1,
+      '',
+    );
+    expect((body as { data: { config: ShopAnnouncementConfig } }).data.config).toEqual({
+      enabled: false,
+      minRarity: 'legendary',
+      messageTemplate: '{player} snagged {item}!',
+      discordWebhookEnabled: true,
+      discordWebhookUrl: 'https://discord.com/api/webhooks/1/token',
+    });
+  });
+
+  it('422s a discord webhook URL outside the allowed host/scheme (SSRF guard)', async () => {
+    authedAs(['admin']);
+    const route = routeFor('POST', '/admin/api/shop/announcement-config');
+    for (const url of [
+      'http://discord.com/api/webhooks/1/token', // not https
+      'https://evil.example.com/api/webhooks/1/token', // not discord.com
+      'https://discord.com/not-a-webhook-path',
+      'http://169.254.169.254/latest/meta-data/',
+    ]) {
+      const ctx = fakeCtx({
+        method: 'POST',
+        url: '/admin/api/shop/announcement-config',
+        headers: { authorization: BEARER },
+        body: { discordWebhookEnabled: true, discordWebhookUrl: url },
+      });
+      await runRoute(route, ctx);
+      expect(captured(ctx).status).toBe(422);
+    }
+    expect(dbMocks.saveShopAnnouncementConfigChange).not.toHaveBeenCalled();
+  });
+
+  it('accepts a well-formed discord.com webhook URL', async () => {
+    authedAs(['admin']);
+    const route = routeFor('POST', '/admin/api/shop/announcement-config');
+    const ctx = fakeCtx({
+      method: 'POST',
+      url: '/admin/api/shop/announcement-config',
+      headers: { authorization: BEARER },
+      body: {
+        discordWebhookEnabled: true,
+        discordWebhookUrl: 'https://discord.com/api/webhooks/123/abcDEF',
+      },
+    });
+    await runRoute(route, ctx);
+    expect(captured(ctx).status).toBe(200);
   });
 });
 

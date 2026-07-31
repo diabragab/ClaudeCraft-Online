@@ -36,13 +36,22 @@ export function featuredCarouselHtml(products: StoreProduct[]): string {
  * single/zero-slide count that never auto-advances or scrolls anywhere).
  */
 export function mountFeaturedCarousel(root: HTMLElement, count: number): (() => void) | undefined {
-  const carousel = root.querySelector<HTMLElement>('.store-carousel');
-  const track = carousel?.querySelector<HTMLElement>('.store-carousel-track');
-  const prevBtn = carousel?.querySelector<HTMLButtonElement>('.store-carousel-prev');
-  const nextBtn = carousel?.querySelector<HTMLButtonElement>('.store-carousel-next');
-  if (!carousel || !track || !prevBtn || !nextBtn || count === 0) return undefined;
+  const carouselMaybe = root.querySelector<HTMLElement>('.store-carousel');
+  const track = carouselMaybe?.querySelector<HTMLElement>('.store-carousel-track');
+  const prevBtn = carouselMaybe?.querySelector<HTMLButtonElement>('.store-carousel-prev');
+  const nextBtn = carouselMaybe?.querySelector<HTMLButtonElement>('.store-carousel-next');
+  if (!carouselMaybe || !track || !prevBtn || !nextBtn || count === 0) return undefined;
+  const carousel: HTMLElement = carouselMaybe;
 
   let index = 0;
+  // Hover and focus are tracked SEPARATELY (never one shared boolean two
+  // listeners fight over): a mouseleave while a carousel control still has
+  // keyboard focus must not resume auto-advance out from under that focused
+  // control (the WCAG 2.2.2 pause mechanism failing in exactly the keyboard
+  // case it exists for), and the reverse (hovering while focus is elsewhere)
+  // must not un-pause on a stray focusout either.
+  let hovered = false;
+  let focused = false;
   let paused = false;
   // jsdom (the test environment) does not implement matchMedia at all; treat
   // that as "no preference expressed" rather than throwing, so this module
@@ -79,14 +88,38 @@ export function mountFeaturedCarousel(root: HTMLElement, count: number): (() => 
     timer = null;
   }
 
-  function pause(): void {
-    paused = true;
-    disarmTimer();
+  function syncPaused(): void {
+    const next = hovered || focused;
+    if (next === paused) return;
+    paused = next;
+    if (paused) disarmTimer();
+    else armTimer();
   }
 
-  function resume(): void {
-    paused = false;
-    armTimer();
+  function onMouseEnter(): void {
+    hovered = true;
+    syncPaused();
+  }
+
+  function onMouseLeave(): void {
+    hovered = false;
+    syncPaused();
+  }
+
+  function onFocusIn(): void {
+    focused = true;
+    syncPaused();
+  }
+
+  function onFocusOut(event: FocusEvent): void {
+    // Moving focus between the carousel's OWN controls (prev -> next) fires
+    // focusout then focusin on the container; relatedTarget is the element
+    // GAINING focus, so treat that as "focus never left" rather than a
+    // pause/resume flicker.
+    const next = event.relatedTarget;
+    if (next instanceof Node && carousel.contains(next)) return;
+    focused = false;
+    syncPaused();
   }
 
   function onPrev(): void {
@@ -96,10 +129,10 @@ export function mountFeaturedCarousel(root: HTMLElement, count: number): (() => 
 
   prevBtn.addEventListener('click', onPrev);
   nextBtn.addEventListener('click', advance);
-  carousel.addEventListener('mouseenter', pause);
-  carousel.addEventListener('mouseleave', resume);
-  carousel.addEventListener('focusin', pause);
-  carousel.addEventListener('focusout', resume);
+  carousel.addEventListener('mouseenter', onMouseEnter);
+  carousel.addEventListener('mouseleave', onMouseLeave);
+  carousel.addEventListener('focusin', onFocusIn);
+  carousel.addEventListener('focusout', onFocusOut);
 
   armTimer();
 
@@ -107,9 +140,9 @@ export function mountFeaturedCarousel(root: HTMLElement, count: number): (() => 
     disarmTimer();
     prevBtn.removeEventListener('click', onPrev);
     nextBtn.removeEventListener('click', advance);
-    carousel.removeEventListener('mouseenter', pause);
-    carousel.removeEventListener('mouseleave', resume);
-    carousel.removeEventListener('focusin', pause);
-    carousel.removeEventListener('focusout', resume);
+    carousel.removeEventListener('mouseenter', onMouseEnter);
+    carousel.removeEventListener('mouseleave', onMouseLeave);
+    carousel.removeEventListener('focusin', onFocusIn);
+    carousel.removeEventListener('focusout', onFocusOut);
   };
 }

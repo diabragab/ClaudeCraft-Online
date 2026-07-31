@@ -36,7 +36,7 @@ export type ShopProductGrantKind = 'none' | 'weapon_skin' | 'item';
 // Premium Shop: a product's own merchandising rarity, independent of any
 // in-game item quality (src/ui/icons.ts QUALITY_COLOR) or weapon-skin rarity
 // (src/sim/content/weapon_skins.ts WeaponSkinRarity) the grant target might
-// carry — not every product grants an item with a quality (a Claudium
+// carry (not every product grants an item with a quality: a Claudium
 // package or a pure-cosmetic product has none), so this is its own closed
 // vocabulary. 'common' (the bottom tier) is the correct default for every
 // product predating this column.

@@ -89,6 +89,11 @@ describe('server-sent message localization', () => {
     'Server restart in 30 seconds.',
     'Server restart in 10 seconds.',
     'Server restarting now.',
+    // Phase 2D's rarity-gated shop purchase announcement (server/shop_announcement.ts
+    // formatShopAnnouncement over DEFAULT_ANNOUNCEMENT_MESSAGE_TEMPLATE), broadcast
+    // via GameServer.broadcastSystem and routed dynamically (not a game.ts literal),
+    // so the S3 guard's static scan cannot see it: pin the round trip here instead.
+    'Mira just unlocked Dragon Blade (legendary) from the Premium Shop!',
   ];
 
   it('recognizes and localizes every sample in every non-English locale', async () => {
@@ -124,6 +129,34 @@ describe('server-sent message localization', () => {
     setLanguage('en');
   });
 
+  it('localizes the shop announcement rarity word while keeping player/item names verbatim', () => {
+    for (const lang of supportedLanguages) {
+      setLanguage(lang);
+      const out = localizeServerText(
+        'Mira just unlocked Dragon Blade (legendary) from the Premium Shop!',
+      );
+      if (!out) throw new Error(`${lang}: shop announcement should be recognized`);
+      expect(out).toContain('Mira');
+      expect(out).toContain('Dragon Blade');
+    }
+    setLanguage('en');
+  });
+
+  it('renders the shop announcement rarity word through store.rarity.legendary for the fully-translated locales', () => {
+    // These five are the M16 mandatory non-Latin fills (src/ui/CLAUDE.md), so unlike
+    // the rest of the overlay set they carry a REAL store.rarity.legendary translation
+    // today rather than the English pending-fallback: assert the lowercase-English
+    // literal "legendary" is actually gone, not merely re-cased.
+    for (const lang of ['ja_JP', 'ko_KR', 'ru_RU', 'zh_CN', 'zh_TW'] as const) {
+      setLanguage(lang);
+      const out = localizeServerText(
+        'Mira just unlocked Dragon Blade (legendary) from the Premium Shop!',
+      );
+      expect(out?.toLowerCase(), lang).not.toContain('legendary');
+    }
+    setLanguage('en');
+  });
+
   it('returns null for text that is not a server message', () => {
     setLanguage('es');
     expect(localizeServerText('This is an ordinary chat line.')).toBeNull();
@@ -143,12 +176,14 @@ describe('server-sent message localization', () => {
       'moderation.spectateNotOnline',
       'moderation.spectateStart',
       'moderation.spectateEnded',
+      'shop.announcementDefault',
     ];
     const expected: Record<string, string> = {
       'friends.added': 'name',
       'guild.alreadyRank': 'name,rank',
       'guild.newMaster': 'guild,name',
       'world.left': 'name,reason',
+      'shop.announcementDefault': 'item,player,rarity',
       'who.header': 'count,realm',
       'who.row': 'className,level,name,status,zone',
       'who.more': 'count',

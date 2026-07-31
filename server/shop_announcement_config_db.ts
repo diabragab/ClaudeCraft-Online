@@ -6,6 +6,7 @@
 // this feature's SQL runs (server/CLAUDE.md: SQL lives only in db.ts and
 // *_db.ts).
 
+import { createCachedRead } from './cached_read';
 import { pool } from './db';
 import { REALM } from './realm';
 import type { ShopAnnouncementConfigReader } from './shop_announcement';
@@ -63,6 +64,26 @@ export async function loadShopAnnouncementConfig(): Promise<StoredShopAnnounceme
   };
 }
 
+// The announcement decision runs on every Claudium checkout (server/CLAUDE.md's
+// "Hot paths": a viewer-identical read must never be a per-request pool.query).
+// This is a per-realm, admin-edited document that rarely changes, so a short
+// TTL plus an immediate bust on save (below) keeps it correct without a
+// database round trip on every purchase. Only PgShopAnnouncementConfigDb below
+// reads through this cache; the admin routes (a low-volume read, and the
+// merge-read inside saveShopAnnouncementConfigChange, which must see truly
+// fresh state) call loadShopAnnouncementConfig directly.
+const CONFIG_READ_CACHE_TTL_MS = 30_000;
+const configReadCache = createCachedRead(loadShopAnnouncementConfig, {
+  ttlMs: CONFIG_READ_CACHE_TTL_MS,
+});
+
+/** Test-only: clear the module-level cache between test files/cases so a
+ *  mocked pool response from one test can never leak into another via a
+ *  still-warm installed value. */
+export function resetShopAnnouncementConfigCacheForTests(): void {
+  configReadCache.bust();
+}
+
 /**
  * Replace the realm's override document and append its audit row atomically.
  * An unchanged document is a no-op: it does not refresh updated_at or create history.
@@ -108,6 +129,10 @@ export async function saveShopAnnouncementConfigChange(
       [REALM, updatedBy, JSON.stringify(beforeData), encoded, note],
     );
     await client.query('COMMIT');
+    // Only the announcement-decision hot path (PgShopAnnouncementConfigDb
+    // below) reads through the cache; bust it here so the very next purchase
+    // sees this save immediately rather than waiting out the TTL.
+    configReadCache.bust();
     return {
       changed: true,
       updatedAt: new Date(saved.rows[0].updated_at).toISOString(),
@@ -157,9 +182,10 @@ function documentObject(value: unknown): Record<string, unknown> {
     : {};
 }
 
-/** Constructor-injectable reader for ShopAnnouncementService (server/shop_announcement.ts). */
+/** Constructor-injectable reader for ShopAnnouncementService (server/shop_announcement.ts):
+ *  the per-checkout hot path, so this reads through the cache above. */
 export class PgShopAnnouncementConfigDb implements ShopAnnouncementConfigReader {
   async loadConfig(): Promise<{ data: unknown }> {
-    return loadShopAnnouncementConfig();
+    return configReadCache.read();
   }
 }

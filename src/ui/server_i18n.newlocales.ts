@@ -115,6 +115,7 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'moderátorská akce',
     'world.leaveTimeout': 'vypršel čas',
     'world.left': '{name} opustil(a) svět. ({reason})',
+    'shop.announcementDefault': '{player} právě získal(a) {item} ({rarity}) z Prémiového obchodu!',
   },
   da_DK: {
     'chat.filterMuted': 'Det sprog er ikke tilladt her. Du er gjort tavs i {duration}.',
@@ -231,6 +232,7 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'moderationshandling',
     'world.leaveTimeout': 'tid udløbet',
     'world.left': '{name} har forladt verdenen. ({reason})',
+    'shop.announcementDefault': '{player} har lige låst {item} ({rarity}) op fra Premium Shoppen!',
   },
   id_ID: {
     'chat.filterMuted': 'Bahasa itu tidak diperbolehkan di sini. Kamu dibungkam selama {duration}.',
@@ -352,6 +354,7 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'tindakan moderasi',
     'world.leaveTimeout': 'kehabisan waktu',
     'world.left': '{name} telah meninggalkan dunia. ({reason})',
+    'shop.announcementDefault': '{player} baru saja membuka {item} ({rarity}) dari Toko Premium!',
   },
   nl_NL: {
     'chat.filterMuted': 'Die taal is hier niet toegestaan. Je bent gedempt voor {duration}.',
@@ -471,6 +474,8 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'moderatieactie',
     'world.leaveTimeout': 'time-out',
     'world.left': '{name} heeft de wereld verlaten. ({reason})',
+    'shop.announcementDefault':
+      '{player} heeft zojuist {item} ({rarity}) ontgrendeld in de Premium Shop!',
   },
   pl_PL: {
     'chat.filterMuted': 'Taki język jest tu niedozwolony. Zostajesz wyciszony na {duration}.',
@@ -592,6 +597,8 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'działanie moderacji',
     'world.leaveTimeout': 'przekroczono limit czasu',
     'world.left': '{name} opuścił świat. ({reason})',
+    'shop.announcementDefault':
+      '{player} właśnie odblokował(a) {item} ({rarity}) w Sklepie Premium!',
   },
   sv_SE: {
     'chat.filterMuted': 'Det språket är inte tillåtet här. Du är tystad i {duration}.',
@@ -711,6 +718,7 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'modereringsåtgärd',
     'world.leaveTimeout': 'tidsgräns överskreds',
     'world.left': '{name} har lämnat världen. ({reason})',
+    'shop.announcementDefault': '{player} har just låst upp {item} ({rarity}) från Premiumbutiken!',
   },
   tr_TR: {
     'chat.filterMuted': 'Bu dil burada yasak. {duration} boyunca susturuldun.',
@@ -828,6 +836,7 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'moderasyon işlemi',
     'world.leaveTimeout': 'zaman aşımı',
     'world.left': '{name} dünyadan ayrıldı. ({reason})',
+    'shop.announcementDefault': '{player} az önce Premium Mağaza’dan {item} ({rarity}) açtı!',
   },
   vi_VN: {
     'chat.filterMuted': 'Ngôn ngữ đó không được phép ở đây. Bạn bị cấm chat trong {duration}.',
@@ -946,5 +955,6 @@ export const SERVER_NEW = {
     'world.leaveModeration': 'hành động điều hành',
     'world.leaveTimeout': 'đã hết thời gian chờ',
     'world.left': '{name} đã rời khỏi thế giới. ({reason})',
+    'shop.announcementDefault': '{player} vừa mở khóa {item} ({rarity}) từ Cửa hàng Premium!',
   },
 };

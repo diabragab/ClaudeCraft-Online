@@ -9,6 +9,33 @@
 import { RARITY_TIERS, type ShopRarity } from './shop_products';
 
 // ---------------------------------------------------------------------------
+// Discord webhook URL allowlist: this is the one admin-settable outbound
+// fetch() target in server/ (every other webhook in the tree is inbound, e.g.
+// the Stripe webhook route, or a statically configured relay). An admin-
+// supplied host/scheme with no constraint would let a shop.manage holder turn
+// the game server into an internal-network prober (cloud metadata, internal
+// admin services), so both the save path (shop_announcement_config_routes.ts)
+// and the actual POST below re-check this, since a URL could already be
+// stored in the table from before this check existed.
+// ---------------------------------------------------------------------------
+
+const ALLOWED_DISCORD_WEBHOOK_HOSTS = new Set(['discord.com', 'discordapp.com']);
+
+export function isAllowedDiscordWebhookUrl(url: string): boolean {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+  return (
+    parsed.protocol === 'https:' &&
+    ALLOWED_DISCORD_WEBHOOK_HOSTS.has(parsed.hostname) &&
+    parsed.pathname.startsWith('/api/webhooks/')
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Config document (validated/defaulted here; persisted as opaque JSONB by
 // shop_announcement_config_db.ts, the same split antibot_config_db.ts uses
 // between storage and validation).
@@ -72,6 +99,10 @@ export interface ShopAnnouncementPurchase {
   playerName: string;
   productName: string;
   rarity: ShopRarity;
+  /** The purchased product's own announcementTemplate (shop_products.rarity
+   *  sibling column), when the operator set one. Null/undefined falls back
+   *  to the realm's global config.messageTemplate. */
+  templateOverride?: string | null;
 }
 
 export interface ShopAnnouncementDecision {
@@ -103,9 +134,10 @@ export function decideShopAnnouncement(
   if (!config.enabled || RARITY_RANK[purchase.rarity] < RARITY_RANK[config.minRarity]) {
     return { fire: false, message: '', postToDiscord: false };
   }
+  const template = purchase.templateOverride?.trim() || config.messageTemplate;
   return {
     fire: true,
-    message: formatShopAnnouncement(config.messageTemplate, purchase),
+    message: formatShopAnnouncement(template, purchase),
     postToDiscord: config.discordWebhookEnabled && config.discordWebhookUrl.trim().length > 0,
   };
 }
@@ -176,6 +208,9 @@ export async function postDiscordWebhookForTest(
   url: string,
   content: string,
 ): Promise<DiscordWebhookPostResult> {
+  if (!isAllowedDiscordWebhookUrl(url)) {
+    return { ok: false, status: null, error: 'url is not an allowed Discord webhook endpoint' };
+  }
   try {
     const res = await fetch(url, {
       method: 'POST',

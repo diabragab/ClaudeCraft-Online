@@ -12,7 +12,7 @@ import { ADMIN_META, adminIdentityOf } from './http/middleware/require_admin';
 import { bool, enum_, type Infer, object, optional, str } from './http/schema';
 import type { Ctx, RouteDef } from './http/types';
 import {
-  DEFAULT_SHOP_ANNOUNCEMENT_CONFIG,
+  isAllowedDiscordWebhookUrl,
   parseShopAnnouncementConfig,
   postDiscordWebhookForTest,
   type ShopAnnouncementConfig,
@@ -36,18 +36,17 @@ const testDiscordBodySchema = object({
 // purchase would produce, without needing a live sale to test the webhook.
 const TEST_MESSAGE = 'This is a test announcement from the World of ClaudeCraft admin panel.';
 
+// Every config field is genuinely optional here (no schema-level default):
+// saveHandler merges the decoded patch onto the CURRENTLY STORED document
+// rather than defaulting an omitted field to its catalog default, so a save
+// that only changes one field (e.g. { enabled: false }) can never silently
+// reset every other field an operator already configured.
 const saveConfigBodySchema = object({
-  enabled: optional(bool(), DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.enabled),
-  minRarity: optional(rarityEnum, DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.minRarity),
-  messageTemplate: optional(
-    str({ minLength: 1, maxLength: 300 }),
-    DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.messageTemplate,
-  ),
-  discordWebhookEnabled: optional(bool(), DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.discordWebhookEnabled),
-  discordWebhookUrl: optional(
-    str({ maxLength: 300 }),
-    DEFAULT_SHOP_ANNOUNCEMENT_CONFIG.discordWebhookUrl,
-  ),
+  enabled: optional(bool()),
+  minRarity: optional(rarityEnum),
+  messageTemplate: optional(str({ minLength: 1, maxLength: 300 })),
+  discordWebhookEnabled: optional(bool()),
+  discordWebhookUrl: optional(str({ maxLength: 300 })),
   note: optional(str({ maxLength: NOTE_MAX }), ''),
 });
 
@@ -68,18 +67,33 @@ async function historyHandler(ctx: Ctx): Promise<void> {
   adminOk(ctx.res, { entries: await listShopAnnouncementConfigHistory() });
 }
 
-/** POST /admin/api/shop/announcement-config: validate-then-save; a no-op save
- *  (identical document) leaves updatedAt and the audit trail untouched. */
+/** POST /admin/api/shop/announcement-config: validate, MERGE onto the
+ *  currently stored document (never onto catalog defaults, so an omitted
+ *  field keeps its existing value), then save; a no-op save (identical
+ *  document) leaves updatedAt and the audit trail untouched. */
 async function saveHandler(ctx: Ctx): Promise<void> {
   const decoded = saveConfigBodySchema.decode(ctx.body ?? {});
   if (!decoded.ok) throw decoded;
-  const { note, ...fields } = decoded.value;
+  const { note, ...patch } = decoded.value;
+  const stored = await loadShopAnnouncementConfig();
+  const current = parseShopAnnouncementConfig(stored.data);
+  const merged: ShopAnnouncementConfig = {
+    enabled: patch.enabled ?? current.enabled,
+    minRarity: patch.minRarity ?? current.minRarity,
+    messageTemplate: patch.messageTemplate ?? current.messageTemplate,
+    discordWebhookEnabled: patch.discordWebhookEnabled ?? current.discordWebhookEnabled,
+    discordWebhookUrl: patch.discordWebhookUrl ?? current.discordWebhookUrl,
+  };
+  const trimmedUrl = merged.discordWebhookUrl.trim();
+  if (trimmedUrl !== '' && !isAllowedDiscordWebhookUrl(trimmedUrl)) {
+    throw new HttpError(422, 'shop.invalid_input');
+  }
   const saved = await saveShopAnnouncementConfigChange(
-    fields,
+    { ...merged },
     adminIdentityOf(ctx).accountId,
     note,
   );
-  adminOk(ctx.res, configJson(parseShopAnnouncementConfig(fields), saved.updatedAt));
+  adminOk(ctx.res, configJson(merged, saved.updatedAt));
 }
 
 /** POST /admin/api/shop/announcement-config/test-discord: fires one test

@@ -140,6 +140,80 @@ describe('DailyRewardsWindow store refresh behavior', () => {
     expect(html).not.toContain('woc-store-wallet');
   });
 
+  it('shows the strikethrough original price alongside the discounted price', () => {
+    let html = '';
+    const body = {
+      dataset: {},
+      get innerHTML() {
+        return html;
+      },
+      set innerHTML(value: string) {
+        html = value;
+      },
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+    const window = new DailyRewardsWindow({
+      root: () => rootStub(body),
+      world: worldStub,
+      closeOthers: () => undefined,
+      captureFocus: () => null,
+      restoreFocus: () => undefined,
+    });
+    const card = weaponSkinCard({
+      product: weaponSkinProduct({ priceClaudium: 200, discountPercent: 30 }),
+    });
+    Object.assign(window as unknown as Record<string, unknown>, {
+      storeBalance: 750,
+      storeCards: [card],
+    });
+
+    (window as unknown as { paintStore(body: HTMLElement): void }).paintStore(
+      body as unknown as HTMLElement,
+    );
+
+    expect(html).toContain(`<span class="shop-price-original">${formatNumber(200, { maximumFractionDigits: 0 })}</span>`);
+    // 200 at 30% off is 140, matching what the server actually charges
+    // (server/shop_orders_db.ts): the card must never show a discount the
+    // checkout would not honor.
+    expect(html).toContain(`<strong class="shop-price-discounted">${formatNumber(140, { maximumFractionDigits: 0 })}</strong>`);
+  });
+
+  it('shows a plain price with no strikethrough when the product has no discount', () => {
+    let html = '';
+    const body = {
+      dataset: {},
+      get innerHTML() {
+        return html;
+      },
+      set innerHTML(value: string) {
+        html = value;
+      },
+      querySelector: () => null,
+      querySelectorAll: () => [],
+    };
+    const window = new DailyRewardsWindow({
+      root: () => rootStub(body),
+      world: worldStub,
+      closeOthers: () => undefined,
+      captureFocus: () => null,
+      restoreFocus: () => undefined,
+    });
+    const card = weaponSkinCard({ product: weaponSkinProduct({ priceClaudium: 200 }) });
+    Object.assign(window as unknown as Record<string, unknown>, {
+      storeBalance: 750,
+      storeCards: [card],
+    });
+
+    (window as unknown as { paintStore(body: HTMLElement): void }).paintStore(
+      body as unknown as HTMLElement,
+    );
+
+    expect(html).not.toContain('shop-price-original');
+    expect(html).not.toContain('shop-price-discounted');
+    expect(html).toContain(`<strong>${formatNumber(200, { maximumFractionDigits: 0 })}</strong>`);
+  });
+
   it('selects and opens the Store without toggling an open window closed', () => {
     const root = rootStub();
     root.style.display = 'none';

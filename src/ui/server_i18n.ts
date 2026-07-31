@@ -11,7 +11,14 @@
 import { CLASSES, DUNGEONS, ZONES } from '../sim/data';
 import type { PlayerClass } from '../sim/types';
 import { tEntity } from './entity_i18n';
-import { getLanguage, type InterpolationValues, type SupportedLanguage, tPlural } from './i18n';
+import {
+  getLanguage,
+  type InterpolationValues,
+  type SupportedLanguage,
+  type TranslationKey,
+  t,
+  tPlural,
+} from './i18n';
 import { SERVER_NEW } from './server_i18n.newlocales';
 import { IN_GAME_MODERATION_MESSAGES } from './server_i18n_moderation';
 
@@ -133,6 +140,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'time.hour': '{count} hour',
     'time.days': '{count} days',
     'time.day': '{count} day',
+    'shop.announcementDefault': '{player} just unlocked {item} ({rarity}) from the Premium Shop!',
   },
   en_CA: {
     'chat.filterMutedRemaining': "You are muted and can't chat for another {duration}.",
@@ -249,6 +257,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'dead',
     'who.statusDungeon': 'dungeon',
     'who.zoneUnknown': 'Unknown',
+    'shop.announcementDefault': '{player} just unlocked {item} ({rarity}) from the Premium Shop!',
   },
   es: {
     'chat.filterMutedRemaining': 'Estás silenciado y no puedes chatear durante {duration} más.',
@@ -372,6 +381,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'muerto',
     'who.statusDungeon': 'en mazmorra',
     'who.zoneUnknown': 'Desconocida',
+    'shop.announcementDefault':
+      '¡{player} acaba de desbloquear {item} ({rarity}) en la Tienda Premium!',
   },
   es_ES: {
     'chat.filterMutedRemaining': 'Estás silenciado y no puedes chatear durante {duration} más.',
@@ -496,6 +507,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'muerto',
     'who.statusDungeon': 'en mazmorra',
     'who.zoneUnknown': 'Desconocido',
+    'shop.announcementDefault':
+      '¡{player} acaba de desbloquear {item} ({rarity}) en la Tienda Premium!',
   },
   fr_FR: {
     'chat.filterMutedRemaining':
@@ -620,6 +633,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'mort',
     'who.statusDungeon': 'en donjon',
     'who.zoneUnknown': 'Inconnu',
+    'shop.announcementDefault':
+      '{player} vient de débloquer {item} ({rarity}) dans la Boutique Premium !',
   },
   fr_CA: {
     'chat.filterMutedRemaining':
@@ -745,6 +760,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'mort',
     'who.statusDungeon': 'en donjon',
     'who.zoneUnknown': 'Inconnu',
+    'shop.announcementDefault':
+      '{player} vient de débloquer {item} ({rarity}) dans la Boutique Premium!',
   },
   it_IT: {
     'chat.filterMutedRemaining': 'Sei silenziato e non puoi chattare per altri {duration}.',
@@ -864,6 +881,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'morto',
     'who.statusDungeon': 'nel dungeon',
     'who.zoneUnknown': 'Sconosciuta',
+    'shop.announcementDefault':
+      '{player} ha appena sbloccato {item} ({rarity}) dal Negozio Premium!',
   },
   de_DE: {
     'chat.filterMutedRemaining':
@@ -989,6 +1008,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'tot',
     'who.statusDungeon': 'im Dungeon',
     'who.zoneUnknown': 'Unbekannt',
+    'shop.announcementDefault':
+      '{player} hat gerade {item} ({rarity}) im Premium-Shop freigeschaltet!',
   },
   zh_CN: {
     'chat.filterMutedRemaining': '你已被禁言，还需 {duration} 才能聊天。',
@@ -1103,6 +1124,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': '死亡',
     'who.statusDungeon': '副本中',
     'who.zoneUnknown': '未知',
+    'shop.announcementDefault': '{player} 刚刚在高级商店解锁了 {item}({rarity})！',
   },
   zh_TW: {
     'chat.filterMutedRemaining': '你已被禁言，還需 {duration} 才能再次發言。',
@@ -1217,6 +1239,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': '死亡',
     'who.statusDungeon': '副本中',
     'who.zoneUnknown': '未知',
+    'shop.announcementDefault': '{player} 剛剛在高級商店解鎖了 {item}({rarity})！',
   },
   ko_KR: {
     'chat.filterMutedRemaining': '채팅이 금지되어 {duration} 동안 더 채팅할 수 없습니다.',
@@ -1333,6 +1356,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': '사망',
     'who.statusDungeon': '던전',
     'who.zoneUnknown': '알 수 없음',
+    'shop.announcementDefault':
+      '{player}님이 프리미엄 상점에서 {item}({rarity})을(를) 획득했습니다!',
   },
   ja_JP: {
     'chat.filterMutedRemaining': '発言禁止中です。あと{duration}発言できません。',
@@ -1452,6 +1477,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': '死亡',
     'who.statusDungeon': 'ダンジョン',
     'who.zoneUnknown': '不明',
+    'shop.announcementDefault': '{player}がプレミアムショップで{item}({rarity})を獲得しました!',
   },
   pt_BR: {
     'chat.filterMutedRemaining': 'Você está silenciado e não pode usar o chat por mais {duration}.',
@@ -1574,6 +1600,7 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'morto',
     'who.statusDungeon': 'em masmorra',
     'who.zoneUnknown': 'Desconhecida',
+    'shop.announcementDefault': '{player} acabou de desbloquear {item} ({rarity}) na Loja Premium!',
   },
   ru_RU: {
     'chat.filterMutedRemaining': 'Вам выдан мьют, и вы не сможете писать в чат ещё {duration}.',
@@ -1693,6 +1720,8 @@ export const DICT: Record<string, Record<string, string>> = {
     'who.statusDead': 'мёртв',
     'who.statusDungeon': 'в подземелье',
     'who.zoneUnknown': 'Неизвестно',
+    'shop.announcementDefault':
+      '{player} только что получил(а) {item} ({rarity}) в Премиум-магазине!',
   },
   ...SERVER_NEW,
 };
@@ -1724,6 +1753,20 @@ const RANK_KEY: Record<string, string> = {
   Officer: 'guild.rankOfficer',
   Member: 'guild.rankMember',
 };
+// The shop's ShopRarity tokens (server/shop_products.ts), localized through the same
+// store.rarity.* keys the storefront/armory card chrome already carries (Phase 2B).
+const SHOP_RARITY_KEY: Record<string, TranslationKey> = {
+  common: 'store.rarity.common',
+  uncommon: 'store.rarity.uncommon',
+  rare: 'store.rarity.rare',
+  epic: 'store.rarity.epic',
+  legendary: 'store.rarity.legendary',
+  mythic: 'store.rarity.mythic',
+};
+function localizeShopRarity(r: string): string {
+  const k = SHOP_RARITY_KEY[r];
+  return k ? t(k) : r;
+}
 const LEAVE_REASON_KEY: Record<string, string> = {
   disconnected: 'world.leaveDisconnect',
   'connection error': 'world.leaveError',
@@ -1978,6 +2021,21 @@ for (const key of Object.keys(DICT.en)) {
 
 type Rule = { re: RegExp; build: (m: RegExpExecArray) => string };
 const RULES: Rule[] = [
+  {
+    // The shop's rarity-gated purchase announcement (Phase 2D), rendered by
+    // formatShopAnnouncement from DEFAULT_ANNOUNCEMENT_MESSAGE_TEMPLATE
+    // (server/shop_announcement.ts) before it reaches broadcastSystem. An
+    // operator-customized template (config.messageTemplate or a per-product
+    // announcementTemplate override) won't match this shape and passes
+    // through unlocalized, same as any other admin-authored free text.
+    re: /^(.+) just unlocked (.+) \((common|uncommon|rare|epic|legendary|mythic)\) from the Premium Shop!$/,
+    build: (m) =>
+      tServer('shop.announcementDefault', {
+        player: m[1],
+        item: m[2],
+        rarity: localizeShopRarity(m[3]),
+      }),
+  },
   {
     re: /^You found the guild <([^>]+)>! You are its Guild Master\.$/,
     build: (m) => tServer('guild.founded', { name: m[1] }),

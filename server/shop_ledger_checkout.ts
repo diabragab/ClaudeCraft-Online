@@ -96,6 +96,7 @@ export class ShopLedgerCheckoutService {
         playerName: req.characterName,
         productName: product.name,
         rarity: product.rarity,
+        templateOverride: product.announcementTemplate,
       });
     }
     return { ok: true, order: paidOrder, balance: debit.balance };

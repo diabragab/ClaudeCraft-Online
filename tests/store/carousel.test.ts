@@ -121,6 +121,58 @@ describe('mountFeaturedCarousel', () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
+  it('stays paused on mouseleave while a control still has keyboard focus (WCAG 2.2.2)', () => {
+    const root = mountedRoot();
+    mountFeaturedCarousel(root, PRODUCTS.length);
+    const carousel = root.querySelector('.store-carousel') as HTMLElement;
+
+    carousel.dispatchEvent(new Event('mouseenter'));
+    carousel.dispatchEvent(new Event('focusin', { bubbles: true }));
+    // The mouse leaves, but focus is still inside: a focused keyboard user
+    // must not have the carousel scroll out from under them just because the
+    // pointer moved off it.
+    carousel.dispatchEvent(new Event('mouseleave'));
+    vi.advanceTimersByTime(20_000);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    carousel.dispatchEvent(new Event('focusout', { bubbles: true }));
+    vi.advanceTimersByTime(5000);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('stays paused on focusout while still hovered', () => {
+    const root = mountedRoot();
+    mountFeaturedCarousel(root, PRODUCTS.length);
+    const carousel = root.querySelector('.store-carousel') as HTMLElement;
+
+    carousel.dispatchEvent(new Event('focusin', { bubbles: true }));
+    carousel.dispatchEvent(new Event('mouseenter'));
+    carousel.dispatchEvent(new Event('focusout', { bubbles: true }));
+    vi.advanceTimersByTime(20_000);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    carousel.dispatchEvent(new Event('mouseleave'));
+    vi.advanceTimersByTime(5000);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not resume when focus moves between the carousel\'s own prev/next buttons', () => {
+    const root = mountedRoot();
+    mountFeaturedCarousel(root, PRODUCTS.length);
+    const carousel = root.querySelector('.store-carousel') as HTMLElement;
+    const prevBtn = root.querySelector('.store-carousel-prev') as HTMLElement;
+    const nextBtn = root.querySelector('.store-carousel-next') as HTMLElement;
+
+    carousel.dispatchEvent(new Event('focusin', { bubbles: true }));
+    // Focus moves prev -> next, both still inside the carousel.
+    const focusOut = new FocusEvent('focusout', { bubbles: true, relatedTarget: nextBtn });
+    prevBtn.dispatchEvent(focusOut);
+    carousel.dispatchEvent(new Event('focusin', { bubbles: true }));
+
+    vi.advanceTimersByTime(20_000);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
   it('advances immediately on a next-button click, without waiting for the timer', () => {
     const root = mountedRoot();
     mountFeaturedCarousel(root, PRODUCTS.length);

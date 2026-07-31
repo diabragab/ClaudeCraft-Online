@@ -341,8 +341,11 @@ main#store-main {
 .store-carousel-prev,
 .store-carousel-next {
   flex: 0 0 auto;
-  width: 36px;
-  height: 36px;
+  /* >=40x40 tappable target floor (WCAG 2.2 SC 2.5.8; the game HUD's own
+     src/ui/CLAUDE.md states the same rule for its chrome), not the smaller
+     36px an icon-only round button would otherwise get by default. */
+  width: 40px;
+  height: 40px;
   padding: 0;
   display: flex;
   align-items: center;

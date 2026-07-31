@@ -98,7 +98,11 @@ class FakeOrdersDb implements ShopOrdersDb {
           productId: item.productId,
         };
       }
-      const unitPrice = product.priceClaudium ?? 0;
+      const rawUnitPrice = product.priceClaudium ?? 0;
+      const unitPrice =
+        product.discountPercent === null
+          ? rawUnitPrice
+          : Math.round((rawUnitPrice * (100 - product.discountPercent)) / 100);
       items.push({
         id: items.length + 1,
         productId: item.productId,
@@ -331,6 +335,29 @@ describe('ShopLedgerCheckoutService.purchase', () => {
     expect(grantWeaponSkinForShopMock).toHaveBeenCalledWith(ACCOUNT_ID, 'cinderbrand_sword');
   });
 
+  it('charges exactly the discounted price the product advertises, never the sticker price', async () => {
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
+    const product = baseProduct({ priceClaudium: 200, discountPercent: 30 });
+    productsDb.products.set(1, product);
+    ordersDb.productLookup.set(1, product);
+    ledgerDb.balances.set(ACCOUNT_ID, 5_000);
+
+    const result = await svc.purchase({
+      accountId: ACCOUNT_ID,
+      characterId: CHARACTER_ID,
+      productId: 1,
+      quantity: 1,
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error('expected ok');
+    // 200 at 30% off is 140, not the undiscounted 200: the displayed
+    // strikethrough price on the storefront card must match what this debits.
+    expect(result.order.totalAmount).toBe(140);
+    expect(result.balance).toBe(4_860);
+    expect(await ledgerDb.getBalance(ACCOUNT_ID)).toBe(4_860);
+  });
+
   it("mails an item-kind grant to the buyer's live character on success, scaled by quantity", async () => {
     const { productsDb, ordersDb, ledgerDb, svc } = setup();
     const product = baseProduct({
@@ -377,9 +404,13 @@ describe('ShopLedgerCheckoutService.purchase', () => {
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
   });
 
-  it('announces a successful purchase (Phase 2D) when a characterName is given', async () => {
+  it('announces a successful purchase (Phase 2D) when a characterName is given, forwarding the product\'s own announcement template override', async () => {
     const { productsDb, ordersDb, ledgerDb } = setup();
-    const product = baseProduct({ priceClaudium: 200, rarity: 'legendary' });
+    const product = baseProduct({
+      priceClaudium: 200,
+      rarity: 'legendary',
+      announcementTemplate: '{player} pulled a legendary {item}!',
+    });
     productsDb.products.set(1, product);
     ordersDb.productLookup.set(1, product);
     ledgerDb.balances.set(ACCOUNT_ID, 1_000);
@@ -405,6 +436,7 @@ describe('ShopLedgerCheckoutService.purchase', () => {
       playerName: 'Aria',
       productName: 'Cinderbrand Sword',
       rarity: 'legendary',
+      templateOverride: '{player} pulled a legendary {item}!',
     });
   });
 

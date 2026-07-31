@@ -4,7 +4,9 @@ import {
   DEFAULT_SHOP_ANNOUNCEMENT_CONFIG,
   decideShopAnnouncement,
   formatShopAnnouncement,
+  isAllowedDiscordWebhookUrl,
   parseShopAnnouncementConfig,
+  postDiscordWebhookForTest,
   resetShopAnnouncementRuntimeForTests,
   type ShopAnnouncementConfig,
   type ShopAnnouncementConfigReader,
@@ -88,6 +90,23 @@ describe('decideShopAnnouncement', () => {
     expect(decision.fire).toBe(false);
   });
 
+  it("prefers the purchase's own templateOverride over the global message template", () => {
+    const decision = decideShopAnnouncement(config, {
+      ...PURCHASE,
+      templateOverride: '{player} snagged a rare {item}!',
+    });
+    expect(decision.message).toBe('Aria snagged a rare Cinderbrand Sword!');
+  });
+
+  it('falls back to the global template when templateOverride is null, undefined, or blank', () => {
+    for (const templateOverride of [null, undefined, '', '   ']) {
+      const decision = decideShopAnnouncement(config, { ...PURCHASE, templateOverride });
+      expect(decision.message).toBe(
+        'Aria just unlocked Cinderbrand Sword (epic) from the Premium Shop!',
+      );
+    }
+  });
+
   it('only requests a Discord post when the webhook is enabled AND a URL is set', () => {
     const noUrl = decideShopAnnouncement(
       { ...config, discordWebhookEnabled: true, discordWebhookUrl: '' },
@@ -106,6 +125,69 @@ describe('decideShopAnnouncement', () => {
       PURCHASE,
     );
     expect(ready.postToDiscord).toBe(true);
+  });
+});
+
+describe('isAllowedDiscordWebhookUrl', () => {
+  it('accepts a well-formed discord.com webhook URL', () => {
+    expect(isAllowedDiscordWebhookUrl('https://discord.com/api/webhooks/123/abcDEF')).toBe(true);
+    expect(isAllowedDiscordWebhookUrl('https://discordapp.com/api/webhooks/123/abcDEF')).toBe(
+      true,
+    );
+  });
+
+  it('rejects a non-https scheme', () => {
+    expect(isAllowedDiscordWebhookUrl('http://discord.com/api/webhooks/123/abcDEF')).toBe(false);
+  });
+
+  it('rejects a host that is not discord.com/discordapp.com, even a lookalike subdomain', () => {
+    expect(isAllowedDiscordWebhookUrl('https://evil.example.com/api/webhooks/1/token')).toBe(
+      false,
+    );
+    expect(isAllowedDiscordWebhookUrl('https://discord.com.evil.example.com/api/webhooks/1/x')).toBe(
+      false,
+    );
+    expect(isAllowedDiscordWebhookUrl('https://notdiscord.com/api/webhooks/1/token')).toBe(false);
+  });
+
+  it('rejects a discord.com URL outside the webhook path, and any internal/private target', () => {
+    expect(isAllowedDiscordWebhookUrl('https://discord.com/not-a-webhook-path')).toBe(false);
+    expect(isAllowedDiscordWebhookUrl('http://169.254.169.254/latest/meta-data/')).toBe(false);
+    expect(isAllowedDiscordWebhookUrl('http://localhost:8787/admin/api/overview')).toBe(false);
+  });
+
+  it('rejects a malformed URL rather than throwing', () => {
+    expect(isAllowedDiscordWebhookUrl('not a url at all')).toBe(false);
+    expect(isAllowedDiscordWebhookUrl('')).toBe(false);
+  });
+});
+
+describe('postDiscordWebhookForTest', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('never calls fetch for a disallowed URL, and reports why', async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await postDiscordWebhookForTest('https://evil.example.com/x', 'hi');
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.ok).toBe(false);
+    expect(result.error).toMatch(/not an allowed/);
+  });
+
+  it('posts to an allowed URL and reports the real HTTP outcome', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 204 });
+    vi.stubGlobal('fetch', fetchMock);
+    const result = await postDiscordWebhookForTest(
+      'https://discord.com/api/webhooks/1/token',
+      'hi',
+    );
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://discord.com/api/webhooks/1/token',
+      expect.any(Object),
+    );
+    expect(result).toEqual({ ok: true, status: 204, error: null });
   });
 });
 
