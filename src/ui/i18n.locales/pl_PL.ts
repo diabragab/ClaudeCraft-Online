@@ -5924,6 +5924,7 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeExpired': 'Prośba o wymianę wygasła.',
   'hud.errors.tradeFailed': 'Wymiana nieudana: przedmioty lub pieniądze są już niedostępne.',
   'hud.errors.tradeInProgress': 'Wymiana już trwa.',
+  'hud.errors.tradeAlreadyTrading': 'Ten gracz już prowadzi wymianę.',
   'hud.errors.tradeTooFar': 'Cel jest zbyt daleko, by handlować.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Nieznane polecenie: {command}. Spróbuj /s /y /w /p /g.',
@@ -10849,4 +10850,9 @@ export const pl_PL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Wyzwolenie za {seconds} sekund. Poruszenie się, walka, otrzymanie obrażeń lub rozpoczęcie innej czynności anuluje je.',
   'hudChrome.unstuck.unavailable': 'Wyzwolenie jest niedostępne w twoim obecnym stanie.',
+  'hudChrome.riftTracker.title': 'Szczelina',
+  'hudChrome.riftTracker.floor': 'Piętro {current} z {total}',
+  'hudChrome.riftTracker.closesIn': 'Zamyka się za {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

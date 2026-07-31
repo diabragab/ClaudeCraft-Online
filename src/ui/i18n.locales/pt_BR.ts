@@ -3357,6 +3357,7 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hud.errors.arenaQueueTrading': 'Termine sua troca antes de entrar na fila.',
   'hud.errors.arenaQueueInstance': 'Você não pode entrar na fila dentro de uma instância.',
   'hud.errors.tradeInProgress': 'Já há uma troca em andamento.',
+  'hud.errors.tradeAlreadyTrading': 'Esse jogador já está em uma troca.',
   'hud.errors.tradeTooFar': 'O alvo está longe demais para trocar.',
   'hud.errors.tradeExpired': 'A solicitação de troca expirou.',
   'hud.errors.tradeFailed': 'Troca falhou: itens ou dinheiro não estão mais disponíveis.',
@@ -10916,4 +10917,9 @@ export const pt_BR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Desbloqueio em {seconds} segundos. Mover-se, lutar, sofrer dano ou iniciar outra ação o cancela.',
   'hudChrome.unstuck.unavailable': 'Desbloqueio não está disponível no seu estado atual.',
+  'hudChrome.riftTracker.title': 'Fenda',
+  'hudChrome.riftTracker.floor': 'Andar {current} de {total}',
+  'hudChrome.riftTracker.closesIn': 'Fecha em {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

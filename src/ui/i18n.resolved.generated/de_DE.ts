@@ -908,6 +908,13 @@ export const de_DE: EnTranslations = {
       "heroicName": "Heroisch {name}",
       "heroicLocked": "Du bist für Heroisch {name} gesperrt."
     },
+    "riftTracker": {
+      "title": "Riss",
+      "floor": "Ebene {current} von {total}",
+      "closesIn": "Schließt in {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NO",
@@ -6695,6 +6702,7 @@ export const de_DE: EnTranslations = {
       "arenaQueueTrading": "Beendet Euren Handel, bevor Ihr Euch anmeldet.",
       "arenaQueueInstance": "Aus einer Instanz heraus könnt Ihr Euch nicht anmelden.",
       "tradeInProgress": "Es läuft bereits ein Handel.",
+      "tradeAlreadyTrading": "Dieser Spieler handelt bereits.",
       "tradeTooFar": "Das Ziel ist zu weit entfernt zum Handeln.",
       "tradeExpired": "Die Handelsanfrage ist abgelaufen.",
       "tradeFailed": "Handel fehlgeschlagen: Gegenstände oder Geld sind nicht mehr verfügbar.",

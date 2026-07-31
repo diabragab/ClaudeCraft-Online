@@ -5988,6 +5988,7 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeExpired': 'Het ruilverzoek is verlopen.',
   'hud.errors.tradeFailed': 'Ruil mislukt: voorwerpen of geld niet langer beschikbaar.',
   'hud.errors.tradeInProgress': 'Er is al een ruil aan de gang.',
+  'hud.errors.tradeAlreadyTrading': 'Die speler is al aan het ruilen.',
   'hud.errors.tradeTooFar': 'Het doelwit is te ver weg om mee te ruilen.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Onbekende opdracht: {command}. Probeer /s /y /w /p /g.',
@@ -10906,4 +10907,9 @@ export const nl_NL: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Loskomen over {seconds} seconden. Bewegen, vechten, schade oplopen, of een andere actie beginnen annuleert dit.',
   'hudChrome.unstuck.unavailable': 'Loskomen is niet beschikbaar in je huidige toestand.',
+  'hudChrome.riftTracker.title': 'Rift',
+  'hudChrome.riftTracker.floor': 'Verdieping {current} van {total}',
+  'hudChrome.riftTracker.closesIn': 'Sluit over {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

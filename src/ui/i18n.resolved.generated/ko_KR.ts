@@ -908,6 +908,13 @@ export const ko_KR: EnTranslations = {
       "heroicName": "영웅: {name}",
       "heroicLocked": "영웅 난이도 {name}에 귀속되었습니다."
     },
+    "riftTracker": {
+      "title": "균열",
+      "floor": "{total}층 중 {current}층",
+      "closesIn": "균열이 {time} 후 닫힙니다",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "북",
       "NE": "북동",
@@ -6695,6 +6702,7 @@ export const ko_KR: EnTranslations = {
       "arenaQueueTrading": "거래를 끝낸 뒤 대기열에 들어가세요.",
       "arenaQueueInstance": "인스턴스 안에서는 대기열에 들어갈 수 없습니다.",
       "tradeInProgress": "이미 거래가 진행 중입니다.",
+      "tradeAlreadyTrading": "그 플레이어는 이미 거래 중입니다.",
       "tradeTooFar": "대상이 너무 멀어 거래할 수 없습니다.",
       "tradeExpired": "거래 요청이 만료되었습니다.",
       "tradeFailed": "거래 실패: 아이템이나 돈을 더 이상 사용할 수 없습니다.",

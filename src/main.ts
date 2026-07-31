@@ -176,10 +176,15 @@ import { openStripeCheckout } from './net/stripe_checkout';
 import type { WalletOption, WalletPickerMode, WalletPickerResult } from './net/wallet';
 import { resolveWalletCapability } from './net/wallet_capability';
 import { installWalletResumeHandlers } from './net/wallet_resume';
-import { assetsReady } from './render/assets/preload';
+import { assetsReady, beginDeferredPreloads } from './render/assets/preload';
 import { CharacterPreview, type PreviewAppearance } from './render/characters';
-import { charactersReady, preloadMechAssets } from './render/characters/assets';
-import { skinCount } from './render/characters/manifest';
+import {
+  charactersReady,
+  ensureCharacterUrl,
+  preloadMechAssets,
+  startStreamedCharacterPreloads,
+} from './render/characters/assets';
+import { skinCount, weaponSkinModelUrl } from './render/characters/manifest';
 import {
   onPortraitsReady,
   onPortraitUpdate,
@@ -1176,6 +1181,13 @@ async function startGame(
   } catch {
     // Soft fallback: English is statically resident; boot in English (the picker can retry).
   }
+  // Open the deferred preload lane: the world's assets do not fetch at module
+  // import any more, because decoding them merely to show the LAUNCHER crossed
+  // WKWebView's per-process ceiling (a 12 GB iPhone 17 Pro was killed 1.6 s in and
+  // reloaded forever). This must run BEFORE the await below, which snapshots the
+  // task list, so the Renderer still cannot outrun a load.
+  const deferredStarted = beginDeferredPreloads();
+  console.info(`[entry-guard] world assets: started ${deferredStarted} deferred preloads`);
   try {
     await assetsReady((done, total) => setLoadingProgressRange(done, total, 0, 35));
   } catch (err) {
@@ -2417,6 +2429,15 @@ async function startGame(
   // otherwise, so it is a live affordance offline too (not gated on `online`).
   hud.attachDiscordHook(() => openDiscordEntry());
   if (online) {
+    // Issue #2416: chain onto whatever onReconnected enterWorld already armed
+    // (the reconnect overlay teardown), rather than replacing it: hud does not
+    // exist yet when enterWorld sets that handler, so the market resync has to
+    // be wired here instead, once hud is actually available.
+    const priorOnReconnected = online.onReconnected;
+    online.onReconnected = () => {
+      priorOnReconnected?.();
+      hud.marketResyncAfterReconnect();
+    };
     // A hosted dev/PBE realm booted with ALLOW_DEV_COMMANDS=1 lights the /dev GUI
     // even in a production client build, where import.meta.env.DEV is false. That
     // build flag alone used to gate it, which is why a tester on a dev realm could
@@ -3987,6 +4008,15 @@ async function startGame(
     // fall back to Three's normal first-use compilation once the zone itself
     // has been materialized successfully.
     console.warn('Renderer prewarm failed', err);
+  }
+  // The entry allocation spike is over: start streaming the mob bodies the
+  // packaged iOS boot gate deliberately excluded (empty everywhere else). A mob
+  // whose GLB is still arriving renders a beat late through the fail-soft
+  // view-create path, instead of its decode competing with the scene build for
+  // the WebContent memory ceiling.
+  const streamedCount = startStreamedCharacterPreloads();
+  if (streamedCount > 0) {
+    console.info(`[entry-guard] streaming ${streamedCount} deferred character assets`);
   }
   // Each preview prewarm mints a SECONDARY WebGL context beside the world
   // renderer: real WebKit GPU-process residency held for a window the player
@@ -5707,6 +5737,13 @@ const activeClassDetailsTimeouts: Record<string, number | null> = {};
 
 // The char-select roster row's real, in-world appearance for the 3D preview.
 function charselectAppearance(c: CharacterSummary): PreviewAppearance {
+  // The packaged iOS shell streams the Armory weapon-skin GLBs after world
+  // entry instead of holding all of them at the launcher, so the preview of a
+  // character wearing one needs ITS skin fetched on demand (the mech lazy-load
+  // pattern). Memoized and a no-op when resident or on eager platforms; a
+  // preview built in the race window shows the base weapon and picks the skin
+  // up on the next selection change.
+  ensureCharacterUrl(weaponSkinModelUrl(c.weaponSkinId ?? null));
   return {
     cls: c.class,
     skin: c.skin ?? 0,

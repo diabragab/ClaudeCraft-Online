@@ -123,6 +123,16 @@ export function updateMob(ctx: SimContext, mob: Entity): void {
     }
     // dungeon mobs stay dead until the instance resets
     const isInstanceMob = mob.spawnPos.x > DUNGEON_X_THRESHOLD;
+    // A slain summoned add unravels once its corpse decays, like the summoned
+    // demon above, rather than respawning into the wild: its spawnPos is
+    // wherever its summoner stood when the wave erupted (a kited boss hatches
+    // adds far from any camp, e.g. Grix dragged to the Eastbrook town square),
+    // and the only other cleanup is despawnSummonedAdds on the summoner's own
+    // respawn, hours away for a rare. The corpse keeps its full loot window.
+    if (!isInstanceMob && mob.summonedAdd) {
+      if (mob.corpseTimer <= 0) ctx.dropEntity(mob.id);
+      return;
+    }
     // Corpse-decay window (classic-faithful, issue #1539): an in-place respawn
     // reuses this entity id and respawnMob wipes the loot, so while the corpse is
     // still lootable the respawn is DEFERRED until its corpse timer elapses. The

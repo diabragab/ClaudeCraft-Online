@@ -263,6 +263,7 @@ const UI_PURE_CORES = [
   'src/game/ui_effects_profile.ts',
   'src/game/ui_tier_knobs.ts',
   'src/ui/trade_view.ts',
+  'src/ui/hud/rift/rift_floor_tracker_view.ts',
 ].map((rel) => join(repoRoot, rel));
 
 // Pure logic cores that live in src/render (the painter half is Three-side):

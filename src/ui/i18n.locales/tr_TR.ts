@@ -6523,6 +6523,7 @@ export const tr_TR: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeFailed': 'Takas başarısız: eşyalar ya da para artık mevcut değil.',
   'hud.errors.tradeBound': 'O eşya bağlı ve takas edilemez.',
   'hud.errors.tradeInProgress': 'Zaten devam eden bir takas var.',
+  'hud.errors.tradeAlreadyTrading': 'Bu oyuncu zaten takas yapıyor.',
   'hud.errors.tradeTooFar': 'Hedef takas için çok uzakta.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Bilinmeyen komut: {command}. /s /y /w /p /g deneyin.',
@@ -10802,4 +10803,9 @@ export const tr_TR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Kurtulma {seconds} saniye içinde. Hareket etmek, savaşmak, hasar almak veya başka bir eylem başlatmak bunu iptal eder.',
   'hudChrome.unstuck.unavailable': 'Kurtulma mevcut durumunda kullanılamaz.',
+  'hudChrome.riftTracker.title': 'Yarık',
+  'hudChrome.riftTracker.floor': 'Kat {current}/{total}',
+  'hudChrome.riftTracker.closesIn': '{time} içinde kapanır',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

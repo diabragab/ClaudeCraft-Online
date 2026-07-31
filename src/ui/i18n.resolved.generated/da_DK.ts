@@ -908,6 +908,13 @@ export const da_DK: EnTranslations = {
       "heroicName": "Heroisk {name}",
       "heroicLocked": "Du er låst til Heroisk {name}."
     },
+    "riftTracker": {
+      "title": "Rift",
+      "floor": "Etage {current} af {total}",
+      "closesIn": "Lukker om {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NØ",
@@ -6695,6 +6702,7 @@ export const da_DK: EnTranslations = {
       "arenaQueueTrading": "Afslut din handel, før du stiller dig i kø.",
       "arenaQueueInstance": "Du kan ikke stille dig i kø inde fra en instans.",
       "tradeInProgress": "En handel er allerede i gang.",
+      "tradeAlreadyTrading": "Den spiller handler allerede.",
       "tradeTooFar": "Målet er for langt væk til at handle.",
       "tradeExpired": "Handelsanmodningen er udløbet.",
       "tradeFailed": "Handel mislykkedes: genstande eller penge er ikke længere tilgængelige.",

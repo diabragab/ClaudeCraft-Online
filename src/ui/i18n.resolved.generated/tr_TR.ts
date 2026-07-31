@@ -908,6 +908,13 @@ export const tr_TR: EnTranslations = {
       "heroicName": "Kahramanca {name}",
       "heroicLocked": "Kahramanca {name} akınına kilitlisin."
     },
+    "riftTracker": {
+      "title": "Yarık",
+      "floor": "Kat {current}/{total}",
+      "closesIn": "{time} içinde kapanır",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "K",
       "NE": "KD",
@@ -6695,6 +6702,7 @@ export const tr_TR: EnTranslations = {
       "arenaQueueTrading": "Sıraya girmeden önce takasını bitir.",
       "arenaQueueInstance": "Bir zindanın içinden sıraya giremezsin.",
       "tradeInProgress": "Zaten devam eden bir takas var.",
+      "tradeAlreadyTrading": "Bu oyuncu zaten takas yapıyor.",
       "tradeTooFar": "Hedef takas için çok uzakta.",
       "tradeExpired": "Takas isteğinin süresi doldu.",
       "tradeFailed": "Takas başarısız: eşyalar ya da para artık mevcut değil.",

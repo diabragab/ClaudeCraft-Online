@@ -908,6 +908,13 @@ export const ru_RU: EnTranslations = {
       "heroicName": "Героический режим: {name}",
       "heroicLocked": "Вы закреплены за героическим подземельем: {name}."
     },
+    "riftTracker": {
+      "title": "Разлом",
+      "floor": "Этаж {current} из {total}",
+      "closesIn": "Разлом закроется через {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "С",
       "NE": "СВ",
@@ -6695,6 +6702,7 @@ export const ru_RU: EnTranslations = {
       "arenaQueueTrading": "Завершите обмен перед постановкой в очередь.",
       "arenaQueueInstance": "Нельзя вставать в очередь из подземелья.",
       "tradeInProgress": "Обмен уже идет.",
+      "tradeAlreadyTrading": "Этот игрок уже торгует.",
       "tradeTooFar": "Цель слишком далеко для обмена.",
       "tradeExpired": "Запрос обмена истек.",
       "tradeFailed": "Обмен не удался: предметы или деньги больше недоступны.",

@@ -908,6 +908,13 @@ export const ja_JP: EnTranslations = {
       "heroicName": "ヒロイック:{name}",
       "heroicLocked": "ヒロイックの{name}にロックされています。"
     },
+    "riftTracker": {
+      "title": "リフト",
+      "floor": "フロア {current}/{total}",
+      "closesIn": "リフトは{time}後に閉じます",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "北",
       "NE": "北東",
@@ -6695,6 +6702,7 @@ export const ja_JP: EnTranslations = {
       "arenaQueueTrading": "取引を終えてからキューに入ってください。",
       "arenaQueueInstance": "インスタンス内からキューには入れません。",
       "tradeInProgress": "すでに取引が進行中です。",
+      "tradeAlreadyTrading": "そのプレイヤーはすでに取引中です。",
       "tradeTooFar": "対象が遠すぎて取引できません。",
       "tradeExpired": "取引リクエストは期限切れです。",
       "tradeFailed": "取引失敗: アイテムまたは所持金が利用できません。",

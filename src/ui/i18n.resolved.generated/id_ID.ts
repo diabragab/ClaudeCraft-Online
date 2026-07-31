@@ -908,6 +908,13 @@ export const id_ID: EnTranslations = {
       "heroicName": "{name} Heroik",
       "heroicLocked": "Anda terkunci pada {name} Heroik."
     },
+    "riftTracker": {
+      "title": "Rift",
+      "floor": "Lantai {current} dari {total}",
+      "closesIn": "Tutup dalam {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "U",
       "NE": "TL",
@@ -6695,6 +6702,7 @@ export const id_ID: EnTranslations = {
       "arenaQueueTrading": "Selesaikan dulu perdaganganmu sebelum antre.",
       "arenaQueueInstance": "Kamu tidak bisa antre dari dalam instance.",
       "tradeInProgress": "Perdagangan sudah berlangsung.",
+      "tradeAlreadyTrading": "Pemain itu sedang berdagang.",
       "tradeTooFar": "Sasaran terlalu jauh untuk berdagang.",
       "tradeExpired": "Permintaan perdagangan telah kedaluwarsa.",
       "tradeFailed": "Perdagangan gagal: barang atau uang sudah tidak tersedia.",

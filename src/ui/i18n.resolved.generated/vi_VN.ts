@@ -908,6 +908,13 @@ export const vi_VN: EnTranslations = {
       "heroicName": "{name} Anh Hùng",
       "heroicLocked": "Bạn đang bị khóa với {name} Anh Hùng."
     },
+    "riftTracker": {
+      "title": "Rạn Nứt",
+      "floor": "Tầng {current}/{total}",
+      "closesIn": "Đóng sau {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "B",
       "NE": "ĐB",
@@ -6695,6 +6702,7 @@ export const vi_VN: EnTranslations = {
       "arenaQueueTrading": "Hãy hoàn tất giao dịch trước khi xếp hàng.",
       "arenaQueueInstance": "Bạn không thể xếp hàng khi đang ở trong hầm ngục.",
       "tradeInProgress": "Một giao dịch đang diễn ra.",
+      "tradeAlreadyTrading": "Người chơi đó đang giao dịch.",
       "tradeTooFar": "Mục tiêu ở quá xa để giao dịch.",
       "tradeExpired": "Yêu cầu giao dịch đã hết hạn.",
       "tradeFailed": "Giao dịch thất bại: vật phẩm hoặc tiền không còn khả dụng.",

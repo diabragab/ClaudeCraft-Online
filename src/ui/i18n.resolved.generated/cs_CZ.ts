@@ -908,6 +908,13 @@ export const cs_CZ: EnTranslations = {
       "heroicName": "{name} (hrdinská)",
       "heroicLocked": "Jsi uzamčen(a) k hrdinské verzi {name}."
     },
+    "riftTracker": {
+      "title": "Trhlina",
+      "floor": "Patro {current} z {total}",
+      "closesIn": "Zavře se za {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "S",
       "NE": "SV",
@@ -6695,6 +6702,7 @@ export const cs_CZ: EnTranslations = {
       "arenaQueueTrading": "Před zařazením do fronty dokonči obchod.",
       "arenaQueueInstance": "Z instance se nemůžeš zařadit do fronty.",
       "tradeInProgress": "Obchod už probíhá.",
+      "tradeAlreadyTrading": "Tento hráč už obchoduje.",
       "tradeTooFar": "Cíl je příliš daleko pro obchod.",
       "tradeExpired": "Žádost o obchod vypršela.",
       "tradeFailed": "Obchod selhal: předměty nebo peníze už nejsou dostupné.",

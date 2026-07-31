@@ -3143,6 +3143,7 @@ export const cs_CZ: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeExpired': 'Žádost o obchod vypršela.',
   'hud.errors.tradeFailed': 'Obchod selhal: předměty nebo peníze už nejsou dostupné.',
   'hud.errors.tradeInProgress': 'Obchod už probíhá.',
+  'hud.errors.tradeAlreadyTrading': 'Tento hráč už obchoduje.',
   'hud.errors.tradeTooFar': 'Cíl je příliš daleko pro obchod.',
   'hud.errors.travel': 'Rychlost',
   'hud.errors.unknownCommand': 'Neznámý příkaz: {command}. Zkus /s /y /w /p /g.',
@@ -10723,4 +10724,9 @@ export const cs_CZ: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Vyproštění za {seconds} sekund. Pohyb, boj, utrpění zranění nebo zahájení jiné akce ho zruší.',
   'hudChrome.unstuck.unavailable': 'Vyproštění není ve tvém současném stavu dostupné.',
+  'hudChrome.riftTracker.title': 'Trhlina',
+  'hudChrome.riftTracker.floor': 'Patro {current} z {total}',
+  'hudChrome.riftTracker.closesIn': 'Zavře se za {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

@@ -3841,6 +3841,7 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hud.errors.arenaQueueTrading': 'Terminez votre échange avant de rejoindre la file.',
   'hud.errors.arenaQueueInstance': 'Vous ne pouvez pas rejoindre la file depuis une instance.',
   'hud.errors.tradeInProgress': 'Un échange est déjà en cours.',
+  'hud.errors.tradeAlreadyTrading': 'Ce joueur est déjà en train d’échanger.',
   'hud.errors.tradeTooFar': 'La cible est trop éloignée pour échanger.',
   'hud.errors.tradeExpired': "La demande d'échange a expiré.",
   'hud.errors.tradeFailed': 'Échange échoué : objets ou argent indisponibles.',
@@ -11051,4 +11052,9 @@ export const fr_FR: Partial<Record<TranslationKey, string>> = {
   'hudChrome.enchanting.replaceConfirmKeepsSigner': 'Marque du fabricant',
   'hudChrome.enchanting.replaceConfirmKeepsMasterwork': "Bonus d'ouvrage de maître",
   'hudChrome.enchanting.replaceConfirmKeepsBond': 'Lien de commande',
+  'hudChrome.riftTracker.title': 'Faille',
+  'hudChrome.riftTracker.floor': 'Étage {current} sur {total}',
+  'hudChrome.riftTracker.closesIn': 'Se ferme dans {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

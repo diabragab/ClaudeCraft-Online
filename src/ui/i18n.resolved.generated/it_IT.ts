@@ -908,6 +908,13 @@ export const it_IT: EnTranslations = {
       "heroicName": "{name} Eroico",
       "heroicLocked": "Sei bloccato sulla versione Eroica di {name}."
     },
+    "riftTracker": {
+      "title": "Squarcio",
+      "floor": "Piano {current} di {total}",
+      "closesIn": "Si chiude tra {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NE",
@@ -6695,6 +6702,7 @@ export const it_IT: EnTranslations = {
       "arenaQueueTrading": "Termina lo scambio prima di metterti in coda.",
       "arenaQueueInstance": "Non puoi metterti in coda da dentro un'istanza.",
       "tradeInProgress": "Uno scambio è già in corso.",
+      "tradeAlreadyTrading": "Quel giocatore sta già scambiando.",
       "tradeTooFar": "Il bersaglio è troppo lontano per commerciare.",
       "tradeExpired": "La richiesta di scambio è scaduta.",
       "tradeFailed": "Scambio fallito: oggetti o denaro non più disponibili.",

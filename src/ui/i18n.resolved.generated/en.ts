@@ -908,6 +908,13 @@ export const en: EnTranslations = {
       "heroicName": "Heroic {name}",
       "heroicLocked": "You are locked to Heroic {name}."
     },
+    "riftTracker": {
+      "title": "Rift",
+      "floor": "Floor {current} of {total}",
+      "closesIn": "Closes in {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NE",
@@ -6695,6 +6702,7 @@ export const en: EnTranslations = {
       "arenaQueueTrading": "Finish your trade before queueing.",
       "arenaQueueInstance": "You cannot queue from inside an instance.",
       "tradeInProgress": "A trade is already in progress.",
+      "tradeAlreadyTrading": "That player is already trading.",
       "tradeTooFar": "Target is too far away to trade.",
       "tradeExpired": "The trade request has expired.",
       "tradeFailed": "Trade failed: items or money no longer available.",

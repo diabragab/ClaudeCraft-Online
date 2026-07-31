@@ -365,6 +365,7 @@ import { parseChatSegments } from './hud/quest/quest_link';
 import { QuestProgressBanner } from './hud/quest/quest_progress_banner';
 import { QuestTrackerController } from './hud/quest/quest_tracker_controller';
 import { QuestLogWindow } from './hud/quest/questlog_window';
+import { RiftFloorTrackerController } from './hud/rift/rift_floor_tracker_controller';
 import { buildHeroicVendorView } from './hud/vendor/heroic_vendor_view';
 import { renderHeroicVendorWindow } from './hud/vendor/heroic_vendor_window';
 import { TrainLearnTracker } from './hud/vendor/train_learn_core';
@@ -1455,6 +1456,7 @@ export class Hud {
   private selectedCraftTab: string | null = null;
   private readonly delveBoard: DelveBoardController;
   private readonly delveTracker: DelveTrackerController;
+  private readonly riftTracker: RiftFloorTrackerController;
   private readonly lockpickController: LockpickController;
   private readonly riteController: RiteController;
   private readonly questTracker: QuestTrackerController;
@@ -1570,7 +1572,6 @@ export class Hud {
   // party frames are deliberately not stamped (party-member HP is a healer's actionable
   // signal, so it stays on the mediumHud band for every tier: see ui_tier_knobs).
   private lastMinimapDrawAt = 0;
-  private lastBuffBarPaintAt = 0;
   private lastTargetDebuffsPaintAt = 0;
   private lastTargetFramePaintAt = 0;
   private lastTargetFrameId: number | null = null;
@@ -1661,6 +1662,10 @@ export class Hud {
       mobName: mobDisplayName,
       attachTooltip: (element, html) => this.attachTooltip(element, html),
       closeRitePanel: (restoreFocus) => this.closeRitePanel(restoreFocus),
+    });
+    this.riftTracker = new RiftFloorTrackerController({
+      element: $('#rift-tracker'),
+      world: () => this.sim,
     });
     this.delveBoard = new DelveBoardController({
       element: $('#delve-board'),
@@ -3752,11 +3757,12 @@ export class Hud {
   });
   // Overworld world-map painter (the delve branch stays with delvePainter). Owns
   // the cached current-zone decorations; redraws from the mediumHud band while open.
-  private readonly mapPainter = new MapWindowPainter();
+  // classCss colors party member dots the same way it colors the minimap/delve ones.
+  private readonly mapPainter = new MapWindowPainter(classCss);
   // Continent overview painter (the world map's "zoom out to the whole world"
   // level). Loads the painted world_overview plate once; redraws from the
-  // mediumHud band like the per-zone map.
-  private readonly continentPainter = new ContinentMapPainter();
+  // mediumHud band like the per-zone map. classCss colors its party dots too.
+  private readonly continentPainter = new ContinentMapPainter(classCss);
   // The aura strips are the keyed-pool aura painter, two instances of the
   // auras_view core + AurasPainter: the player buff bar (#buff-bar, mode
   // 'all') and the target strip (#tf-debuffs, mode 'all' too: a target's buffs AND
@@ -5347,6 +5353,9 @@ export class Hud {
     // a plain update() early-returns here and re-emits nothing. relocalize()
     // clears it for exactly one rebuild (#2529).
     this.delveTracker.relocalize();
+    // Same reason as delveTracker above: the rift floor tracker's signature is
+    // floor/timer numbers, none of which move with the locale.
+    this.riftTracker.relocalize();
     // The keyed-pool party rows reuse their DOM, so a rebuild never re-runs t() on
     // their badge tooltips / leave label; re-localize them in place on a switch.
     this.partyFramesPainter.relocalize();
@@ -7577,14 +7586,14 @@ export class Hud {
     // every frame (the elided writers make a no-op frame free). Buffs and debuffs render to
     // separate rows (classic layout) so a fresh debuff is never lost in a wall of long-lived
     // buffs: two view+painter instances, mode 'buffs' (#buff-bar) and 'debuffs' (#debuff-bar).
-    // The graphics tier coarsens the refresh (tick) granularity: full tiers repaint every
-    // frame (interval 0, cadenceDue always true); low coarsens to ~4Hz. The visible-count cap
-    // is applied inside the painter.
-    if (cadenceDue(this.lastBuffBarPaintAt, now, auraRefreshIntervalMs(fxTier))) {
-      this.lastBuffBarPaintAt = now;
-      this.buffBarPainter.paint(this.buffBarView.tick(p));
-      this.debuffBarPainter.paint(this.debuffBarView.tick(p));
-    }
+    // SELF/player auras are NEVER tier-gated: your own debuffs are the ACTIONABLE read named in
+    // docs/design/graphics-settings-fairness.md (there is no self-dispel, so the aura icon and
+    // its remaining duration are the only way to react to a DoT/curse/CC), so this paints every
+    // frame on every graphics preset. The visible-count cap (auraVisibleCap, still tiered) is
+    // applied inside the painter and is debuff-priority (a shed slot is always a buff, never a
+    // debuff). Only the TARGET (non-self) debuffs strip below stays on the tiered ~4Hz cadence.
+    this.buffBarPainter.paint(this.buffBarView.tick(p));
+    this.debuffBarPainter.paint(this.debuffBarView.tick(p));
 
     // target frame: the SECOND instance of the unit_frame family. The shared
     // frame (display/name/level/hp/absorb/portrait gate) goes through the family
@@ -8021,6 +8030,7 @@ export class Hud {
 
       this.updateQuestTracker();
       this.updateDelveTracker();
+      this.updateRiftTracker();
       // Party frames run on the ~4Hz mediumHud band (the enclosing block) for EVERY tier.
       // The tier knobs deliberately do NOT tier them down on low: party-member HP is a healer's
       // only actionable signal (no self-dispel), so a graphics preset must not slow it
@@ -8459,6 +8469,10 @@ export class Hud {
 
   private updateDelveTracker(): void {
     this.delveTracker.update();
+  }
+
+  private updateRiftTracker(): void {
+    this.riftTracker.update();
   }
 
   // -------------------------------------------------------------------------
@@ -11894,6 +11908,7 @@ export class Hud {
       'Finish your trade before queueing.': 'hud.errors.arenaQueueTrading',
       'You cannot queue from inside an instance.': 'hud.errors.arenaQueueInstance',
       'A trade is already in progress.': 'hud.errors.tradeInProgress',
+      'That player is already trading.': 'hud.errors.tradeAlreadyTrading',
       'Target is too far away to trade.': 'hud.errors.tradeTooFar',
       'The trade request has expired.': 'hud.errors.tradeExpired',
       'Trade failed: items or money no longer available.': 'hud.errors.tradeFailed',
@@ -12969,6 +12984,14 @@ export class Hud {
 
   get marketWindowOpen(): boolean {
     return this.marketWindow.isOpen;
+  }
+
+  // Reconnect resync (issue #2416): re-push the market window's own browse query
+  // if it drifted from what the server echoes back after a fresh-join reconnect.
+  // Wired from the client's onReconnected hook (main.ts); a no-op when the window
+  // is closed or the echoed query still matches (see MarketWindow.onReconnected).
+  marketResyncAfterReconnect(): void {
+    this.marketWindow.onReconnected();
   }
 
   openMailbox(): void {

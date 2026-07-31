@@ -6653,6 +6653,7 @@ export const vi_VN: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeExpired': 'Yêu cầu giao dịch đã hết hạn.',
   'hud.errors.tradeFailed': 'Giao dịch thất bại: vật phẩm hoặc tiền không còn khả dụng.',
   'hud.errors.tradeInProgress': 'Một giao dịch đang diễn ra.',
+  'hud.errors.tradeAlreadyTrading': 'Người chơi đó đang giao dịch.',
   'hud.errors.tradeTooFar': 'Mục tiêu ở quá xa để giao dịch.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Lệnh không xác định: {command}. Hãy thử /s /y /w /p /g.',
@@ -10829,4 +10830,9 @@ export const vi_VN: Partial<Record<TranslationKey, string>> = {
   'sim.rift.socketsShut': 'Các hốc khóa kèn kẹt đóng lại. Con đường lay động.',
   'sim.rift.stepBack': 'Bạn bước lùi qua Rạn Nứt.',
   'sim.rift.wayDownOpens': 'Lối đi xuống xé toạc mở ra.',
+  'hudChrome.riftTracker.title': 'Rạn Nứt',
+  'hudChrome.riftTracker.floor': 'Tầng {current}/{total}',
+  'hudChrome.riftTracker.closesIn': 'Đóng sau {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

@@ -908,6 +908,13 @@ export const zh_CN: EnTranslations = {
       "heroicName": "英雄难度：{name}",
       "heroicLocked": "你已被锁定至英雄难度的{name}。"
     },
+    "riftTracker": {
+      "title": "裂隙",
+      "floor": "第 {current} 层，共 {total} 层",
+      "closesIn": "裂隙将在 {time} 后关闭",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "北",
       "NE": "东北",
@@ -6695,6 +6702,7 @@ export const zh_CN: EnTranslations = {
       "arenaQueueTrading": "请先完成交易再加入队列。",
       "arenaQueueInstance": "你不能在副本内加入队列。",
       "tradeInProgress": "已有交易正在进行。",
+      "tradeAlreadyTrading": "该玩家已在交易中。",
       "tradeTooFar": "目标太远，无法交易。",
       "tradeExpired": "交易请求已过期。",
       "tradeFailed": "交易失败：物品或金钱已不可用。",

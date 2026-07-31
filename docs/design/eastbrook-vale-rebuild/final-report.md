@@ -244,15 +244,15 @@ label prevents their v1 aggregate from being mistaken for the complete polish-v2
 
 | Shipping GLB                      |     Bytes | Triangles | Primitives/materials | Textures/animations/skins | SHA-256                                                            |
 | --------------------------------- | --------: | --------: | -------------------: | ------------------------: | ------------------------------------------------------------------ |
-| `eastbrook_bank.glb`              |  `40,000` |   `2,324` |              `2 / 2` |               `0 / 0 / 0` | `d8de1129edf7bdf7789b1cf0a1088eb492c7617948c4c05d34c95b43876f97cf` |
-| `eastbrook_smithy.glb`            |  `40,352` |   `2,410` |              `2 / 2` |               `0 / 0 / 0` | `f07fb30a58733982216e51e99abcb29d9323df8035820a74ab6919d865824c21` |
-| `eastbrook_inn.glb`               |  `67,768` |   `4,348` |              `2 / 2` |               `0 / 0 / 0` | `16213ff1526914d7448d87ac12667fe4702ae76edee9acfc50f26478242af902` |
-| `eastbrook_chapel.glb`            |  `66,132` |   `4,120` |              `2 / 2` |               `0 / 0 / 0` | `efe504a2d46e3eadaba772e35c893647e867ee2ee9fde252890d971a98c75af0` |
-| `eastbrook_weaving_workshop.glb`  |  `40,392` |   `2,412` |              `2 / 2` |               `0 / 0 / 0` | `bd3e8486102bcab9a8e8385631b4bf09e2d9b9c4d41eec8e0d6a150def93514d` |
-| `eastbrook_toolworks.glb`         |  `39,920` |   `2,320` |              `2 / 2` |               `0 / 0 / 0` | `a87b4b647b07555209448c4a34642c230b457648d9aff4d99c50605c405626d1` |
-| `eastbrook_civic_well_beacon.glb` |  `13,216` |     `464` |              `2 / 2` |               `0 / 0 / 0` | `b999fde017b1c67cf54dd45bc1648b0f11c7208b6e8e8cf24c0cafb818b2e76e` |
-| `eastbrook_market_stall.glb`      |  `27,072` |   `1,314` |              `2 / 2` |               `0 / 0 / 0` | `c6a3fbca05b6dcd27669be04ae163e7727d9914a9c8f9ce3d3fb9f1c776915ff` |
-| `eastbrook_wall_wing.glb`         |   `8,352` |     `206` |              `2 / 2` |               `0 / 0 / 0` | `63c6f1a7009d8981355c6f63449e0baf9afa23be137231b4446ce59618b4a3b5` |
+| `eastbrook_bank.glb`              |  `40,000` |   `2,324` |              `2 / 2` |               `0 / 0 / 0` | `2a162652f538735281109eff773e12f919736d61648f7d135245947ed29c9b5f` |
+| `eastbrook_smithy.glb`            |  `40,352` |   `2,410` |              `2 / 2` |               `0 / 0 / 0` | `195c75364d2a9aaad5c10983ac89c9c11dd2dfcc98719c5ee31b25e8ba75fb2b` |
+| `eastbrook_inn.glb`               |  `67,768` |   `4,348` |              `2 / 2` |               `0 / 0 / 0` | `e07521db3f70c7dd12a0d62cad26370ee0afb745e9a5f21eff9e569e9c19592f` |
+| `eastbrook_chapel.glb`            |  `66,132` |   `4,120` |              `2 / 2` |               `0 / 0 / 0` | `8f99f4a505726d04ae42e56d12e5dec373455caffd78ce647df0233ae24390c1` |
+| `eastbrook_weaving_workshop.glb`  |  `40,392` |   `2,412` |              `2 / 2` |               `0 / 0 / 0` | `3e26e4504b7e565fff496d76c560d266bddfa51e871ed7b95257f8d071ace286` |
+| `eastbrook_toolworks.glb`         |  `39,920` |   `2,320` |              `2 / 2` |               `0 / 0 / 0` | `41f83eb861ef386c63cb118aed0328e581651172b3ecac18c52cc9be27f7ab38` |
+| `eastbrook_civic_well_beacon.glb` |  `13,216` |     `464` |              `2 / 2` |               `0 / 0 / 0` | `94fea07090f75d09925aa4d8e6647f19ec17c6b38d55bdd0a3f8db085654c970` |
+| `eastbrook_market_stall.glb`      |  `27,072` |   `1,314` |              `2 / 2` |               `0 / 0 / 0` | `37dfe69130e0f7a3bf0bed64b1bd1fec91bf8560e995d101930bfe1851a94051` |
+| `eastbrook_wall_wing.glb`         |   `8,352` |     `206` |              `2 / 2` |               `0 / 0 / 0` | `997013386cfa2c1cf78c0c780c50b1134d94a6b99a2446464f3d7c432af549e1` |
 | Historical v1 subtotal            | `343,204` |  `19,918` |            `18 / 18` |               `0 / 0 / 0` | n/a                                                                |
 
 The retained shared `512 x 512` lossless WebP atlas is `141,666` bytes, SHA-256
@@ -262,8 +262,8 @@ The retained shared `512 x 512` lossless WebP atlas is `141,666` bytes, SHA-256
 
 | Shipping GLB                |  Bounds `W x H x D` |    Bytes | Triangles | Primitives/materials | Textures/animations/skins | SHA-256                                                            | Source fingerprint                                                 |
 | --------------------------- | ------------------: | -------: | --------: | -------------------: | ------------------------: | ------------------------------------------------------------------ | ------------------------------------------------------------------ |
-| `mailbox_pillar.glb`        | `1.65 x 2.9 x 1.05` | `32,884` |   `1,640` |              `2 / 2` |               `0 / 0 / 0` | `24678a6bbc8e8b25926b3c17298b959f0cbd149c7641e1a3331a02a3c19c4207` | `3c6803552368b495ac05758cf7dbe8dd393f8c6cfd4625c587362898e6db687b` |
-| `eastbrook_noticeboard.glb` |   `2.4 x 2.6 x 0.6` | `24,684` |   `1,184` |              `2 / 2` |               `0 / 0 / 0` | `a53a3f9818ca57f593ccc448cb1b60862a28bf9cf0d1b17baf43eb6942a0516f` | `12435757b245583bb91a26450f5bfcf76c3532399b5d8f024af8dae30078265e` |
+| `mailbox_pillar.glb`        | `1.65 x 2.9 x 1.05` | `32,884` |   `1,640` |              `2 / 2` |               `0 / 0 / 0` | `4cd77249f77b01393d1ede01e50bd04864e79bc215708bc834aa808fb5b54068` | `f11b96995d18fb41ff5ce032c77d87a5f809695370f26e911c87fc4fd8f5a486` |
+| `eastbrook_noticeboard.glb` |   `2.4 x 2.6 x 0.6` | `24,684` |   `1,184` |              `2 / 2` |               `0 / 0 / 0` | `d59f18b28f0be80e8e5c3dae3b5144069ead9374440d2786db874a3381c8a293` | `470743771165fed9f39eed71ec63ef3863a49695905560d31aa5c9109c3a3375` |
 | Polish-v2 service subtotal  |                 n/a | `57,568` |   `2,824` |              `4 / 4` |               `0 / 0 / 0` | n/a                                                                | n/a                                                                |
 
 Both are centered on X/Z, floor-seated at `Y=0`, use `COLOR_0`, meshopt compression and

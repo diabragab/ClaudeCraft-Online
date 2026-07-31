@@ -3394,6 +3394,7 @@ export const it_IT: Partial<Record<TranslationKey, string>> = {
   'hud.errors.arenaQueueTrading': 'Termina lo scambio prima di metterti in coda.',
   'hud.errors.arenaQueueInstance': "Non puoi metterti in coda da dentro un'istanza.",
   'hud.errors.tradeInProgress': 'Uno scambio è già in corso.',
+  'hud.errors.tradeAlreadyTrading': 'Quel giocatore sta già scambiando.',
   'hud.errors.tradeTooFar': 'Il bersaglio è troppo lontano per commerciare.',
   'hud.errors.tradeExpired': 'La richiesta di scambio è scaduta.',
   'hud.errors.tradeBound': "Quell'oggetto è legato e non può essere scambiato.",
@@ -10968,4 +10969,9 @@ export const it_IT: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     "Sblocco tra {seconds} secondi. Muoverti, combattere, subire danni o avviare un'altra azione lo annulla.",
   'hudChrome.unstuck.unavailable': 'Sblocco non è disponibile nel tuo stato attuale.',
+  'hudChrome.riftTracker.title': 'Squarcio',
+  'hudChrome.riftTracker.floor': 'Piano {current} di {total}',
+  'hudChrome.riftTracker.closesIn': 'Si chiude tra {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

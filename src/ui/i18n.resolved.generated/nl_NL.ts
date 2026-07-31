@@ -908,6 +908,13 @@ export const nl_NL: EnTranslations = {
       "heroicName": "Heroïsch {name}",
       "heroicLocked": "Je bent vergrendeld voor Heroïsch {name}."
     },
+    "riftTracker": {
+      "title": "Rift",
+      "floor": "Verdieping {current} van {total}",
+      "closesIn": "Sluit over {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NO",
@@ -6695,6 +6702,7 @@ export const nl_NL: EnTranslations = {
       "arenaQueueTrading": "Rond je ruil af voordat je in de wachtrij gaat.",
       "arenaQueueInstance": "Je kunt niet in de wachtrij gaan vanuit een instantie.",
       "tradeInProgress": "Er is al een ruil aan de gang.",
+      "tradeAlreadyTrading": "Die speler is al aan het ruilen.",
       "tradeTooFar": "Het doelwit is te ver weg om mee te ruilen.",
       "tradeExpired": "Het ruilverzoek is verlopen.",
       "tradeFailed": "Ruil mislukt: voorwerpen of geld niet langer beschikbaar.",

@@ -1159,6 +1159,12 @@ export interface MobTemplate {
   armorPerLevel: number;
   moveSpeed: number;
   aggroRadius: number; // base, at equal level
+  // Hard tether (yards from spawnPos): past it the mob evades home to a full
+  // reset, whatever its refreshing leashAnchor says. The soft leash measures
+  // from an anchor every hostile action re-seeds, so a patient player can walk
+  // an ordinary mob across the map one leash-length at a time; a mob carrying
+  // this cannot be kited off its ground (mob/combat_profile.ts).
+  hardLeashRadius?: number;
   loot: LootEntry[];
   scale: number; // render hint
   color: number; // render hint
@@ -2624,6 +2630,11 @@ export interface ZoneDef {
   // Defaults to 0 (the original zones' central road); the Drakelands set it
   // to the Pale Causeway's head so the Wyrmgate opens where the road arrives.
   southPassX?: number;
+  // Per-zone override of the open-world trash respawn delay (seconds), which
+  // otherwise comes from this zone's level band (src/sim/respawn_policy.ts
+  // trashRespawnSecondsForZone). An explicit SimConfig.respawnSeconds still
+  // wins over it, and a MobTemplate.respawnSeconds still wins over both.
+  trashRespawnSeconds?: number;
 }
 
 // One end of a paired overworld portal. Walking within the pair's trigger
@@ -3344,6 +3355,11 @@ export interface Entity extends ClientMirroredEntityFields {
   warcryTimer: number; // warcry ally-haste pulse countdown
   firedSummons: number; // summonAdds thresholds already triggered
   summonedIds: number[]; // live adds this boss summoned; despawned on reset
+  // Server-local (never on the wire; blankEntity keeps host shapes identical):
+  // true for a mob spawnBossAdds erupted beside its summoner. A slain add
+  // unravels with its corpse instead of respawning at its eruption point,
+  // which is wherever the fight dragged (see mob/locomotion.ts).
+  summonedAdd: boolean;
   enraged: boolean; // enrage mechanic active
   // Heroic-instance mechanic scaling (instances/difficulty.ts applyDungeonMobTuning).
   // Mechanic numbers (aoePulse/bigCast/stomp damage; mendAlly/wardAllies/stoneskin
@@ -4588,6 +4604,13 @@ export type SimEvent = { pid?: number } & (
       name: string;
       themeName: string;
       tier: RiftTier | null;
+      // Epoch-ms deadline (via ctx.lockoutNowMs, the same conversion
+      // rift/persistence.ts uses for save/load) after which the rift's backing
+      // world event stops admitting new parties. Null for a dev-spawned rift
+      // (no backing RiftEvent) or once the party has left. The client mirrors
+      // this verbatim and derives a locally-ticking "closes in" countdown from
+      // it, so it never needs a snapshot round trip once a second.
+      expiresAtMs: number | null;
     }
   | {
       type: 'riftRaceResult';
@@ -5036,7 +5059,13 @@ export interface WorldContent {
 export interface SimConfig {
   seed: number;
   playerClass: PlayerClass;
-  respawnSeconds?: number; // mob respawn time (default 25)
+  // Global base mob respawn delay (seconds). LEAVE IT UNSET for a normal world:
+  // open-world trash then respawns on the per-zone level-band tier
+  // (src/sim/respawn_policy.ts), and only mobs outside every zone rect (instanced
+  // interiors) fall back to the 25s default. Setting it pins EVERY mob in the
+  // world to this base instead, which is what the RL env and the fast unit tests
+  // want; that is why it stays possibly-undefined on Sim.cfg.
+  respawnSeconds?: number;
   autoEquip?: boolean; // auto-equip better gear on loot (headless convenience)
   playerName?: string;
   noPlayer?: boolean; // multiplayer server: start with an empty world and addPlayer() later

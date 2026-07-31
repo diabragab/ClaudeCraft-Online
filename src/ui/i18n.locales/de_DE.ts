@@ -3421,6 +3421,7 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   'hud.errors.arenaQueueTrading': 'Beendet Euren Handel, bevor Ihr Euch anmeldet.',
   'hud.errors.arenaQueueInstance': 'Aus einer Instanz heraus könnt Ihr Euch nicht anmelden.',
   'hud.errors.tradeInProgress': 'Es läuft bereits ein Handel.',
+  'hud.errors.tradeAlreadyTrading': 'Dieser Spieler handelt bereits.',
   'hud.errors.tradeBound': 'Dieser Gegenstand ist gebunden und kann nicht gehandelt werden.',
   'hud.errors.tradeTooFar': 'Das Ziel ist zu weit entfernt zum Handeln.',
   'hud.errors.tradeExpired': 'Die Handelsanfrage ist abgelaufen.',
@@ -10999,4 +11000,9 @@ export const de_DE: Partial<Record<TranslationKey, string>> = {
   'sim.rift.socketsShut': 'Die Fassungen schließen sich knirschend. Der Weg regt sich.',
   'sim.rift.stepBack': 'Du trittst zurück durch den Riss.',
   'sim.rift.wayDownOpens': 'Der Weg hinab reißt auf.',
+  'hudChrome.riftTracker.title': 'Riss',
+  'hudChrome.riftTracker.floor': 'Ebene {current} von {total}',
+  'hudChrome.riftTracker.closesIn': 'Schließt in {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

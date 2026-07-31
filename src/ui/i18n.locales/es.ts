@@ -3261,6 +3261,7 @@ export const es: Partial<Record<TranslationKey, string>> = {
   'hud.errors.arenaQueueTrading': 'Termina tu comercio antes de entrar en cola.',
   'hud.errors.arenaQueueInstance': 'No puedes entrar en cola desde una instancia.',
   'hud.errors.tradeInProgress': 'Ya hay un comercio en curso.',
+  'hud.errors.tradeAlreadyTrading': 'Ese jugador ya está comerciando.',
   'hud.errors.tradeTooFar': 'El objetivo está demasiado lejos para comerciar.',
   'hud.errors.tradeExpired': 'La solicitud de comercio ha expirado.',
   'hud.errors.tradeBound': 'Ese objeto está vinculado y no puede comerciarse.',
@@ -10977,4 +10978,9 @@ export const es: Partial<Record<TranslationKey, string>> = {
   'hudChrome.enchanting.replaceConfirmKeepsSigner': 'Marca del artesano',
   'hudChrome.enchanting.replaceConfirmKeepsMasterwork': 'Bonificación de obra maestra',
   'hudChrome.enchanting.replaceConfirmKeepsBond': 'Vínculo de encargo',
+  'hudChrome.riftTracker.title': 'Brecha',
+  'hudChrome.riftTracker.floor': 'Piso {current} de {total}',
+  'hudChrome.riftTracker.closesIn': 'Se cierra en {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

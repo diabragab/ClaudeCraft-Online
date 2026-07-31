@@ -908,6 +908,13 @@ export const pt_BR: EnTranslations = {
       "heroicName": "{name} Heroico",
       "heroicLocked": "Você está vinculado a {name} Heroico."
     },
+    "riftTracker": {
+      "title": "Fenda",
+      "floor": "Andar {current} de {total}",
+      "closesIn": "Fecha em {time}",
+      "clockMs": "{minutes}:{seconds}",
+      "clockHms": "{hours}:{minutes}:{seconds}"
+    },
     "compass": {
       "N": "N",
       "NE": "NE",
@@ -6695,6 +6702,7 @@ export const pt_BR: EnTranslations = {
       "arenaQueueTrading": "Termine sua troca antes de entrar na fila.",
       "arenaQueueInstance": "Você não pode entrar na fila dentro de uma instância.",
       "tradeInProgress": "Já há uma troca em andamento.",
+      "tradeAlreadyTrading": "Esse jogador já está em uma troca.",
       "tradeTooFar": "O alvo está longe demais para trocar.",
       "tradeExpired": "A solicitação de troca expirou.",
       "tradeFailed": "Troca falhou: itens ou dinheiro não estão mais disponíveis.",

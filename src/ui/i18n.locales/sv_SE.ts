@@ -5791,6 +5791,7 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeFailed':
     'Handeln misslyckades: föremål eller pengar är inte längre tillgängliga.',
   'hud.errors.tradeInProgress': 'En handel pågår redan.',
+  'hud.errors.tradeAlreadyTrading': 'Den spelaren handlar redan.',
   'hud.errors.tradeBound': 'Det föremålet är bundet och kan inte handlas.',
   'hud.errors.tradeTooFar': 'Målet är för långt bort för att handla.',
   'hud.errors.travel': 'Fleet',
@@ -10789,4 +10790,9 @@ export const sv_SE: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Fastna-hjälp om {seconds} sekunder. Att röra sig, strida, ta skada eller påbörja en annan handling avbryter den.',
   'hudChrome.unstuck.unavailable': 'Fastna-hjälp är inte tillgänglig i ditt nuvarande tillstånd.',
+  'hudChrome.riftTracker.title': 'Reva',
+  'hudChrome.riftTracker.floor': 'Våning {current} av {total}',
+  'hudChrome.riftTracker.closesIn': 'Stänger om {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

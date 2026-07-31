@@ -6593,6 +6593,7 @@ export const id_ID: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeExpired': 'Permintaan perdagangan telah kedaluwarsa.',
   'hud.errors.tradeFailed': 'Perdagangan gagal: barang atau uang sudah tidak tersedia.',
   'hud.errors.tradeInProgress': 'Perdagangan sudah berlangsung.',
+  'hud.errors.tradeAlreadyTrading': 'Pemain itu sedang berdagang.',
   'hud.errors.tradeTooFar': 'Sasaran terlalu jauh untuk berdagang.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Perintah tidak dikenal: {command}. Coba /s /y /w /p /g.',
@@ -10910,4 +10911,9 @@ export const id_ID: Partial<Record<TranslationKey, string>> = {
   'sim.rift.socketsShut': 'Soket-soket berderit menutup. Jalan pun bergerak.',
   'sim.rift.stepBack': 'Kamu melangkah mundur melalui rift.',
   'sim.rift.wayDownOpens': 'Jalan turun terkoyak terbuka.',
+  'hudChrome.riftTracker.title': 'Rift',
+  'hudChrome.riftTracker.floor': 'Lantai {current} dari {total}',
+  'hudChrome.riftTracker.closesIn': 'Tutup dalam {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

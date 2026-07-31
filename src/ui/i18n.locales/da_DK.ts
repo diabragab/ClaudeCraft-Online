@@ -5748,6 +5748,7 @@ export const da_DK: Partial<Record<TranslationKey, string>> = {
   'hud.errors.tradeFailed':
     'Handel mislykkedes: genstande eller penge er ikke længere tilgængelige.',
   'hud.errors.tradeInProgress': 'En handel er allerede i gang.',
+  'hud.errors.tradeAlreadyTrading': 'Den spiller handler allerede.',
   'hud.errors.tradeTooFar': 'Målet er for langt væk til at handle.',
   'hud.errors.travel': 'Fleet',
   'hud.errors.unknownCommand': 'Ukendt kommando: {command}. Prøv /s /y /w /p /g.',
@@ -10770,4 +10771,9 @@ export const da_DK: Partial<Record<TranslationKey, string>> = {
   'hudChrome.unstuck.started':
     'Frigørelse om {seconds} sekunder. At bevæge dig, kæmpe, tage skade eller begynde en anden handling annullerer den.',
   'hudChrome.unstuck.unavailable': 'Frigørelse er ikke tilgængelig i din nuværende tilstand.',
+  'hudChrome.riftTracker.title': 'Rift',
+  'hudChrome.riftTracker.floor': 'Etage {current} af {total}',
+  'hudChrome.riftTracker.closesIn': 'Lukker om {time}',
+  'hudChrome.riftTracker.clockMs': '{minutes}:{seconds}',
+  'hudChrome.riftTracker.clockHms': '{hours}:{minutes}:{seconds}',
 };

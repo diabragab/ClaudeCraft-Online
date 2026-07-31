@@ -908,6 +908,13 @@ export const en_XA: EnTranslations = {
       "heroicName": "[Ĥéŕóíç {name}]",
       "heroicLocked": "[Ýóú áŕé ļóçķéð ţó Ĥéŕóíç {name}.]"
     },
+    "riftTracker": {
+      "title": "[Ŕíƒţ]",
+      "floor": "[Ƒļóóŕ {current} óƒ {total}]",
+      "closesIn": "[Çļóšéš íñ {time}]",
+      "clockMs": "[{minutes}:{seconds}]",
+      "clockHms": "[{hours}:{minutes}:{seconds}]"
+    },
     "compass": {
       "N": "[Ñ]",
       "NE": "[ÑÉ]",
@@ -6695,6 +6702,7 @@ export const en_XA: EnTranslations = {
       "arenaQueueTrading": "[Ƒíñíšĥ ýóúŕ ţŕáðé ƀéƒóŕé ɋúéúéíñĝ.]",
       "arenaQueueInstance": "[Ýóú çáññóţ ɋúéúé ƒŕóɱ íñšíðé áñ íñšţáñçé.]",
       "tradeInProgress": "[Á ţŕáðé íš áļŕéáðý íñ þŕóĝŕéšš.]",
+      "tradeAlreadyTrading": "[Ţĥáţ þļáýéŕ íš áļŕéáðý ţŕáðíñĝ.]",
       "tradeTooFar": "[Ţáŕĝéţ íš ţóó ƒáŕ áŵáý ţó ţŕáðé.]",
       "tradeExpired": "[Ţĥé ţŕáðé ŕéɋúéšţ ĥáš éẋþíŕéð.]",
       "tradeFailed": "[Ţŕáðé ƒáíļéð: íţéɱš óŕ ɱóñéý ñó ļóñĝéŕ áʋáíļáƀļé.]",
