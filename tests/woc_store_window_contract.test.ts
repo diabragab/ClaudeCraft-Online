@@ -41,8 +41,12 @@ describe('WOC Store window contract', () => {
     expect(purchase).toContain("result?.reason === 'insufficient_claudium'");
     expect(purchase).toContain('result.balance');
     expect(purchase).toContain('this.openNeedMoreDialog');
+    // The insufficient-balance special case (need-more-Claudium dialog) is
+    // checked and returned from BEFORE the generic failure path (Phase 2C's
+    // purchase-result popup), so an unaffordable purchase never also flashes
+    // the generic failure popup on its way to the dialog.
     expect(purchase.indexOf("result?.reason === 'insufficient_claudium'")).toBeLessThan(
-      purchase.indexOf('this.storeError = true'),
+      purchase.indexOf("kind: 'failure'"),
     );
     expect(main).toContain('purchase: (productId, quantity) =>');
     expect(main).toContain('buyProduct(productId, characterId, quantity)');
