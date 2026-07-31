@@ -29,6 +29,8 @@ import { requireAccount } from './http/middleware/require_account';
 import { num, object, optional } from './http/schema';
 import type { Ctx, RouteDef } from './http/types';
 import { json } from './http_util';
+import { ShopAnnouncementService } from './shop_announcement';
+import { PgShopAnnouncementConfigDb } from './shop_announcement_config_db';
 import { PgShopCategoriesDb } from './shop_categories_db';
 import { type LedgerCheckoutErrorCode, ShopLedgerCheckoutService } from './shop_ledger_checkout';
 import { type ShopAccountLookup, ShopOrdersService, shopOrderDetailJson } from './shop_orders';
@@ -53,6 +55,7 @@ const REAL_CHECKOUT_SERVICE = new ShopLedgerCheckoutService(
   new ShopProductsService(new PgShopProductsDb(pool), new PgShopCategoriesDb(pool)),
   new ShopOrdersService(new PgShopOrdersDb(pool), PG_ACCOUNT_LOOKUP),
   new ClaudiumLedgerService(REAL_LEDGER_DB),
+  new ShopAnnouncementService(new PgShopAnnouncementConfigDb()),
 );
 let checkoutService = REAL_CHECKOUT_SERVICE;
 
@@ -64,9 +67,13 @@ export function resetShopBuyCheckoutServiceForTests(): void {
   checkoutService = REAL_CHECKOUT_SERVICE;
 }
 
-/** The narrow character-ownership read this route needs; swappable for tests. */
+/** The narrow character-ownership read this route needs; swappable for tests.
+ *  name feeds the Phase 2D purchase announcement's {player} placeholder. */
 export interface ShopBuyCharacterLookup {
-  getCharacter(accountId: number, characterId: number): Promise<{ id: number } | null>;
+  getCharacter(
+    accountId: number,
+    characterId: number,
+  ): Promise<{ id: number; name: string } | null>;
 }
 const REAL_CHARACTER_LOOKUP: ShopBuyCharacterLookup = { getCharacter };
 let characterLookup = REAL_CHARACTER_LOOKUP;
@@ -152,6 +159,7 @@ async function buyHandler(ctx: Ctx): Promise<void> {
     characterId: decoded.value.characterId,
     productId: decoded.value.productId,
     quantity: decoded.value.quantity,
+    characterName: character.name,
   });
   if (!result.ok) throw checkoutError(result.error);
   json(ctx.res, 200, { order: shopOrderDetailJson(result.order), balance: result.balance });

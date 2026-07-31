@@ -2700,6 +2700,18 @@ export class GameServer {
     return true;
   }
 
+  /**
+   * Server-wide colored system-chat line: the Premium Shop's rarity-gated
+   * purchase announcement (Phase 2D). Injected into the checkout flow via
+   * configureShopAnnouncementRuntime (server/shop_announcement.ts), the same
+   * deferred liveGame() closure pattern as mailShopItemToCharacter above;
+   * broadcastSystem itself stays private since every other caller is
+   * game.ts-internal.
+   */
+  broadcastShopAnnouncement(text: string, color: string): void {
+    this.broadcastSystem(text, color);
+  }
+
   private unequipAccountMechChroma(session: ClientSession, chromaId: string): void {
     const skin = mechChromaSkinIndex(chromaId);
     const itemId = mechChromaItemId(chromaId);
@@ -7330,9 +7342,9 @@ export class GameServer {
     return true;
   }
 
-  private broadcastSystem(text: string): void {
+  private broadcastSystem(text: string, color = '#ffd100'): void {
     for (const session of this.clients.values()) {
-      this.send(session, { t: 'events', list: [{ type: 'log', text, color: '#ffd100' }] });
+      this.send(session, { t: 'events', list: [{ type: 'log', text, color }] });
     }
   }
 

@@ -41,6 +41,7 @@ import { routes as mapsRoutes } from '../maps_routes';
 import { routes as oauthRoutes } from '../oauth';
 import { routes as otaUpdatesRoutes } from '../ota_updates';
 import { routes as reportsRoutes } from '../reports';
+import { routes as shopAnnouncementConfigRoutes } from '../shop_announcement_config_routes';
 import { routes as shopBuyRoutes } from '../shop_buy_routes';
 import { routes as shopCategoriesRoutes } from '../shop_categories_routes';
 import { routes as shopInventoryRoutes } from '../shop_inventory_routes';
@@ -157,6 +158,7 @@ export const apiRoutes: readonly RouteDef[] = [
   ...shopStorefrontOrdersRoutes,
   ...shopStorefrontPackagesRoutes,
   ...shopBuyRoutes,
+  ...shopAnnouncementConfigRoutes,
   ...stripeWebhookRoutes,
   // new:endpoint spreads appear above this line (npm run new:endpoint)
 ];

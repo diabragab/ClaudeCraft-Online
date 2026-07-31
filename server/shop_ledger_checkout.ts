@@ -16,6 +16,7 @@
 // and no Claudium ever moves.
 
 import type { ClaudiumLedgerService } from './claudium_ledger';
+import type { ShopAnnouncementService } from './shop_announcement';
 import { deliverShopProduct } from './shop_delivery';
 import type { ShopOrderDetail, ShopOrderErrorCode, ShopOrdersService } from './shop_orders';
 import type { ShopProductsService } from './shop_products';
@@ -36,6 +37,10 @@ export interface LedgerCheckoutRequest {
   characterId: number;
   productId: number;
   quantity: number;
+  /** The buyer's display name, for the Phase 2D purchase announcement's
+   *  {player} placeholder; omitted (or the announcer arg below being null)
+   *  simply skips the announcement, never the checkout itself. */
+  characterName?: string;
 }
 
 export class ShopLedgerCheckoutService {
@@ -43,6 +48,7 @@ export class ShopLedgerCheckoutService {
     private readonly products: ShopProductsService,
     private readonly orders: ShopOrdersService,
     private readonly ledger: ClaudiumLedgerService,
+    private readonly announcer: ShopAnnouncementService | null = null,
   ) {}
 
   async purchase(req: LedgerCheckoutRequest): Promise<LedgerCheckoutResult> {
@@ -85,6 +91,13 @@ export class ShopLedgerCheckoutService {
     );
     const paidOrder = paidResult.ok ? paidResult.order : order;
     deliverShopProduct(product, req.characterId, req.accountId, req.quantity);
+    if (req.characterName) {
+      void this.announcer?.announcePurchase({
+        playerName: req.characterName,
+        productName: product.name,
+        rarity: product.rarity,
+      });
+    }
     return { ok: true, order: paidOrder, balance: debit.balance };
   }
 }

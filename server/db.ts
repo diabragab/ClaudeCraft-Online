@@ -51,6 +51,7 @@ import {
 import { RATELIMIT_PRUNE_SQL, RATELIMIT_SCHEMA } from './ratelimit_db';
 import { REALM } from './realm';
 import { chooseArchiveName } from './reclaim_name';
+import { SHOP_ANNOUNCEMENT_CONFIG_SCHEMA } from './shop_announcement_config_db';
 import { seedArmoryCatalog } from './shop_armory_seed';
 import { SHOP_CATEGORIES_SCHEMA } from './shop_categories_db';
 import { SHOP_INVENTORY_SCHEMA } from './shop_inventory_db';
@@ -1137,6 +1138,7 @@ export async function ensureSchema(): Promise<void> {
     await client.query(CLAUDIUM_LEDGER_SCHEMA);
     await client.query(CLAUDIUM_PACKAGES_SCHEMA);
     await client.query(CLAUDIUM_PURCHASES_SCHEMA);
+    await client.query(SHOP_ANNOUNCEMENT_CONFIG_SCHEMA);
     // Season 1 Armory weapon-skin catalog: seeds shop_products rows for every
     // collection on first boot only, self-healing a pre-existing deployment's
     // rows on later boots (see server/shop_armory_seed.ts).

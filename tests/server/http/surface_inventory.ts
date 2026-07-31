@@ -2455,6 +2455,38 @@ export const SURFACE_INVENTORY: readonly SurfaceRoute[] = [
     limiter: null,
     requireOwnedExpected: null,
   },
+  // Premium Shop purchase-announcement config (Phase 2D,
+  // server/shop_announcement_config_routes.ts): one document per realm, no :id.
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/shop/announcement-config',
+    handler: 'server/shop_announcement_config_routes.ts getHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'POST',
+    path: '/admin/api/shop/announcement-config',
+    handler: 'server/shop_announcement_config_routes.ts saveHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
+  {
+    dispatcher: DISPATCH.admin,
+    method: 'GET',
+    path: '/admin/api/shop/announcement-config/history',
+    handler: 'server/shop_announcement_config_routes.ts historyHandler (registry-only RouteDef)',
+    contentType: PROBLEM_JSON,
+    authScope: AUTH_SCOPE.admin,
+    limiter: null,
+    requireOwnedExpected: null,
+  },
 
   // -------------------------------------------------------------------------
   // oauth handleOAuth (/oauth/*)

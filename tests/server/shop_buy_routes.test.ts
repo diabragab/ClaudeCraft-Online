@@ -47,9 +47,11 @@ function authedAs(scope: 'read' | 'full' = 'full'): void {
   });
 }
 
+const CHARACTER_NAME = 'PlayerOne';
+
 function ownsCharacter(owns = true): void {
   setShopBuyCharacterLookupForTests({
-    getCharacter: async () => (owns ? { id: CHARACTER_ID } : null),
+    getCharacter: async () => (owns ? { id: CHARACTER_ID, name: CHARACTER_NAME } : null),
   });
 }
 
@@ -166,7 +168,13 @@ describe('shop buy route: purchase', () => {
     authedAs('full');
     ownsCharacter(true);
     let received:
-      | { accountId: number; characterId: number; productId: number; quantity: number }
+      | {
+          accountId: number;
+          characterId: number;
+          productId: number;
+          quantity: number;
+          characterName: string;
+        }
       | undefined;
     fakeCheckout({
       purchase: async (req: typeof received) => {
@@ -190,6 +198,7 @@ describe('shop buy route: purchase', () => {
       characterId: CHARACTER_ID,
       productId: 1,
       quantity: 1,
+      characterName: CHARACTER_NAME,
     });
   });
 

@@ -9,6 +9,10 @@ import type {
   ClaudiumHistoryEntry,
   ClaudiumLedgerDb,
 } from '../server/claudium_ledger_db';
+import type {
+  ShopAnnouncementPurchase,
+  ShopAnnouncementService,
+} from '../server/shop_announcement';
 import { configureShopDeliveryRuntime } from '../server/shop_delivery';
 import { ShopLedgerCheckoutService } from '../server/shop_ledger_checkout';
 import type {
@@ -371,5 +375,53 @@ describe('ShopLedgerCheckoutService.purchase', () => {
     expect(ordersDb.orders[0]?.status).toBe('cancelled');
     expect(await ledgerDb.getBalance(ACCOUNT_ID)).toBe(50);
     expect(grantWeaponSkinForShopMock).not.toHaveBeenCalled();
+  });
+
+  it('announces a successful purchase (Phase 2D) when a characterName is given', async () => {
+    const { productsDb, ordersDb, ledgerDb } = setup();
+    const product = baseProduct({ priceClaudium: 200, rarity: 'legendary' });
+    productsDb.products.set(1, product);
+    ordersDb.productLookup.set(1, product);
+    ledgerDb.balances.set(ACCOUNT_ID, 1_000);
+    const announcePurchase = vi.fn<(purchase: ShopAnnouncementPurchase) => Promise<void>>(
+      async () => undefined,
+    );
+    const announcer = { announcePurchase } as unknown as ShopAnnouncementService;
+    const products = new ShopProductsService(productsDb, new FakeCategoryLookup());
+    const orders = new ShopOrdersService(ordersDb, new FakeAccountLookup());
+    const ledger = new ClaudiumLedgerService(ledgerDb);
+    const svc = new ShopLedgerCheckoutService(products, orders, ledger, announcer);
+
+    const result = await svc.purchase({
+      accountId: ACCOUNT_ID,
+      characterId: CHARACTER_ID,
+      productId: 1,
+      quantity: 1,
+      characterName: 'Aria',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(announcePurchase).toHaveBeenCalledWith({
+      playerName: 'Aria',
+      productName: 'Cinderbrand Sword',
+      rarity: 'legendary',
+    });
+  });
+
+  it('skips the announcement when no characterName is given (existing 3-arg callers)', async () => {
+    const { productsDb, ordersDb, ledgerDb, svc } = setup();
+    const product = baseProduct({ priceClaudium: 200 });
+    productsDb.products.set(1, product);
+    ordersDb.productLookup.set(1, product);
+    ledgerDb.balances.set(ACCOUNT_ID, 1_000);
+
+    const result = await svc.purchase({
+      accountId: ACCOUNT_ID,
+      characterId: CHARACTER_ID,
+      productId: 1,
+      quantity: 1,
+    });
+
+    expect(result.ok).toBe(true);
   });
 });

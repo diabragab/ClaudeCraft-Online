@@ -286,6 +286,26 @@ export const ADMIN_ROUTE_PERMISSIONS: readonly AdminRouteRule[] = [
   // the payment history / audit log. Read-only surface, same shop.read as
   // every other shop read above.
   { method: 'GET', pattern: '/admin/api/shop/claudium/purchases', permission: 'shop.read' },
+
+  // Premium Shop purchase-announcement config (Phase 2D,
+  // server/shop_announcement_config_routes.ts): the rarity-gated system-chat
+  // + Discord webhook settings. Same shop.read/shop.manage split as every
+  // other shop surface above; no :id, one document per realm.
+  {
+    method: 'GET',
+    pattern: '/admin/api/shop/announcement-config',
+    permission: 'shop.read',
+  },
+  {
+    method: 'POST',
+    pattern: '/admin/api/shop/announcement-config',
+    permission: 'shop.manage',
+  },
+  {
+    method: 'GET',
+    pattern: '/admin/api/shop/announcement-config/history',
+    permission: 'shop.read',
+  },
 ];
 
 function matches(pattern: string | RegExp, path: string): boolean {

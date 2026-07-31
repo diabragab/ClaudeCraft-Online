@@ -287,6 +287,7 @@ import { resolveReportTarget } from './report_target';
 import { BUG_REPORT_MAX_BODY_BYTES, configureReportsRuntime } from './reports';
 import { createRetentionSweep, RETENTION_SWEEP_BATCH_SIZE } from './retention_sweep';
 import { resolveSfxOverlayFile } from './sfx_overlay';
+import { configureShopAnnouncementRuntime } from './shop_announcement';
 import { configureShopDeliveryRuntime } from './shop_delivery';
 import { handleSitePresenceHeartbeat } from './site_presence';
 import { adminRolesForAccount } from './staff_db';
@@ -2585,6 +2586,13 @@ configureClaudiumRuntime({
 configureShopDeliveryRuntime({
   mailItemToCharacter: (characterId, itemId, count) =>
     liveGame().mailShopItemToCharacter(characterId, itemId, count),
+});
+
+// Premium Shop purchase announcements (Phase 2D): the same deferred
+// liveGame() closure pattern as the delivery hook above, reaching
+// GameServer's system-chat broadcast without an import cycle.
+configureShopAnnouncementRuntime({
+  broadcastSystem: (text, color) => liveGame().broadcastShopAnnouncement(text, color),
 });
 
 // configureAdminRuntime(game) and configureInternalRuntime(game) pass the live
