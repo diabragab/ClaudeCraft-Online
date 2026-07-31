@@ -4865,7 +4865,10 @@ export const sv_SE: EnTranslations = {
       "categoriesTitle": "Shop by category",
       "noFeatured": "No featured products right now.",
       "noNew": "No new products right now.",
-      "browseAll": "Browse all products"
+      "browseAll": "Browse all products",
+      "carouselLabel": "Featured products carousel",
+      "carouselPrev": "Previous featured product",
+      "carouselNext": "Next featured product"
     },
     "categories": {
       "title": "Categories",

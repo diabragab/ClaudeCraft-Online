@@ -4865,7 +4865,10 @@ export const ru_RU: EnTranslations = {
       "categoriesTitle": "Покупки по категориям",
       "noFeatured": "Сейчас нет рекомендуемых товаров.",
       "noNew": "Сейчас нет новых товаров.",
-      "browseAll": "Смотреть все товары"
+      "browseAll": "Смотреть все товары",
+      "carouselLabel": "Карусель рекомендуемых товаров",
+      "carouselPrev": "Предыдущий рекомендуемый товар",
+      "carouselNext": "Следующий рекомендуемый товар"
     },
     "categories": {
       "title": "Категории",

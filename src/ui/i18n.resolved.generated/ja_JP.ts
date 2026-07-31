@@ -4865,7 +4865,10 @@ export const ja_JP: EnTranslations = {
       "categoriesTitle": "カテゴリーから探す",
       "noFeatured": "現在、注目の商品はありません。",
       "noNew": "現在、新着商品はありません。",
-      "browseAll": "すべての商品を見る"
+      "browseAll": "すべての商品を見る",
+      "carouselLabel": "おすすめ商品カルーセル",
+      "carouselPrev": "前のおすすめ商品",
+      "carouselNext": "次のおすすめ商品"
     },
     "categories": {
       "title": "カテゴリー",

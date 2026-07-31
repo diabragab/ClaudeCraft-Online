@@ -4865,7 +4865,10 @@ export const zh_CN: EnTranslations = {
       "categoriesTitle": "按分类选购",
       "noFeatured": "暂无精选商品。",
       "noNew": "暂无新品。",
-      "browseAll": "浏览全部商品"
+      "browseAll": "浏览全部商品",
+      "carouselLabel": "精选商品轮播",
+      "carouselPrev": "上一个精选商品",
+      "carouselNext": "下一个精选商品"
     },
     "categories": {
       "title": "分类",

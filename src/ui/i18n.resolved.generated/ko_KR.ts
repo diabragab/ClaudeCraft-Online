@@ -4865,7 +4865,10 @@ export const ko_KR: EnTranslations = {
       "categoriesTitle": "카테고리별로 둘러보기",
       "noFeatured": "현재 추천 상품이 없습니다.",
       "noNew": "현재 신상품이 없습니다.",
-      "browseAll": "전체 상품 보기"
+      "browseAll": "전체 상품 보기",
+      "carouselLabel": "추천 상품 캐러셀",
+      "carouselPrev": "이전 추천 상품",
+      "carouselNext": "다음 추천 상품"
     },
     "categories": {
       "title": "카테고리",

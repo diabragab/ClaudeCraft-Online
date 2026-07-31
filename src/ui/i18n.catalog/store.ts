@@ -51,6 +51,9 @@ export const storeStrings = {
     noFeatured: 'No featured products right now.',
     noNew: 'No new products right now.',
     browseAll: 'Browse all products',
+    carouselLabel: 'Featured products carousel',
+    carouselPrev: 'Previous featured product',
+    carouselNext: 'Next featured product',
   },
 
   categories: {

@@ -4865,7 +4865,10 @@ export const zh_TW: EnTranslations = {
       "categoriesTitle": "依分類選購",
       "noFeatured": "目前尚無精選商品。",
       "noNew": "目前尚無新品。",
-      "browseAll": "瀏覽全部商品"
+      "browseAll": "瀏覽全部商品",
+      "carouselLabel": "精選商品輪播",
+      "carouselPrev": "上一個精選商品",
+      "carouselNext": "下一個精選商品"
     },
     "categories": {
       "title": "分類",

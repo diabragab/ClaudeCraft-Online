@@ -4865,7 +4865,10 @@ export const en_XA: EnTranslations = {
       "categoriesTitle": "[Šĥóþ ƀý çáţéĝóŕý]",
       "noFeatured": "[Ñó ƒéáţúŕéð þŕóðúçţš ŕíĝĥţ ñóŵ.]",
       "noNew": "[Ñó ñéŵ þŕóðúçţš ŕíĝĥţ ñóŵ.]",
-      "browseAll": "[Ɓŕóŵšé áļļ þŕóðúçţš]"
+      "browseAll": "[Ɓŕóŵšé áļļ þŕóðúçţš]",
+      "carouselLabel": "[Ƒéáţúŕéð þŕóðúçţš çáŕóúšéļ]",
+      "carouselPrev": "[Þŕéʋíóúš ƒéáţúŕéð þŕóðúçţ]",
+      "carouselNext": "[Ñéẋţ ƒéáţúŕéð þŕóðúçţ]"
     },
     "categories": {
       "title": "[Çáţéĝóŕíéš]",
